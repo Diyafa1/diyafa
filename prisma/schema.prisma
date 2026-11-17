@@ -1,0 +1,378 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+}
+
+enum Role {
+  GUEST
+  HOST
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum ReviewState {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum City {
+  MAKKAH
+  MADINAH
+}
+
+enum ListingType {
+  LONG_TERM
+  SHORT_STAY
+  SHARED_BED
+}
+
+enum ListingStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum CancellationPolicy {
+  FLEXIBLE
+  MODERATE
+  STRICT
+}
+
+enum BookingStatus {
+  PENDING_PAYMENT
+  REQUESTED
+  CONFIRMED
+  DECLINED
+  CANCELLED
+  COMPLETED
+  EXPIRED
+}
+
+enum PaymentKind {
+  CHARGE
+  REFUND
+}
+
+enum PaymentStatus {
+  INITIATED
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED
+  CLOSED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  email        String     @unique
+  passwordHash String
+  name         String
+  phone        String?
+  role         Role       @default(GUEST)
+  status       UserStatus @default(ACTIVE)
+  gender       Gender?
+  locale       String     @default("ar")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  hostProfile   HostProfile?
+  listings      Listing[]      @relation("HostListings")
+  bookings      Booking[]      @relation("GuestBookings")
+  favorites     Favorite[]
+  reviews       Review[]
+  guestConvos   Conversation[] @relation("GuestConvos")
+  hostConvos    Conversation[] @relation("HostConvos")
+  messages      Message[]
+  payouts       Payout[]
+  disputes      Dispute[]
+}
+
+model HostProfile {
+  id              String      @id @default(cuid())
+  userId          String      @unique
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName     String
+  whatsapp        String
+  bio             String?
+  licenseNumber   String
+  licenseDocPath  String?
+  idNumber        String
+  idDocPath       String?
+  iban            String?
+  bankName        String?
+  status          ReviewState @default(PENDING)
+  rejectionReason String?
+  verifiedAt      DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
+
+model Listing {
+  id                 String             @id @default(cuid())
+  hostId             String
+  host               User               @relation("HostListings", fields: [hostId], references: [id], onDelete: Cascade)
+  type               ListingType
+  city               City
+  title              String
+  description        String
+  address            String
+  neighborhood       String?
+  latitude           Float?
+  longitude          Float?
+  distanceToHaramM   Int
+  maxGuests          Int                @default(1)
+  bedrooms           Int                @default(1)
+  bathrooms          Int                @default(1)
+  amenities          String[]
+  rules              String?
+  licenseNumber      String
+  // Prices in halalas (1 SAR = 100 halalas)
+  pricePerNight      Int?
+  pricePerMonth      Int?
+  minNights          Int                @default(1)
+  minMonths          Int                @default(1)
+  instantBook        Boolean            @default(false)
+  cancellationPolicy CancellationPolicy @default(MODERATE)
+  status             ListingStatus      @default(DRAFT)
+  rejectionReason    String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  photos        ListingPhoto[]
+  rooms         Room[]
+  calendarDays  CalendarDay[]
+  bookings      Booking[]
+  favorites     Favorite[]
+  reviews       Review[]
+  conversations Conversation[]
+
+  @@index([city, type, status])
+}
+
+model ListingPhoto {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  position  Int     @default(0)
+}
+
+model Room {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  name      String
+  gender    Gender
+  beds      Bed[]
+}
+
+model Bed {
+  id            String    @id @default(cuid())
+  roomId        String
+  room          Room      @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  label         String
+  pricePerNight Int
+  active        Boolean   @default(true)
+  bookings      Booking[]
+}
+
+// Per-day override for a listing: blocked or custom nightly price
+model CalendarDay {
+  id        String   @id @default(cuid())
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  blocked   Boolean  @default(false)
+  price     Int?
+
+  @@unique([listingId, date])
+}
+
+model CommissionSetting {
+  id             String      @id @default(cuid())
+  listingType    ListingType @unique
+  hostPercent    Float
+  guestFeePercent Float
+  vatPercent     Float       @default(15)
+  updatedAt      DateTime    @updatedAt
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  code            String        @unique
+  guestId         String
+  guest           User          @relation("GuestBookings", fields: [guestId], references: [id])
+  listingId       String
+  listing         Listing       @relation(fields: [listingId], references: [id])
+  bedId           String?
+  bed             Bed?          @relation(fields: [bedId], references: [id])
+  // unitKey = bedId for shared beds, listingId otherwise. Used by the anti-double-booking constraint.
+  unitKey         String
+  checkIn         DateTime      @db.Date
+  checkOut        DateTime      @db.Date
+  nights          Int
+  months          Int?
+  guests          Int
+  status          BookingStatus @default(PENDING_PAYMENT)
+  // Amounts in halalas
+  subtotal        Int
+  serviceFee      Int
+  vat             Int
+  total           Int
+  hostCommission  Int
+  hostPayout      Int
+  hostPercent     Float
+  guestFeePercent Float
+  vatPercent      Float
+  cancellationPolicy CancellationPolicy
+  refundedAmount  Int           @default(0)
+  cancelledBy     String?
+  cancelReason    String?
+  expiresAt       DateTime?
+  payoutId        String?
+  payout          Payout?       @relation(fields: [payoutId], references: [id])
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  payments Payment[]
+  review   Review?
+  disputes Dispute[]
+
+  @@index([listingId, status])
+  @@index([guestId])
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  bookingId   String
+  booking     Booking       @relation(fields: [bookingId], references: [id])
+  kind        PaymentKind   @default(CHARGE)
+  provider    String
+  providerRef String?
+  amount      Int
+  status      PaymentStatus @default(INITIATED)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Payout {
+  id        String       @id @default(cuid())
+  hostId    String
+  host      User         @relation(fields: [hostId], references: [id])
+  amount    Int
+  status    PayoutStatus @default(PENDING)
+  reference String?
+  paidAt    DateTime?
+  createdAt DateTime     @default(now())
+  bookings  Booking[]
+}
+
+model Favorite {
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([userId, listingId])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  bookingId String   @unique
+  booking   Booking  @relation(fields: [bookingId], references: [id])
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id])
+  rating    Int
+  comment   String
+  hostReply String?
+  hidden    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Conversation {
+  id        String    @id @default(cuid())
+  listingId String
+  listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  guestId   String
+  guest     User      @relation("GuestConvos", fields: [guestId], references: [id])
+  hostId    String
+  host      User      @relation("HostConvos", fields: [hostId], references: [id])
+  updatedAt DateTime  @updatedAt
+  createdAt DateTime  @default(now())
+  messages  Message[]
+
+  @@unique([listingId, guestId])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  body           String
+  reported       Boolean      @default(false)
+  hidden         Boolean      @default(false)
+  readAt         DateTime?
+  createdAt      DateTime     @default(now())
+}
+
+model Dispute {
+  id         String        @id @default(cuid())
+  bookingId  String
+  booking    Booking       @relation(fields: [bookingId], references: [id])
+  openedById String
+  openedBy   User          @relation(fields: [openedById], references: [id])
+  reason     String
+  status     DisputeStatus @default(OPEN)
+  resolution String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+}
+
+model EmailLog {
+  id        String   @id @default(cuid())
+  to        String
+  subject   String
+  body      String
+  status    String
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  subject   String
+  body      String
+  handled   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
