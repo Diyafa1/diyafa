@@ -25,11 +25,13 @@ export async function registerAction(formData: FormData) {
   if (!parsed.success) redirect("/register?error=form");
   const d = parsed.data;
   if (await db.user.findUnique({ where: { email: d.email } })) redirect("/register?error=exists");
+  // E-mails listed in ADMIN_EMAILS become administrators when they sign up
+  const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
   const user = await db.user.create({
-    data: { name: d.name, email: d.email, phone: d.phone, passwordHash: await hashPassword(d.password), locale: await getLocale() },
+    data: { role: admins.includes(d.email) ? "ADMIN" : "GUEST", name: d.name, email: d.email, phone: d.phone, passwordHash: await hashPassword(d.password), locale: await getLocale() },
   });
   await startSession(user);
-  redirect(d.intent === "host" ? "/host/onboarding" : safeNext(str(formData, "next")));
+  redirect(user.role === "ADMIN" ? "/admin" : d.intent === "host" ? "/host/onboarding" : safeNext(str(formData, "next")));
 }
 
 export async function loginAction(formData: FormData) {

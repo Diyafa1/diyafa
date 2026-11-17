@@ -105,7 +105,8 @@ npm test                    # lance les tests (base séparée diyafa_test)
 1. ✅ **GitHub** : dépôt privé https://github.com/Diyafa1/diyafa (code envoyé)
 2. **Supabase** : créer un projet (région la plus proche : Frankfurt ou Mumbai), récupérer l'adresse de la base (`DATABASE_URL`), l'URL du projet et la clé `service_role` ; créer 2 espaces de stockage : `photos` (public) et `documents` (privé)
 3. **Vercel** : se connecter avec GitHub, importer le dépôt, coller les variables de `.env.example` (avec `STORAGE_PROVIDER=supabase`), déployer
-4. Créer le vrai compte admin
+4. Créer le vrai compte admin : mettre ton e-mail dans `ADMIN_EMAILS` sur Vercel, puis t'inscrire normalement sur le site → tu deviens admin
+5. La base de données se crée toute seule à chaque mise en ligne (`prisma migrate deploy` dans `npm run build`)
 
 ## Organisation du code (pour s'y retrouver)
 - `prisma/schema.prisma` — structure de la base · `prisma/migrations` — dont la protection anti-double réservation
