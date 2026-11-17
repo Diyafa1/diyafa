@@ -28,11 +28,17 @@ async function check(file: File, allowPdf: boolean) {
   return ext;
 }
 
+/** Works with both the new "sb_secret_…" keys and the legacy service_role JWT. */
+function supabaseHeaders(): Record<string, string> {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  return key.startsWith("eyJ") ? { apikey: key, Authorization: `Bearer ${key}` } : { apikey: key };
+}
+
 async function supabaseUpload(bucket: string, key: string, file: File) {
   const url = `${process.env.SUPABASE_URL}/storage/v1/object/${bucket}/${key}`;
   const res = await fetch(url, {
     method: "POST",
-    headers: { Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, "Content-Type": file.type },
+    headers: { ...supabaseHeaders(), "Content-Type": file.type },
     body: Buffer.from(await file.arrayBuffer()),
   });
   if (!res.ok) throw new UploadError("upload");
@@ -74,7 +80,7 @@ export async function readPrivateDoc(key: string): Promise<{ data: Buffer; type:
   const type = [...ALLOWED.entries()].find(([, e]) => e === ext)![0];
   if (useSupabase()) {
     const res = await fetch(`${process.env.SUPABASE_URL}/storage/v1/object/documents/${key}`, {
-      headers: { Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}` },
+      headers: supabaseHeaders(),
     });
     if (!res.ok) return null;
     return { data: Buffer.from(await res.arrayBuffer()), type };
