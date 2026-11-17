@@ -61,7 +61,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
         <PriceBreakdown b={b} t={t} locale={locale} />
       </div>
 
-      {b.status === "PENDING_PAYMENT" && b.payments[0] && (
+      {b.status === "PENDING_PAYMENT" && b.payments[0] && (process.env.PAYMENT_PROVIDER ?? "test") === "test" && (
         <Link href={`/pay/test/${b.payments[0].id}`} className="btn-primary no-underline">{t("trips.payNow")}</Link>
       )}
 

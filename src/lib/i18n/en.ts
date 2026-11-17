@@ -145,14 +145,14 @@ export const en = {
   "book.err.generic": "Something went wrong. Please try again.",
 
   "pay.testTitle": "Test payment",
-  "pay.testNote": "This is a test page: no real money is charged. The real gateway (Mada, Apple Pay, cards) will replace it.",
+  "pay.testNote": "This is a test page: no real money is charged. The real payment page (cards, Apple Pay) will replace it.",
   "pay.amount": "Amount",
   "pay.payNow": "Pay (test)",
   "pay.fail": "Simulate a failure",
   "pay.success": "Payment received",
   "pay.failed": "Payment failed. The dates have been released.",
-  "pay.expired": "The 15-minute payment window has passed.",
-  "pay.timer": "Dates held for 15 minutes.",
+  "pay.expired": "The 30-minute payment window has passed.",
+  "pay.timer": "Dates held for 30 minutes.",
 
   "trips.title": "My bookings",
   "trips.empty": "You have no bookings yet.",

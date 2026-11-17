@@ -15,7 +15,7 @@ _Dernière mise à jour : séance 1 — 17 nov. 2026_
 | Design | **Tailwind CSS 4**, police **Readex Pro** (incluse, pas de Google Fonts) | |
 | Photos / documents | Disque local → **Supabase Storage** en ligne | Les licences et pièces d'identité sont **privées** |
 | E-mails | Affichés dans le terminal → **Resend** en ligne | |
-| Paiement | **Paiement de test** → **Moyasar** (Mada, Apple Pay, cartes) | Le code Moyasar est déjà écrit (`src/lib/payments`) |
+| Paiement | **Paiement de test** → **Stripe** (LLC du propriétaire : cartes, Apple Pay, Google Pay) ; Moyasar prêt si société saoudienne plus tard | Changer `PAYMENT_PROVIDER` + clé |
 | Hébergement | **Vercel** | Gratuit pour démarrer |
 
 ## Ce qui est FAIT ✅
@@ -122,6 +122,7 @@ npm test                    # lance les tests (base séparée diyafa_test)
   - ✅ Supabase étape 1 : projet créé (URL https://lqttjuzeznkwexfgqppv.supabase.co), adresses DATABASE_URL (Transaction pooler :6543 + `?pgbouncer=true&connection_limit=1`) et DIRECT_URL (Session pooler :5432) notées par le propriétaire (jamais dans le chat)
   - 🔜 Supabase étape 2 : Storage → créer les buckets `photos` (public) et `documents` (privé)
   - 🔜 Supabase étape 3 : Project Settings → API Keys → copier la clé secrète (sb_secret_… ou service_role) = SUPABASE_SERVICE_ROLE_KEY
+  - 🔜 Étape 5 (après Vercel) : Stripe → Developers → API keys → Secret key dans Vercel (`STRIPE_SECRET_KEY`, `PAYMENT_PROVIDER=stripe`). Tester d'abord avec sk_test_ et la carte 4242 4242 4242 4242.
   - 🔜 Étape 4 : Vercel (importer le dépôt, coller les variables : DATABASE_URL, DIRECT_URL, AUTH_SECRET, APP_URL, PAYMENT_PROVIDER=test, EMAIL_PROVIDER=console, STORAGE_PROVIDER=supabase, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_EMAILS, CRON_SECRET)
   - Expliquer une seule étape à la fois, très simplement.
-
+- Paiement : le propriétaire a une LLC (non saoudienne) + compte Stripe → Stripe Checkout ajouté (SAR, remboursements partiels, 3 tests). Limites rappelées : pas de Mada ; vérifier TVA/ZATCA et règles du ministère du Tourisme avec un professionnel. Délai de paiement passé à 30 min (minimum Stripe).

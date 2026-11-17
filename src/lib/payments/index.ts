@@ -1,7 +1,8 @@
 import "server-only";
 
 /**
- * Payment gateway abstraction. Today: "test". Tomorrow: Moyasar (Mada, Apple Pay, cards).
+ * Payment gateway abstraction: "test" (fake page), "stripe" (Stripe Checkout: cards, Apple Pay, Google Pay)
+ * or "moyasar" (Saudi gateway: Mada, Apple Pay, cards — needs a Saudi company).
  * Diyafa collects the full amount; the host's share is recorded on each booking (hostPayout)
  * and paid out from the admin "Payouts" page.
  */
@@ -82,6 +83,53 @@ const moyasarProvider: PaymentProvider = {
   },
 };
 
+// Stripe Checkout (hosted payment page). Amounts are in halalas, the smallest SAR unit, as Stripe expects.
+const stripeApi = async (path: string, body?: Record<string, string>) => {
+  const res = await fetch(`https://api.stripe.com/v1/${path}`, {
+    method: body ? "POST" : "GET",
+    headers: {
+      Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+    },
+    body: body ? new URLSearchParams(body).toString() : undefined,
+  });
+  const json = await res.json().catch(() => ({}));
+  return { ok: res.ok, json };
+};
+
+export const stripeProvider: PaymentProvider = {
+  name: "stripe",
+  async createPayment(o) {
+    const { ok, json } = await stripeApi("checkout/sessions", {
+      mode: "payment",
+      "line_items[0][quantity]": "1",
+      "line_items[0][price_data][currency]": "sar",
+      "line_items[0][price_data][unit_amount]": String(o.amount),
+      "line_items[0][price_data][product_data][name]": o.description,
+      success_url: o.callbackUrl,
+      cancel_url: o.callbackUrl,
+      client_reference_id: o.paymentId,
+      "metadata[payment_id]": o.paymentId,
+      expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60),
+    });
+    if (!ok) throw new Error("stripe create failed: " + (json?.error?.message ?? ""));
+    return { redirectUrl: json.url, providerRef: json.id };
+  },
+  async verifyPayment(ref) {
+    const { ok, json } = await stripeApi(`checkout/sessions/${encodeURIComponent(ref)}`);
+    if (!ok) return { paid: false, amount: 0 };
+    return { paid: json.payment_status === "paid", amount: json.amount_total ?? 0 };
+  },
+  async refund(ref, amount) {
+    const s = await stripeApi(`checkout/sessions/${encodeURIComponent(ref)}`);
+    const pi = s.json?.payment_intent;
+    if (!s.ok || !pi) return { ok: false };
+    const r = await stripeApi("refunds", { payment_intent: String(pi), amount: String(amount) });
+    return { ok: r.ok };
+  },
+};
+
 export function getPaymentProvider(): PaymentProvider {
-  return process.env.PAYMENT_PROVIDER === "moyasar" ? moyasarProvider : testProvider;
+  const p = process.env.PAYMENT_PROVIDER;
+  return p === "stripe" ? stripeProvider : p === "moyasar" ? moyasarProvider : testProvider;
 }

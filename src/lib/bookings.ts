@@ -10,7 +10,7 @@ import { getPaymentProvider } from "./payments";
 import { sendEmail } from "./email";
 
 export const ACTIVE_STATUSES = ["PENDING_PAYMENT", "REQUESTED", "CONFIRMED", "COMPLETED"] as const;
-export const HOLD_MINUTES = 15;
+export const HOLD_MINUTES = 30; // Stripe Checkout sessions last at least 30 minutes
 
 export class BookingError extends Error {
   constructor(public code: string) {

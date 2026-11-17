@@ -146,14 +146,14 @@ export const fr: Dict = {
   "book.err.generic": "Une erreur est survenue. Réessayez.",
 
   "pay.testTitle": "Paiement de test",
-  "pay.testNote": "Page de test : aucun argent réel n'est prélevé. La vraie passerelle (Mada, Apple Pay, cartes) la remplacera.",
+  "pay.testNote": "Page de test : aucun argent réel n'est prélevé. La vraie page de paiement (cartes bancaires, Apple Pay) la remplacera.",
   "pay.amount": "Montant",
   "pay.payNow": "Payer (test)",
   "pay.fail": "Simuler un échec",
   "pay.success": "Paiement reçu",
   "pay.failed": "Le paiement a échoué. Les dates ont été libérées.",
-  "pay.expired": "Le délai de 15 minutes pour payer est dépassé.",
-  "pay.timer": "Dates bloquées pendant 15 minutes.",
+  "pay.expired": "Le délai de 30 minutes pour payer est dépassé.",
+  "pay.timer": "Dates bloquées pendant 30 minutes.",
 
   "trips.title": "Mes réservations",
   "trips.empty": "Vous n'avez pas encore de réservation.",
