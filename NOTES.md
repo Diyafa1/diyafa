@@ -117,3 +117,11 @@ npm test                    # lance les tests (base séparée diyafa_test)
 ## Journal des séances
 - **Séance 1** : construction complète de la plateforme (3 espaces, 3 langues, réservations, paiements de test, commissions, versements, messagerie, avis, litiges, PWA), 36 tests automatiques + parcours navigateur. Bugs trouvés et corrigés pendant les tests : boutons multiples (Valider/Refuser) qui n'envoyaient pas le bon choix ; photos envoyées non affichées.
 - **Séance 1 (suite)** : code sauvegardé sur GitHub (Diyafa1/diyafa, branche main).
+- **Pause (fin séance 1)** — mise en ligne en cours :
+  - ✅ GitHub : https://github.com/Diyafa1/diyafa
+  - ✅ Supabase étape 1 : projet créé (URL https://lqttjuzeznkwexfgqppv.supabase.co), adresses DATABASE_URL (Transaction pooler :6543 + `?pgbouncer=true&connection_limit=1`) et DIRECT_URL (Session pooler :5432) notées par le propriétaire (jamais dans le chat)
+  - 🔜 Supabase étape 2 : Storage → créer les buckets `photos` (public) et `documents` (privé)
+  - 🔜 Supabase étape 3 : Project Settings → API Keys → copier la clé secrète (sb_secret_… ou service_role) = SUPABASE_SERVICE_ROLE_KEY
+  - 🔜 Étape 4 : Vercel (importer le dépôt, coller les variables : DATABASE_URL, DIRECT_URL, AUTH_SECRET, APP_URL, PAYMENT_PROVIDER=test, EMAIL_PROVIDER=console, STORAGE_PROVIDER=supabase, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, ADMIN_EMAILS, CRON_SECRET)
+  - Expliquer une seule étape à la fois, très simplement.
+
