@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { photoAction, roomAction, submitListingAction, updateListingAction, uploadPhotosAction } from "@/app/actions/host";
 import { ListingForm } from "../listing-form";
 import { Notice, StatusBadge } from "@/components/ui";
@@ -79,7 +79,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
               <ul className="mb-2 space-y-1 text-sm">
                 {r.beds.map((b) => (
                   <li key={b.id} className={`flex items-center justify-between ${b.active ? "" : "opacity-50"}`}>
-                    <span>{b.label} · {formatSAR(b.pricePerNight, locale)}</span>
+                    <span>{b.label} · {formatMoney(b.pricePerNight, locale)}</span>
                     <form action={roomAction}><input type="hidden" name="id" value={l.id} /><input type="hidden" name="bedId" value={b.id} /><Choice name="op" value="toggleBed" className="btn-ghost btn-sm">{b.active ? t("admin.hide") : t("admin.show")}</Choice></form>
                   </li>
                 ))}

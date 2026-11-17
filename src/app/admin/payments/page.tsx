@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { StatusBadge } from "@/components/ui";
 
 export default async function AdminPayments() {
@@ -17,7 +17,7 @@ export default async function AdminPayments() {
               <td>{fmt.format(p.createdAt)}</td>
               <td dir="ltr">{p.booking.code}</td>
               <td>{p.kind === "REFUND" ? t("admin.refundsTotal") : t("pay.amount")}</td>
-              <td className={p.kind === "REFUND" ? "text-brand" : ""}>{p.kind === "REFUND" ? "−" : ""}{formatSAR(p.amount, locale)}</td>
+              <td className={p.kind === "REFUND" ? "text-brand" : ""}>{p.kind === "REFUND" ? "−" : ""}{formatMoney(p.amount, locale)}</td>
               <td dir="ltr">{p.provider}<div className="text-xs text-neutral-400">{p.providerRef}</div></td>
               <td><StatusBadge status={p.status} label={p.status} /></td>
             </tr>

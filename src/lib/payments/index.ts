@@ -1,4 +1,5 @@
 import "server-only";
+import { CURRENCY } from "../money";
 
 /**
  * Payment gateway abstraction: "test" (fake page), "stripe" (Stripe Checkout: cards, Apple Pay, Google Pay)
@@ -30,7 +31,7 @@ const testProvider: PaymentProvider = {
   },
 };
 
-// Moyasar: https://docs.moyasar.com — activated by PAYMENT_PROVIDER=moyasar once the merchant account is approved.
+// Moyasar (Saudi gateway, SAR only — would require switching CURRENCY to SAR): https://docs.moyasar.com — activated by PAYMENT_PROVIDER=moyasar once the merchant account is approved.
 const moyasarProvider: PaymentProvider = {
   name: "moyasar",
   async createPayment(o) {
@@ -83,7 +84,7 @@ const moyasarProvider: PaymentProvider = {
   },
 };
 
-// Stripe Checkout (hosted payment page). Amounts are in halalas, the smallest SAR unit, as Stripe expects.
+// Stripe Checkout (hosted payment page). Amounts are in cents (smallest currency unit), as Stripe expects.
 const stripeApi = async (path: string, body?: Record<string, string>) => {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: body ? "POST" : "GET",
@@ -103,7 +104,7 @@ export const stripeProvider: PaymentProvider = {
     const { ok, json } = await stripeApi("checkout/sessions", {
       mode: "payment",
       "line_items[0][quantity]": "1",
-      "line_items[0][price_data][currency]": "sar",
+      "line_items[0][price_data][currency]": CURRENCY.toLowerCase(),
       "line_items[0][price_data][unit_amount]": String(o.amount),
       "line_items[0][price_data][product_data][name]": o.description,
       success_url: o.callbackUrl,

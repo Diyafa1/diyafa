@@ -3,7 +3,7 @@ import { Choice } from "@/components/Choice";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { testPayAction } from "@/app/actions/booking";
 import { LogoMark } from "@/components/Logo";
 
@@ -21,7 +21,7 @@ export default async function TestPayPage({ params }: { params: Promise<{ pid: s
         <div className="flex items-center gap-3"><LogoMark /><h1 className="text-xl">{t("pay.testTitle")}</h1></div>
         <p className="alert">{t("pay.testNote")}</p>
         <div className="text-sm text-neutral-600">{p.booking.listing.title} · {p.booking.code}</div>
-        <div className="flex justify-between text-lg"><span>{t("pay.amount")}</span><strong>{formatSAR(p.amount, locale)}</strong></div>
+        <div className="flex justify-between text-lg"><span>{t("pay.amount")}</span><strong>{formatMoney(p.amount, locale)}</strong></div>
         <p className="text-xs text-neutral-500">{t("pay.timer")}</p>
         <form action={testPayAction} className="grid gap-2">
           <input type="hidden" name="pid" value={p.id} />

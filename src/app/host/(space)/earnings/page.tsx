@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { Empty, Stat, StatusBadge } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
 
@@ -20,11 +20,11 @@ export default async function HostEarnings() {
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <Stat label={t("earn.gross")} value={formatSAR(grossKept, locale)} />
-        <Stat label={t("earn.commission")} value={formatSAR(commission, locale)} />
-        <Stat label={t("earn.net")} value={formatSAR(net, locale)} />
-        <Stat label={t("earn.paid")} value={formatSAR(paid, locale)} />
-        <Stat label={t("earn.pending")} value={formatSAR(net - paid, locale)} />
+        <Stat label={t("earn.gross")} value={formatMoney(grossKept, locale)} />
+        <Stat label={t("earn.commission")} value={formatMoney(commission, locale)} />
+        <Stat label={t("earn.net")} value={formatMoney(net, locale)} />
+        <Stat label={t("earn.paid")} value={formatMoney(paid, locale)} />
+        <Stat label={t("earn.pending")} value={formatMoney(net - paid, locale)} />
       </div>
       <section>
         <h2 className="mb-3 text-lg">{t("earn.history")}</h2>
@@ -36,7 +36,7 @@ export default async function HostEarnings() {
                 {payouts.map((p) => (
                   <tr key={p.id}>
                     <td>{fmtDay(p.paidAt ?? p.createdAt, locale)}</td>
-                    <td>{formatSAR(p.amount, locale)}</td>
+                    <td>{formatMoney(p.amount, locale)}</td>
                     <td>{p._count.bookings}</td>
                     <td dir="ltr">{p.reference ?? "—"}</td>
                     <td><StatusBadge status={p.status} label={p.status === "PAID" ? t("earn.paid") : t("earn.pending")} /></td>
@@ -58,9 +58,9 @@ export default async function HostEarnings() {
                   <tr key={b.id}>
                     <td><div dir="ltr">{b.code}</div><div className="text-xs text-neutral-500">{b.listing.title}</div></td>
                     <td>{fmtDay(b.checkIn, locale)}</td>
-                    <td>{formatSAR(b.hostPayout + b.hostCommission, locale)}</td>
-                    <td>−{formatSAR(b.hostCommission, locale)}</td>
-                    <td className="font-medium">{formatSAR(b.hostPayout, locale)}</td>
+                    <td>{formatMoney(b.hostPayout + b.hostCommission, locale)}</td>
+                    <td>−{formatMoney(b.hostCommission, locale)}</td>
+                    <td className="font-medium">{formatMoney(b.hostPayout, locale)}</td>
                     <td>{b.payoutId ? "✓" : "—"}</td>
                   </tr>
                 ))}

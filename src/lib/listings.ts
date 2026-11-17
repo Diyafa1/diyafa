@@ -17,7 +17,7 @@ export type SearchFilters = {
   checkOut?: Date;
   months?: number;
   guests?: number;
-  minPrice?: number; // halalas
+  minPrice?: number; // cents
   maxPrice?: number;
   maxDistance?: number; // metres
   sort?: "distance" | "priceAsc" | "priceDesc" | "rating";

@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { displayPrice } from "@/lib/listings";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
 
 export default async function HostListings() {
@@ -28,7 +28,7 @@ export default async function HostListings() {
               <div className="min-w-0 flex-1 text-sm">
                 <div className="flex items-start justify-between gap-2"><span className="truncate font-medium">{l.title}</span><StatusBadge status={l.status} label={t(`lstatus.${l.status}`)} /></div>
                 <div className="text-neutral-500">{t(`type.${l.type}`)} · {t(`city.${l.city}`)}</div>
-                <div>{formatSAR(displayPrice(l), locale)}</div>
+                <div>{formatMoney(displayPrice(l), locale)}</div>
                 {l.rejectionReason && l.status === "REJECTED" && <div className="text-brand">{l.rejectionReason}</div>}
                 <div className="mt-2 flex gap-2">
                   <Link href={`/host/listings/${l.id}`} className="btn-secondary btn-sm no-underline">{t("host.edit")}</Link>

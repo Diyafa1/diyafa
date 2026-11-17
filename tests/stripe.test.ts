@@ -14,12 +14,12 @@ function mockFetch(responses: Record<string, unknown>) {
 }
 
 describe("Stripe payments", () => {
-  it("creates a checkout page in SAR with the exact amount", async () => {
+  it("creates a checkout page in EUR with the exact amount", async () => {
     const calls = mockFetch({ "checkout/sessions": { id: "cs_1", url: "https://checkout.stripe.com/x" } });
     const r = await stripeProvider.createPayment({ paymentId: "p1", amount: 120750, description: "Diyafa DY-1", callbackUrl: "https://d/cb?pid=p1" });
     expect(r).toEqual({ redirectUrl: "https://checkout.stripe.com/x", providerRef: "cs_1" });
     const body = new URLSearchParams(calls[0].body);
-    expect(body.get("line_items[0][price_data][currency]")).toBe("sar");
+    expect(body.get("line_items[0][price_data][currency]")).toBe("eur");
     expect(body.get("line_items[0][price_data][unit_amount]")).toBe("120750");
   });
   it("checks payment status on Stripe's side, not from the URL", async () => {

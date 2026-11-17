@@ -1,7 +1,7 @@
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { todayUTC } from "@/lib/dates";
 import { Empty, StatusBadge } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
@@ -31,9 +31,9 @@ export default async function HostBookings() {
             <StatusBadge status={b.status} label={t(`status.${b.status}`)} />
           </div>
           <div className="flex flex-wrap gap-4 text-neutral-700">
-            <span>{t("earn.gross")}: {formatSAR(b.subtotal, locale)}</span>
-            <span>{t("earn.commission")}: −{formatSAR(b.hostCommission, locale)}</span>
-            <span className="font-medium">{t("earn.net")}: {formatSAR(b.hostPayout, locale)}</span>
+            <span>{t("earn.gross")}: {formatMoney(b.subtotal, locale)}</span>
+            <span>{t("earn.commission")}: −{formatMoney(b.hostCommission, locale)}</span>
+            <span className="font-medium">{t("earn.net")}: {formatMoney(b.hostPayout, locale)}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {b.status === "REQUESTED" && <RequestActions bookingId={b.id} />}

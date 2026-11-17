@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Choice } from "@/components/Choice";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { disputeAction } from "@/app/actions/admin";
 import { Empty, StatusBadge } from "@/components/ui";
 
@@ -17,7 +17,7 @@ export default async function AdminDisputes() {
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div>
               <div className="font-medium"><Link href={`/admin/bookings?q=${d.booking.code}`} className="link" dir="ltr">{d.booking.code}</Link> · {d.booking.listing.title}</div>
-              <div className="text-neutral-500">{d.openedBy.name} ({t(`role.${d.openedBy.role}`)}) · {formatSAR(d.booking.total, locale)}</div>
+              <div className="text-neutral-500">{d.openedBy.name} ({t(`role.${d.openedBy.role}`)}) · {formatMoney(d.booking.total, locale)}</div>
             </div>
             <StatusBadge status={d.status} label={d.status} />
           </div>

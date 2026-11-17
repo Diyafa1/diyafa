@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { getUser } from "@/lib/auth";
 import { PUBLIC_LISTING, displayPrice } from "@/lib/listings";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { DistanceBadge } from "@/components/DistanceBadge";
 import { BookingWidget } from "@/components/BookingWidget";
 import { toggleFavoriteAction } from "@/app/actions/booking";
@@ -48,7 +48,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
   const fav = user ? await db.favorite.findUnique({ where: { userId_listingId: { userId: user.id, listingId: l.id } } }) : null;
   const price = displayPrice(l);
   const unit = l.type === "LONG_TERM" ? t("listing.perMonth") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
-  const priceLabel = `${l.type === "SHARED_BED" ? t("listing.from") + " " : ""}${formatSAR(price, locale)} ${unit}`;
+  const priceLabel = `${l.type === "SHARED_BED" ? t("listing.from") + " " : ""}${formatMoney(price, locale)} ${unit}`;
   const avg = l.reviews.length ? l.reviews.reduce((s, r) => s + r.rating, 0) / l.reviews.length : null;
   const wa = l.host.hostProfile?.whatsapp?.replace(/[^\d]/g, "");
   const hostName = l.host.hostProfile?.displayName ?? l.host.name;
@@ -104,7 +104,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
                   <div key={r.id} className="card p-3 text-sm">
                     <div className="flex items-center justify-between font-medium">{r.name}<span className="badge-brand">{t(`gender.${r.gender}`)}</span></div>
                     <ul className="mt-2 space-y-1 text-neutral-600">
-                      {r.beds.map((b) => <li key={b.id} className="flex justify-between"><span>{b.label}</span><span>{formatSAR(b.pricePerNight, locale)}</span></li>)}
+                      {r.beds.map((b) => <li key={b.id} className="flex justify-between"><span>{b.label}</span><span>{formatMoney(b.pricePerNight, locale)}</span></li>)}
                     </ul>
                   </div>
                 ))}

@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { num, str } from "@/lib/forms";
 import { sendEmail } from "@/lib/email";
 import { createPayout } from "@/lib/payouts";
+import { moneyText } from "@/lib/money";
 
 const admin = () => requireRole("ADMIN");
 const refresh = () => revalidatePath("/", "layout");
@@ -89,7 +90,7 @@ export async function markPayoutPaidAction(fd: FormData) {
   const p = await db.payout.findUnique({ where: { id: str(fd, "id") }, include: { host: true } });
   if (!p || p.status === "PAID") return;
   await db.payout.update({ where: { id: p.id }, data: { status: "PAID", paidAt: new Date(), reference: str(fd, "reference").slice(0, 100) || null } });
-  await sendEmail(p.host.email, "Diyafa — versement effectué", `${(p.amount / 100).toFixed(2)} SAR`);
+  await sendEmail(p.host.email, "Diyafa — versement effectué", moneyText(p.amount));
   refresh();
 }
 

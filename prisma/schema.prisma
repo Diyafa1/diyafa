@@ -152,7 +152,7 @@ model Listing {
   amenities          String[]
   rules              String?
   licenseNumber      String
-  // Prices in halalas (1 SAR = 100 halalas)
+  // Prices in cents (1 € = 100 cents)
   pricePerNight      Int?
   pricePerMonth      Int?
   minNights          Int                @default(1)
@@ -240,7 +240,7 @@ model Booking {
   months          Int?
   guests          Int
   status          BookingStatus @default(PENDING_PAYMENT)
-  // Amounts in halalas
+  // Amounts in cents
   subtotal        Int
   serviceFee      Int
   vat             Int

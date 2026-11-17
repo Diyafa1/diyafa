@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ListingCardData } from "@/lib/listings";
 import type { Locale, T } from "@/lib/i18n";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { DistanceBadge } from "./DistanceBadge";
 
 export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; t: T; locale: Locale; query?: string }) {
@@ -25,7 +25,7 @@ export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; 
       <DistanceBadge meters={l.distanceToHaramM} t={t} compact />
       <div className="mt-1 text-sm">
         {l.type === "SHARED_BED" && <span className="text-neutral-500">{t("listing.from")} </span>}
-        <span className="font-semibold">{formatSAR(l.displayPrice, locale)}</span>
+        <span className="font-semibold">{formatMoney(l.displayPrice, locale)}</span>
         <span className="text-neutral-500"> {unit}</span>
       </div>
     </Link>

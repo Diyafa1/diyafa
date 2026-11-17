@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { reviewListingAction } from "@/app/actions/admin";
 import { displayPrice } from "@/lib/listings";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
 
 export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
@@ -40,7 +40,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
               <Link href={`/listings/${l.id}`} className="font-medium text-neutral-900">{l.title}</Link>
               <StatusBadge status={l.status} label={t(`lstatus.${l.status}`)} />
             </div>
-            <div className="text-neutral-600">{t(`type.${l.type}`)} · {t(`city.${l.city}`)} · {l.distanceToHaramM} m · {formatSAR(displayPrice(l), locale)}</div>
+            <div className="text-neutral-600">{t(`type.${l.type}`)} · {t(`city.${l.city}`)} · {l.distanceToHaramM} m · {formatMoney(displayPrice(l), locale)}</div>
             <div className="text-neutral-600">{l.host.hostProfile?.displayName ?? l.host.name} ({l.host.hostProfile ? t(`rstatus.${l.host.hostProfile.status}`) : "—"}) · {t("listing.license")}: <span dir="ltr">{l.licenseNumber}</span></div>
             <div className="text-xs text-neutral-500">{t("lf.photos")}: {l._count.photos} · {t("admin.bookings")}: {l._count.bookings}</div>
             <form action={reviewListingAction} className="flex flex-wrap gap-2 pt-2">

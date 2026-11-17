@@ -2,7 +2,7 @@ import { getT } from "@/lib/i18n/server";
 import { getAllRates } from "@/lib/settings";
 import { saveRatesAction } from "@/app/actions/admin";
 import { computeQuote } from "@/lib/pricing";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { Notice } from "@/components/ui";
 
 export default async function AdminSettings() {
@@ -23,7 +23,7 @@ export default async function AdminSettings() {
               <label className="block"><span className="label">{t("admin.vatPercent")}</span><input name={`${type}.vat`} type="number" step="0.1" min={0} max={30} defaultValue={r.vatPercent} className="input" /></label>
             </div>
             <p className="text-xs text-neutral-500">
-              1 000 SAR → {t("book.total")} {formatSAR(ex.total, locale)} · {t("earn.net")} {formatSAR(ex.hostPayout, locale)} · {t("admin.commissions")} {formatSAR(ex.platformRevenue, locale)}
+              {formatMoney(100000, locale)} → {t("book.total")} {formatMoney(ex.total, locale)} · {t("earn.net")} {formatMoney(ex.hostPayout, locale)} · {t("admin.commissions")} {formatMoney(ex.platformRevenue, locale)}
             </p>
           </section>
         );

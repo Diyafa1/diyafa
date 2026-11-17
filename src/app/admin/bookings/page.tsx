@@ -1,7 +1,7 @@
 import type { BookingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { platformRevenue } from "@/lib/stats";
 import { StatusBadge } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
@@ -39,11 +39,11 @@ export default async function AdminBookings({ searchParams }: { searchParams: Pr
               <StatusBadge status={b.status} label={t(`status.${b.status}`)} />
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-neutral-700">
-              <span>{t("book.total")}: {formatSAR(b.total, locale)}</span>
-              <span>{t("book.vat", { p: b.vatPercent })}: {formatSAR(b.vat, locale)}</span>
-              <span>{t("admin.commissions")}: {formatSAR(platformRevenue(b), locale)}</span>
-              <span>{t("earn.net")}: {formatSAR(b.hostPayout, locale)}</span>
-              {b.refundedAmount > 0 && <span className="text-brand">{t("admin.refundsTotal")}: {formatSAR(b.refundedAmount, locale)}</span>}
+              <span>{t("book.total")}: {formatMoney(b.total, locale)}</span>
+              <span>{t("book.vat", { p: b.vatPercent })}: {formatMoney(b.vat, locale)}</span>
+              <span>{t("admin.commissions")}: {formatMoney(platformRevenue(b), locale)}</span>
+              <span>{t("earn.net")}: {formatMoney(b.hostPayout, locale)}</span>
+              {b.refundedAmount > 0 && <span className="text-brand">{t("admin.refundsTotal")}: {formatMoney(b.refundedAmount, locale)}</span>}
               {b.cancelledBy && <span>({b.cancelledBy}{b.cancelReason ? `: ${b.cancelReason}` : ""})</span>}
             </div>
             {["REQUESTED", "CONFIRMED"].includes(b.status) && !b.payoutId && <CancelForm bookingId={b.id} label={t("admin.cancelRefund")} admin />}

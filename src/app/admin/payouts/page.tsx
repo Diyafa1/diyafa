@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { owedByHost } from "@/lib/payouts";
 import { createPayoutAction, markPayoutPaidAction } from "@/app/actions/admin";
 import { Empty, StatusBadge } from "@/components/ui";
@@ -25,7 +25,7 @@ export default async function AdminPayouts() {
                     <td>{h.hostProfile?.displayName ?? h.name}<div className="text-xs text-neutral-500" dir="ltr">{h.email}</div></td>
                     <td dir="ltr">{h.hostProfile?.iban ?? "—"}<div className="text-xs text-neutral-500">{h.hostProfile?.bankName}</div></td>
                     <td>{owed.get(h.id)!.count}</td>
-                    <td className="font-semibold">{formatSAR(owed.get(h.id)!.amount, locale)}</td>
+                    <td className="font-semibold">{formatMoney(owed.get(h.id)!.amount, locale)}</td>
                     <td>
                       <form action={createPayoutAction}><input type="hidden" name="hostId" value={h.id} /><button className="btn-primary btn-sm">{t("admin.createPayout")}</button></form>
                     </td>
@@ -47,7 +47,7 @@ export default async function AdminPayouts() {
                   <tr key={p.id}>
                     <td>{fmtDay(p.paidAt ?? p.createdAt, locale)}</td>
                     <td>{p.host.hostProfile?.displayName ?? p.host.name}<div className="text-xs text-neutral-500" dir="ltr">{p.host.hostProfile?.iban}</div></td>
-                    <td className="font-medium">{formatSAR(p.amount, locale)}</td>
+                    <td className="font-medium">{formatMoney(p.amount, locale)}</td>
                     <td>{p._count.bookings}</td>
                     <td><StatusBadge status={p.status} label={p.status === "PAID" ? t("earn.paid") : t("earn.pending")} /></td>
                     <td>

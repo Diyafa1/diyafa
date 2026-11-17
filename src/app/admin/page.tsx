@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { dashboardStats, occupancy30 } from "@/lib/stats";
 import { owedByHost } from "@/lib/payouts";
 import { completeFinishedStays, expireStaleHolds } from "@/lib/bookings";
@@ -38,10 +38,10 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
         <Stat label={t("admin.bookingsCount")} value={stats.totals.bookings} />
-        <Stat label={t("admin.revenue")} value={formatSAR(stats.totals.volume, locale)} />
-        <Stat label={t("admin.commissions")} value={formatSAR(stats.totals.commissions, locale)} />
-        <Stat label={t("admin.vatCollected")} value={formatSAR(stats.totals.vat, locale)} />
-        <Stat label={t("admin.owedHosts")} value={formatSAR(owedTotal, locale)} />
+        <Stat label={t("admin.revenue")} value={formatMoney(stats.totals.volume, locale)} />
+        <Stat label={t("admin.commissions")} value={formatMoney(stats.totals.commissions, locale)} />
+        <Stat label={t("admin.vatCollected")} value={formatMoney(stats.totals.vat, locale)} />
+        <Stat label={t("admin.owedHosts")} value={formatMoney(owedTotal, locale)} />
         <Stat label={t("admin.occupancy")} value={pct(occ.overall)} />
       </div>
 
@@ -68,8 +68,8 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
                     <tr key={k}>
                       <td className="font-medium">{t(`${prefix}.${k}` as never)}</td>
                       <td>{a?.bookings ?? 0}</td>
-                      <td>{formatSAR(a?.volume ?? 0, locale)}</td>
-                      <td>{formatSAR(a?.commissions ?? 0, locale)}</td>
+                      <td>{formatMoney(a?.volume ?? 0, locale)}</td>
+                      <td>{formatMoney(a?.commissions ?? 0, locale)}</td>
                       <td>{pct(occ.rate(occMap.get(k)))}</td>
                     </tr>
                   );

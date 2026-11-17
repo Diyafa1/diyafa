@@ -2,7 +2,7 @@
 import { useActionState, useEffect, useState } from "react";
 import Link from "next/link";
 import { useI18n } from "./I18nProvider";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { bookAction } from "@/app/actions/booking";
 import type { TKey } from "@/lib/i18n";
 
@@ -101,7 +101,7 @@ export function BookingWidget(props: {
                     <input type="radio" name="bedId" value={b.id} disabled={taken} checked={bedId === b.id} onChange={() => setBedId(b.id)} className="accent-[#7A2E3A]" />
                     <span>{b.roomName} · {b.label} <span className="text-neutral-500">({t(`gender.${b.gender}`)})</span></span>
                   </span>
-                  <span className="text-neutral-700">{taken ? t("listing.bedTaken") : formatSAR(b.pricePerNight, locale)}</span>
+                  <span className="text-neutral-700">{taken ? t("listing.bedTaken") : formatMoney(b.pricePerNight, locale)}</span>
                 </label>
               );
             })}
@@ -112,10 +112,10 @@ export function BookingWidget(props: {
 
       {quote && !err && (
         <dl className="space-y-1 border-t border-neutral-100 pt-3 text-sm">
-          <div className="flex justify-between"><dt>{t("book.subtotal", { n: quote.months ? t("book.months", { n: quote.months }) : t("book.nights", { n: quote.nights }) })}</dt><dd>{formatSAR(quote.q.subtotal, locale)}</dd></div>
-          <div className="flex justify-between"><dt>{t("book.serviceFee")}</dt><dd>{formatSAR(quote.q.serviceFee, locale)}</dd></div>
-          <div className="flex justify-between"><dt>{t("book.vat", { p: quote.vatPercent })}</dt><dd>{formatSAR(quote.q.vat, locale)}</dd></div>
-          <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold"><dt>{t("book.total")}</dt><dd>{formatSAR(quote.q.total, locale)}</dd></div>
+          <div className="flex justify-between"><dt>{t("book.subtotal", { n: quote.months ? t("book.months", { n: quote.months }) : t("book.nights", { n: quote.nights }) })}</dt><dd>{formatMoney(quote.q.subtotal, locale)}</dd></div>
+          <div className="flex justify-between"><dt>{t("book.serviceFee")}</dt><dd>{formatMoney(quote.q.serviceFee, locale)}</dd></div>
+          <div className="flex justify-between"><dt>{t("book.vat", { p: quote.vatPercent })}</dt><dd>{formatMoney(quote.q.vat, locale)}</dd></div>
+          <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold"><dt>{t("book.total")}</dt><dd>{formatMoney(quote.q.total, locale)}</dd></div>
         </dl>
       )}
       {!quote && !err && <p className="text-sm text-neutral-500">{t("book.selectDates")}</p>}

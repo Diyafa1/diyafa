@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { completeFinishedStays, expireStaleHolds } from "@/lib/bookings";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { todayUTC } from "@/lib/dates";
 import { Empty, Notice, Stat } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
@@ -28,7 +28,7 @@ export default async function HostDashboard({ searchParams }: { searchParams: Pr
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label={t("host.requests")} value={requests.length} />
         <Stat label={t("host.upcoming")} value={upcoming.length} />
-        <Stat label={t("earn.pending")} value={formatSAR(owed._sum.hostPayout ?? 0, locale)} />
+        <Stat label={t("earn.pending")} value={formatMoney(owed._sum.hostPayout ?? 0, locale)} />
         <Stat label={t("host.listings")} value={count("APPROVED")} sub={`${t("lstatus.PENDING")}: ${count("PENDING")} · ${t("lstatus.DRAFT")}: ${count("DRAFT")}`} />
       </div>
 
@@ -41,7 +41,7 @@ export default async function HostDashboard({ searchParams }: { searchParams: Pr
                 <div>
                   <div className="font-medium">{b.listing.title}{b.bed ? ` · ${b.bed.label}` : ""}</div>
                   <div className="text-neutral-600">{b.guest.name} · {b.guests} · {fmtDay(b.checkIn, locale)} → {fmtDay(b.checkOut, locale)}</div>
-                  <div className="text-neutral-600">{t("earn.net")}: <strong>{formatSAR(b.hostPayout, locale)}</strong></div>
+                  <div className="text-neutral-600">{t("earn.net")}: <strong>{formatMoney(b.hostPayout, locale)}</strong></div>
                 </div>
                 <RequestActions bookingId={b.id} />
               </li>
@@ -61,7 +61,7 @@ export default async function HostDashboard({ searchParams }: { searchParams: Pr
                     <td>{fmtDay(b.checkIn, locale)} → {fmtDay(b.checkOut, locale)}</td>
                     <td>{b.listing.title}</td>
                     <td>{b.guest.name}</td>
-                    <td className="text-end">{formatSAR(b.hostPayout, locale)}</td>
+                    <td className="text-end">{formatMoney(b.hostPayout, locale)}</td>
                   </tr>
                 ))}
               </tbody>

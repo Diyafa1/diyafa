@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { computeCancellation } from "@/lib/cancellation";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { todayUTC } from "@/lib/dates";
 import { CancelForm } from "@/components/CancelForm";
 import { PriceBreakdown } from "@/components/PriceBreakdown";
@@ -78,7 +78,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
 
       {canCancel && preview && (
         <section>
-          <CancelForm bookingId={b.id} label={t("trips.cancel")} preview={t("trips.refundPreview", { amount: formatSAR(preview.refundAmount, locale) })} />
+          <CancelForm bookingId={b.id} label={t("trips.cancel")} preview={t("trips.refundPreview", { amount: formatMoney(preview.refundAmount, locale) })} />
           <p className="mt-2 text-xs text-neutral-500">{t(`policy.${b.cancellationPolicy}.desc`)}</p>
         </section>
       )}

@@ -156,7 +156,7 @@ describe("payment, requests, cancellation, payouts", () => {
     const b = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
     expect(b.status).toBe("CANCELLED");
     expect(b.refundedAmount).toBe(Math.round(b.total * 0.5));
-    expect(b.hostPayout).toBe(9000); // half of 200 SAR minus 10%
+    expect(b.hostPayout).toBe(9000); // half of 200 € minus 10%
     expect(await db.payment.count({ where: { bookingId: b.id, kind: "REFUND" } })).toBe(1);
   });
   it("payouts group what is owed to the host and never pay twice", async () => {

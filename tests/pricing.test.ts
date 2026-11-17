@@ -6,11 +6,11 @@ import { checkAccess } from "@/lib/access";
 import { distanceMeters, HARAM_COORDS, walkMinutes } from "@/lib/haram";
 
 describe("prices, commissions and VAT", () => {
-  it("splits 1,000 SAR correctly (10% host, 5% guest fee, 15% VAT)", () => {
+  it("splits 1,000 € correctly (10% host, 5% guest fee, 15% VAT)", () => {
     const q = computeQuote(100000, { hostPercent: 10, guestFeePercent: 5, vatPercent: 15 });
-    expect(q.serviceFee).toBe(5000); // 50 SAR
-    expect(q.vat).toBe(15750); // 15% of 1,050 SAR
-    expect(q.total).toBe(120750); // 1,207.50 SAR
+    expect(q.serviceFee).toBe(5000); // 50 €
+    expect(q.vat).toBe(15750); // 15% of 1,050 €
+    expect(q.total).toBe(120750); // 1,207.50 €
     expect(q.hostCommission).toBe(10000);
     expect(q.hostPayout).toBe(90000);
     expect(q.platformRevenue).toBe(15000);

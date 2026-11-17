@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Booking, Listing, ListingPhoto } from "@prisma/client";
 import type { Locale, T } from "@/lib/i18n";
-import { formatSAR } from "@/lib/money";
+import { formatMoney } from "@/lib/money";
 import { StatusBadge } from "./ui";
 
 export function fmtDay(d: Date, locale: Locale) {
@@ -22,7 +22,7 @@ export function TripCard({ b, t, locale, href }: { b: Booking & { listing: Listi
         </div>
         <div className="text-xs text-neutral-500">{t(`city.${b.listing.city}`)} · {b.code}</div>
         <div className="text-sm text-neutral-700">{fmtDay(b.checkIn, locale)} → {fmtDay(b.checkOut, locale)}</div>
-        <div className="text-sm font-medium">{formatSAR(b.total, locale)}</div>
+        <div className="text-sm font-medium">{formatMoney(b.total, locale)}</div>
       </div>
     </Link>
   );

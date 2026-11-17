@@ -9,7 +9,7 @@ export const DEFAULT_RATES: Record<ListingType, Rates> = {
 };
 
 export type Quote = {
-  subtotal: number; // accommodation price (halalas)
+  subtotal: number; // accommodation price (cents)
   serviceFee: number; // paid by guest to Diyafa
   vat: number; // VAT on (subtotal + service fee)
   total: number; // what the guest pays
