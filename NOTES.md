@@ -83,7 +83,7 @@ _Dernière mise à jour : séance 1 — 17 nov. 2026_
 ⚠️ À supprimer avant la vraie mise en ligne (ne pas lancer `npm run db:seed` en production).
 
 ## Ce qui RESTE À FAIRE 🔜
-1. **Mise en ligne** (besoin de toi) : créer les comptes GitHub, Supabase, Vercel → voir « Étapes de mise en ligne »
+1. **Mise en ligne** (besoin de toi) : ~~GitHub~~ ✅ fait (dépôt privé Diyafa1/diyafa) — reste Supabase et Vercel → voir « Étapes de mise en ligne »
 2. **Vraie passerelle de paiement** : ouvrir un compte Moyasar (registre du commerce nécessaire), puis mettre `PAYMENT_PROVIDER=moyasar` + les clés. Ajouter le webhook Moyasar en plus du retour navigateur.
 3. **E-mails réels** : compte Resend + nom de domaine
 4. **Nom de domaine** (ex. diyafa.sa)
@@ -102,7 +102,7 @@ npm test                    # lance les tests (base séparée diyafa_test)
 ```
 
 ## Étapes de mise en ligne (à faire ensemble)
-1. **GitHub** : créer un compte, puis un dépôt privé « diyafa » → j'y envoie le code
+1. ✅ **GitHub** : dépôt privé https://github.com/Diyafa1/diyafa (code envoyé)
 2. **Supabase** : créer un projet (région la plus proche : Frankfurt ou Mumbai), récupérer l'adresse de la base (`DATABASE_URL`), l'URL du projet et la clé `service_role` ; créer 2 espaces de stockage : `photos` (public) et `documents` (privé)
 3. **Vercel** : se connecter avec GitHub, importer le dépôt, coller les variables de `.env.example` (avec `STORAGE_PROVIDER=supabase`), déployer
 4. Créer le vrai compte admin
@@ -115,3 +115,4 @@ npm test                    # lance les tests (base séparée diyafa_test)
 
 ## Journal des séances
 - **Séance 1** : construction complète de la plateforme (3 espaces, 3 langues, réservations, paiements de test, commissions, versements, messagerie, avis, litiges, PWA), 36 tests automatiques + parcours navigateur. Bugs trouvés et corrigés pendant les tests : boutons multiples (Valider/Refuser) qui n'envoyaient pas le bon choix ; photos envoyées non affichées.
+- **Séance 1 (suite)** : code sauvegardé sur GitHub (Diyafa1/diyafa, branche main).
