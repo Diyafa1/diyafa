@@ -135,4 +135,9 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Vitesse : les fonctions Vercel tournent à Singapour (`regions: ["sin1"]` dans vercel.json), à côté de la base Supabase ; l'utilisateur connecté n'est lu qu'une fois par page (`cache`). Adresse du site : https://diyafa-omega.vercel.app (APP_URL).
 - Sécurité Supabase : migration `lock_tables` (RLS activé sur toutes les tables + droits retirés aux rôles publics anon/authenticated). Le site n'est pas concerné (il se connecte en propriétaire des tables).
 - Admin → tableau de bord : bouton « Créer une annonce de test (Médine) » (hôte de test demo-host@diyafa.test). Supprimer ces annonces avant le lancement.
+- **Fin séance 2 — À REPRENDRE ICI :**
+  1. 🔴 Paiement Stripe refusé (« payment_unavailable ») : lire dans Vercel → Logs la ligne `[payment] stripe createPayment failed: …`. Soupçon : clé collée = `mk_…` au lieu de `sk_test_…`, ou clé mal copiée. Corriger STRIPE_SECRET_KEY puis Redeploy. Tester avec 4242 4242 4242 4242.
+  2. 🔴 Photos des annonces ne s'affichent pas : vérifier que le bucket Supabase `photos` est bien **Public** (documents doit rester privé).
+  3. Ensuite : nom de domaine (diyafa.com est pris → idées : diyafastay.com, diyafa.co, diyafa.app, mydiyafa.com), puis APP_URL.
+  4. Supprimer les annonces de test avant le lancement.
 
