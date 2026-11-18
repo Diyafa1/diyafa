@@ -132,4 +132,5 @@ npm test                    # lance les tests (base séparée diyafa_test)
   - 🔜 Stripe : Vercel → Settings → Environment Variables : `STRIPE_SECRET_KEY` + `PAYMENT_PROVIDER=stripe` → Redeploy. Tester avec sk_test_ et la carte 4242 4242 4242 4242, puis passer en sk_live_.
   - 🔜 Nom de domaine (Vercel → Domains), puis mettre à jour `APP_URL`.
   - Plus tard : Resend (e-mails réels), relecture juridique, comptable (TVA).
+- Vitesse : les fonctions Vercel tournent à Singapour (`regions: ["sin1"]` dans vercel.json), à côté de la base Supabase ; l'utilisateur connecté n'est lu qu'une fois par page (`cache`). Adresse du site : https://diyafa-omega.vercel.app (APP_URL).
 

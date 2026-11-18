@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import bcrypt from "bcryptjs";
@@ -25,13 +26,13 @@ export async function endSession() {
 }
 
 /** Current user, re-read from the database on every request (so suspensions and role changes apply immediately). */
-export async function getUser(): Promise<User | null> {
+export const getUser = cache(async (): Promise<User | null> => {
   const s = await verifySession((await cookies()).get(SESSION_COOKIE)?.value);
   if (!s) return null;
   const user = await db.user.findUnique({ where: { id: s.uid } });
   if (!user || user.status === "SUSPENDED") return null;
   return user;
-}
+}); // cached: one database read per page, even if the layout and the page both ask
 
 export async function requireUser(): Promise<User> {
   const u = await getUser();
