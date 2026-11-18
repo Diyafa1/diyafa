@@ -140,7 +140,7 @@ npm test                    # lance les tests (base séparée diyafa_test)
   2. 🔴 Photos des annonces ne s'affichent pas : vérifier que le bucket Supabase `photos` est bien **Public** (documents doit rester privé).
   3. Réfléchir à un **nom de marque en anglais** (le propriétaire le souhaite) → changer `app.name` dans `src/lib/i18n/*.ts`, le titre dans `src/app/layout.tsx` et `src/app/manifest.ts`, et peut-être le logo ض.
   4. Ensuite : nom de domaine (diyafa.com est pris → idées : diyafastay.com, diyafa.co, diyafa.app, mydiyafa.com), puis APP_URL.
-  5. **Stratégie de lancement** : trouver les premiers hôtes, cible (pèlerins étrangers / habitants), prix et commissions, marketing (réseaux sociaux, agences Omra, mosquées, bouche-à-oreille), date de lancement selon la saison (Ramadan, Omra, Hajj).
+  5. **Stratégie de lancement** — cible prioritaire : **pèlerins de Belgique et de France** (c'est de là que viennent le plus de demandes). Idées techniques liées : langue choisie automatiquement selon le navigateur (français pour FR/BE), textes et FAQ pensés pour eux (vols, transferts depuis Jeddah/Madinah, Omra), prix en € déjà fait. trouver les premiers hôtes, cible (pèlerins étrangers / habitants), prix et commissions, marketing (réseaux sociaux, agences Omra, mosquées, bouche-à-oreille), date de lancement selon la saison (Ramadan, Omra, Hajj).
   6. Supprimer les annonces de test avant le lancement.
 
 ## Liste avant la date de lancement
