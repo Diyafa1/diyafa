@@ -6,6 +6,7 @@ import { dashboardStats, occupancy30 } from "@/lib/stats";
 import { owedByHost } from "@/lib/payouts";
 import { completeFinishedStays, expireStaleHolds } from "@/lib/bookings";
 import { Stat } from "@/components/ui";
+import { createDemoListingAction } from "@/app/actions/admin";
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
   const { t, locale } = await getT();
@@ -53,6 +54,11 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
           <Link href="/admin/disputes" className="btn-secondary btn-sm no-underline">{t("admin.disputes")}: {pending[2]}</Link>
           <Link href="/admin/moderation" className="btn-secondary btn-sm no-underline">{t("admin.reportedMessages")}: {pending[3]}</Link>
         </div>
+      </section>
+
+      <section className="card flex flex-wrap items-center justify-between gap-3 p-4">
+        <p className="text-sm text-neutral-600">{t("admin.demoHint")}</p>
+        <form action={createDemoListingAction}><button className="btn-secondary btn-sm">{t("admin.demoCreate")}</button></form>
       </section>
 
       <div className="grid gap-6 md:grid-cols-2">

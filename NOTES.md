@@ -133,4 +133,6 @@ npm test                    # lance les tests (base séparée diyafa_test)
   - 🔜 Nom de domaine (Vercel → Domains), puis mettre à jour `APP_URL`.
   - Plus tard : Resend (e-mails réels), relecture juridique, comptable (TVA).
 - Vitesse : les fonctions Vercel tournent à Singapour (`regions: ["sin1"]` dans vercel.json), à côté de la base Supabase ; l'utilisateur connecté n'est lu qu'une fois par page (`cache`). Adresse du site : https://diyafa-omega.vercel.app (APP_URL).
+- Sécurité Supabase : migration `lock_tables` (RLS activé sur toutes les tables + droits retirés aux rôles publics anon/authenticated). Le site n'est pas concerné (il se connecte en propriétaire des tables).
+- Admin → tableau de bord : bouton « Créer une annonce de test (Médine) » (hôte de test demo-host@diyafa.test). Supprimer ces annonces avant le lancement.
 

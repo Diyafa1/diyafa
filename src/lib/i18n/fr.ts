@@ -370,6 +370,8 @@ export const fr: Dict = {
   "admin.none": "Rien ici.",
   "admin.handled": "Traité",
   "admin.markHandled": "Marquer comme traité",
+  "admin.demoCreate": "Créer une annonce de test (Médine)",
+  "admin.demoHint": "Pour tester vous-même la réservation et le paiement. À supprimer avant le lancement (Annonces → Supprimer).",
   "admin.refundsTotal": "Remboursé",
 
   "role.GUEST": "Voyageur",

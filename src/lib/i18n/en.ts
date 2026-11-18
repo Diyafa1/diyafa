@@ -369,6 +369,8 @@ export const en = {
   "admin.none": "Nothing here.",
   "admin.handled": "Handled",
   "admin.markHandled": "Mark as handled",
+  "admin.demoCreate": "Create a test listing (Madinah)",
+  "admin.demoHint": "Test the booking and payment yourself. Delete it before launch (Listings → Delete).",
   "admin.refundsTotal": "Refunded",
 
   "role.GUEST": "Traveller",

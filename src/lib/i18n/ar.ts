@@ -370,6 +370,8 @@ export const ar: Dict = {
   "admin.none": "لا يوجد شيء.",
   "admin.handled": "تمت المعالجة",
   "admin.markHandled": "تحديد كمُعالج",
+  "admin.demoCreate": "إنشاء إعلان تجريبي (المدينة)",
+  "admin.demoHint": "لتجربة الحجز والدفع بنفسك. احذفه قبل الإطلاق (الإعلانات ← حذف).",
   "admin.refundsTotal": "المسترد",
 
   "role.GUEST": "ضيف",
