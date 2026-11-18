@@ -119,7 +119,7 @@ export function BookingWidget(props: {
         </dl>
       )}
       {!quote && !err && <p className="text-sm text-neutral-500">{t("book.selectDates")}</p>}
-      {err && <p className="alert-brand">{t(`book.err.${err}` as TKey) || t("book.err.generic")}</p>}
+      {err && <p className="alert-brand">{t(`book.err.${err}` as TKey) === `book.err.${err}` ? t("book.err.generic") : t(`book.err.${err}` as TKey)}</p>}
 
       {props.loggedIn ? (
         <button className="btn-primary w-full" disabled={!ready || pending || !!qError || !quote}>
