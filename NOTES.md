@@ -128,3 +128,8 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Paiement : le propriétaire a une LLC (non saoudienne) + compte Stripe → Stripe Checkout ajouté (SAR, remboursements partiels, 3 tests). Limites rappelées : pas de Mada ; vérifier TVA/ZATCA et règles du ministère du Tourisme avec un professionnel. Délai de paiement passé à 30 min (minimum Stripe).
 - **Devise : euros (€)** à la demande du propriétaire (tout le site, Stripe, e-mails, données de démo). Montants stockés en centimes. Pour changer de devise : `CURRENCY` dans `src/lib/money.ts` + libellés « (€) » dans `src/lib/i18n`. Moyasar ne fonctionne qu'en SAR. TVA toujours à 15 % par défaut (réglable dans Admin → Commissions) — à valider avec un comptable.
 - Nom de domaine : à acheter par le propriétaire (ex. via Vercel → Domains, ou OVH/Namecheap), puis on le relie à Vercel.
+- **Séance 2 (18 nov.)** : 🎉 **site en ligne sur Vercel** (projet `diyafa`, compte belgiumtx-1049), base Supabase région Singapour (aws-1-ap-southeast-1), buckets `photos` et `documents` créés, compte admin créé via ADMIN_EMAILS. Base en ligne vide (pas de données de démo, c'est voulu).
+  - 🔜 Stripe : Vercel → Settings → Environment Variables : `STRIPE_SECRET_KEY` + `PAYMENT_PROVIDER=stripe` → Redeploy. Tester avec sk_test_ et la carte 4242 4242 4242 4242, puis passer en sk_live_.
+  - 🔜 Nom de domaine (Vercel → Domains), puis mettre à jour `APP_URL`.
+  - Plus tard : Resend (e-mails réels), relecture juridique, comptable (TVA).
+
