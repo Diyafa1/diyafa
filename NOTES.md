@@ -142,3 +142,13 @@ npm test                    # lance les tests (base séparée diyafa_test)
   4. Ensuite : nom de domaine (diyafa.com est pris → idées : diyafastay.com, diyafa.co, diyafa.app, mydiyafa.com), puis APP_URL.
   5. Supprimer les annonces de test avant le lancement.
 
+## Liste avant la date de lancement
+- [ ] Paiement Stripe testé (carte 4242), puis clé **live** `sk_live_…` dans Vercel + Redeploy
+- [ ] Photos visibles (bucket `photos` public)
+- [ ] Nom de marque (anglais) + nom de domaine branché, APP_URL mis à jour
+- [ ] E-mails réels (Resend + domaine) — sinon les clients ne reçoivent aucune confirmation
+- [ ] Annonces et comptes de test supprimés
+- [ ] Premiers vrais hôtes inscrits et annonces validées (avoir des logements le jour J)
+- [ ] Conditions d'utilisation / confidentialité relues par un juriste ; TVA vérifiée par un comptable
+- [ ] Test complet sur téléphone : inscription, réservation, paiement, annulation, remboursement
+
