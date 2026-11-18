@@ -140,7 +140,8 @@ npm test                    # lance les tests (base séparée diyafa_test)
   2. 🔴 Photos des annonces ne s'affichent pas : vérifier que le bucket Supabase `photos` est bien **Public** (documents doit rester privé).
   3. Réfléchir à un **nom de marque en anglais** (le propriétaire le souhaite) → changer `app.name` dans `src/lib/i18n/*.ts`, le titre dans `src/app/layout.tsx` et `src/app/manifest.ts`, et peut-être le logo ض.
   4. Ensuite : nom de domaine (diyafa.com est pris → idées : diyafastay.com, diyafa.co, diyafa.app, mydiyafa.com), puis APP_URL.
-  5. Supprimer les annonces de test avant le lancement.
+  5. **Stratégie de lancement** : trouver les premiers hôtes, cible (pèlerins étrangers / habitants), prix et commissions, marketing (réseaux sociaux, agences Omra, mosquées, bouche-à-oreille), date de lancement selon la saison (Ramadan, Omra, Hajj).
+  6. Supprimer les annonces de test avant le lancement.
 
 ## Liste avant la date de lancement
 - [ ] Paiement Stripe testé (carte 4242), puis clé **live** `sk_live_…` dans Vercel + Redeploy
