@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { stripeProvider } from "@/lib/payments";
 
+process.env.STRIPE_SECRET_KEY = "sk_test_dummy";
 afterEach(() => vi.unstubAllGlobals());
 
 function mockFetch(responses: Record<string, unknown>) {
@@ -34,5 +35,14 @@ describe("Stripe payments", () => {
     const body = new URLSearchParams(calls[1].body);
     expect(body.get("payment_intent")).toBe("pi_9");
     expect(body.get("amount")).toBe("5000");
+  });
+});
+
+describe("Stripe key check", () => {
+  it("refuses a key that is not a secret key", async () => {
+    const old = process.env.STRIPE_SECRET_KEY;
+    process.env.STRIPE_SECRET_KEY = "mk_123";
+    await expect(stripeProvider.createPayment({ paymentId: "p", amount: 100, description: "x", callbackUrl: "u" })).rejects.toThrow(/sk_/);
+    process.env.STRIPE_SECRET_KEY = old;
   });
 });

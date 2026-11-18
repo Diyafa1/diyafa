@@ -177,12 +177,21 @@ export async function createBooking(user: User, input: BookingInput) {
   const provider = getPaymentProvider();
   const payment = await db.payment.create({ data: { bookingId: booking.id, provider: provider.name, amount: booking.total } });
   const appUrl = process.env.APP_URL || "http://localhost:3000";
-  const r = await provider.createPayment({
-    paymentId: payment.id,
-    amount: booking.total,
-    description: `Diyafa ${booking.code}`,
-    callbackUrl: `${appUrl}/pay/callback?pid=${payment.id}`,
-  });
+  let r;
+  try {
+    r = await provider.createPayment({
+      paymentId: payment.id,
+      amount: booking.total,
+      description: `Diyafa ${booking.code}`,
+      callbackUrl: `${appUrl}/pay/callback?pid=${payment.id}`,
+    });
+  } catch (e) {
+    // Gateway refused (wrong key, account not activated…): release the dates and tell the guest clearly.
+    console.error(`[payment] ${provider.name} createPayment failed:`, e instanceof Error ? e.message : e);
+    await db.payment.update({ where: { id: payment.id }, data: { status: "FAILED" } });
+    await db.booking.update({ where: { id: booking.id }, data: { status: "EXPIRED" } });
+    throw new BookingError("payment_unavailable");
+  }
   await db.payment.update({ where: { id: payment.id }, data: { providerRef: r.providerRef } });
   return { booking, redirectUrl: r.redirectUrl };
 }

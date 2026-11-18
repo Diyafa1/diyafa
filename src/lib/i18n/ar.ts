@@ -143,6 +143,7 @@ export const ar: Dict = {
   "book.err.gender_missing": "أضف جنسك في حسابك لحجز سرير.",
   "book.err.blocked": "أغلق المضيف بعض هذه التواريخ.",
   "book.err.not_available": "عذرًا، تم حجز هذه التواريخ للتو. اختر تواريخ أخرى.",
+  "book.err.payment_unavailable": "الدفع الإلكتروني غير متاح مؤقتًا. حاول لاحقًا.",
   "book.err.generic": "حدث خطأ. حاول مرة أخرى.",
 
   "pay.testTitle": "دفع تجريبي",

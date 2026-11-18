@@ -101,6 +101,7 @@ const stripeApi = async (path: string, body?: Record<string, string>) => {
 export const stripeProvider: PaymentProvider = {
   name: "stripe",
   async createPayment(o) {
+    if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_")) throw new Error("STRIPE_SECRET_KEY missing or not a secret key (must start with sk_)");
     const { ok, json } = await stripeApi("checkout/sessions", {
       mode: "payment",
       "line_items[0][quantity]": "1",

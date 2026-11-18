@@ -143,6 +143,7 @@ export const fr: Dict = {
   "book.err.gender_missing": "Indiquez votre sexe dans votre compte pour réserver un lit.",
   "book.err.blocked": "L'hôte a bloqué certaines de ces dates.",
   "book.err.not_available": "Désolé, ces dates viennent d'être réservées. Choisissez d'autres dates.",
+  "book.err.payment_unavailable": "Le paiement en ligne est momentanément indisponible. Réessayez plus tard.",
   "book.err.generic": "Une erreur est survenue. Réessayez.",
 
   "pay.testTitle": "Paiement de test",

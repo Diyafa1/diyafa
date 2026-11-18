@@ -142,6 +142,7 @@ export const en = {
   "book.err.gender_missing": "Add your gender in your account to book a bed.",
   "book.err.blocked": "The host has blocked some of these dates.",
   "book.err.not_available": "Sorry, these dates have just been booked. Choose other dates.",
+  "book.err.payment_unavailable": "Online payment is temporarily unavailable. Please try again later.",
   "book.err.generic": "Something went wrong. Please try again.",
 
   "pay.testTitle": "Test payment",
