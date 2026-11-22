@@ -1,6 +1,6 @@
 import "server-only";
 import { db } from "./db";
-import { sendEmail } from "./email";
+import { sendBrandEmail } from "./email";
 
 /**
  * Alerts for the owner: an e-mail to every admin + a WhatsApp message.
@@ -9,7 +9,19 @@ import { sendEmail } from "./email";
  */
 export async function notifyOwner(subject: string, body: string) {
   const admins = await db.user.findMany({ where: { role: "ADMIN", status: "ACTIVE" }, select: { email: true } });
-  await Promise.all(admins.map((a) => sendEmail(a.email, subject, body)));
+  const lines = body.split("\n").filter(Boolean);
+  const link = lines.find((x) => /https?:\/\//.test(x));
+  const url = link?.match(/https?:\/\/\S+/)?.[0] ?? `${process.env.APP_URL || ""}/admin`;
+  await Promise.all(
+    admins.map((a) =>
+      sendBrandEmail(a.email, subject, {
+        locale: "fr",
+        title: subject.replace(/^.*?Diyafa — /, ""),
+        paragraphs: lines.filter((x) => x !== link),
+        button: { label: "Ouvrir l'espace admin", url },
+      }),
+    ),
+  );
   await sendOwnerWhatsApp(`${subject}\n${body}`);
 }
 

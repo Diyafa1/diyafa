@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import crypto from "node:crypto";
 import { db } from "@/lib/db";
 import { hashPassword, startSession } from "@/lib/auth";
-import { sendEmail } from "@/lib/email";
+import { emailSimple } from "@/lib/emails";
 import { str } from "@/lib/forms";
 
 const sha256 = (s: string) => crypto.createHash("sha256").update(s).digest("hex");
@@ -18,7 +18,7 @@ export async function forgotPasswordAction(fd: FormData) {
       const token = crypto.randomBytes(32).toString("hex");
       await db.passwordReset.create({ data: { userId: user.id, tokenHash: sha256(token), expiresAt: new Date(Date.now() + 60 * 60000) } });
       const link = `${process.env.APP_URL || "http://localhost:3000"}/reset?token=${token}`;
-      await sendEmail(user.email, "Diyafa — nouveau mot de passe / new password", `Pour choisir un nouveau mot de passe, ouvrez ce lien (valable 1 heure) :\n${link}\n\nSi vous n'avez rien demandé, ignorez cet e-mail.`);
+      await emailSimple(user, user.locale === "ar" ? "ضيافة — كلمة مرور جديدة" : user.locale === "en" ? "Diyafa — new password" : "Diyafa — nouveau mot de passe", user.locale === "ar" ? "اختر كلمة مرور جديدة" : user.locale === "en" ? "Choose a new password" : "Choisissez un nouveau mot de passe", [user.locale === "ar" ? "الرابط صالح لمدة ساعة. إذا لم تطلب ذلك فتجاهل هذه الرسالة." : user.locale === "en" ? "This link is valid for 1 hour. If you did not ask for it, ignore this e-mail." : "Ce lien est valable 1 heure. Si vous n'avez rien demandé, ignorez cet e-mail."], { label: user.locale === "ar" ? "اختيار كلمة مرور" : user.locale === "en" ? "Choose a password" : "Choisir un mot de passe", url: link });
     }
   }
   redirect("/forgot?sent=1");

@@ -8,7 +8,7 @@ import { getNumberSetting, getRates } from "./settings";
 import { can } from "./permissions";
 import { computeCancellation } from "./cancellation";
 import { getPaymentProvider } from "./payments";
-import { sendEmail } from "./email";
+import { emailGuest, emailHost, emailSimple } from "./emails";
 import { moneyText } from "./money";
 import { notifyOwner } from "./notify";
 
@@ -230,12 +230,12 @@ async function rewardReferrer(referrerId: string, friendName: string) {
   if (!referrer) return;
   const code = "MERCI-" + crypto.randomBytes(3).toString("hex").toUpperCase();
   await db.promoCode.create({ data: { code, percentOff: REFERRAL_PERCENT, maxUses: 1, note: `Parrainage : ${friendName}` } });
-  await sendEmail(referrer.email, "Diyafa — merci pour votre parrainage 🎁", `${friendName} a réservé grâce à vous.\nVoici votre code de réduction de ${REFERRAL_PERCENT} % pour votre prochain séjour : ${code}`);
+  await emailSimple(referrer, "Diyafa — merci pour votre parrainage 🎁", "Merci pour votre parrainage 🎁", [`${friendName} a réservé grâce à vous.`, `Voici votre code de réduction de ${REFERRAL_PERCENT} % pour votre prochain séjour : ${code}`], { label: "Réserver un séjour", url: `${process.env.APP_URL || ""}/search` });
 }
 
 /** Called once the gateway confirms the payment. Idempotent. */
 export async function markPaymentPaid(paymentId: string) {
-  const payment = await db.payment.findUnique({ where: { id: paymentId }, include: { booking: { include: { listing: { include: { host: true } }, guest: true } } } });
+  const payment = await db.payment.findUnique({ where: { id: paymentId }, include: { booking: { include: { listing: { include: { host: true, photos: { orderBy: { position: "asc" }, take: 1 } } }, guest: true, bed: { include: { room: true } } } } } });
   if (!payment) throw new BookingError("payment");
   if (payment.status === "PAID") return payment.booking;
   const b = payment.booking;
@@ -265,16 +265,9 @@ export async function markPaymentPaid(paymentId: string) {
     `🟢 Diyafa — nouvelle réservation ${b.code}`,
     `${b.listing.title}\n${b.guest.name} · ${b.guests} pers.\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nEncaissé en ligne : ${moneyText(b.onlineAmount)}\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}\n${status === "CONFIRMED" ? "Confirmée (réservation instantanée)" : "En attente de l'hôte"}`,
   );
-  await sendEmail(
-    b.guest.email,
-    status === "CONFIRMED" ? `Diyafa — réservation confirmée ${b.code}` : `Diyafa — demande envoyée ${b.code}`,
-    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nArrivée à partir de ${b.listing.checkInTime}, départ avant ${b.listing.checkOutTime} (heure de La Mecque)\nPayé en ligne : ${moneyText(b.onlineAmount)}\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}`,
-  );
-  await sendEmail(
-    b.listing.host.email,
-    status === "CONFIRMED" ? `Diyafa — nouvelle réservation ${b.code}` : `Diyafa — nouvelle demande à accepter ${b.code}`,
-    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nLe voyageur vous paiera sur place : ${moneyText(b.payOnSite)}`,
-  );
+  const fresh = { ...b, status: status as typeof b.status };
+  await emailGuest(fresh, status === "CONFIRMED" ? "confirmed" : "requested");
+  await emailHost(fresh, status === "CONFIRMED" ? "new" : "request");
   return { ...b, status };
 }
 
@@ -301,12 +294,12 @@ async function refundBooking(bookingId: string, amount: number) {
 
 /** Host accepts or declines a request. */
 export async function respondToRequest(bookingId: string, hostId: string, accept: boolean, reason?: string, auto = false) {
-  const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: true, guest: true } });
+  const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: { include: { host: true, photos: { orderBy: { position: "asc" }, take: 1 } } }, guest: true, bed: { include: { room: true } } } });
   if (!b || b.listing.hostId !== hostId) throw new BookingError("not_found");
   if (b.status !== "REQUESTED") throw new BookingError("state");
   if (accept) {
     await db.booking.update({ where: { id: b.id }, data: { status: "CONFIRMED" } });
-    await sendEmail(b.guest.email, `Diyafa — réservation acceptée ${b.code}`, b.listing.title);
+    await emailGuest({ ...b, status: "CONFIRMED" }, "accepted");
   } else {
     await refundBooking(b.id, b.onlineAmount);
     await db.booking.update({
@@ -314,13 +307,13 @@ export async function respondToRequest(bookingId: string, hostId: string, accept
       data: { status: "DECLINED", refundedAmount: b.onlineAmount, hostPayout: 0, cancelledBy: auto ? "auto" : "decline", cancelledAt: new Date(), cancelReason: reason ?? null },
     });
     await notifyOwner(auto ? `⏱️ Diyafa — demande refusée automatiquement (pas de réponse de l'hôte) ${b.code}` : `🔴 Diyafa — demande refusée par l'hôte ${b.code}`, `${b.listing.title}\nAcompte remboursé : ${moneyText(b.onlineAmount)}`);
-    await sendEmail(b.guest.email, `Diyafa — demande refusée ${b.code}`, `${b.listing.title}\nVotre acompte vous est remboursé intégralement.`);
+    await emailGuest(b, "declined");
   }
 }
 
 /** Cancels a booking. Refund follows the listing policy for guests; full refund when the host or admin cancels. */
 export async function cancelBooking(bookingId: string, actor: User, reason: string, adminShare?: number) {
-  const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: { include: { host: true } }, guest: true } });
+  const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: { include: { host: true, photos: { orderBy: { position: "asc" }, take: 1 } } }, guest: true, bed: { include: { room: true } } } });
   if (!b) throw new BookingError("not_found");
   const by = b.guestId === actor.id ? "guest" : b.listing.hostId === actor.id ? "host" : can(actor, "refunds") ? "admin" : null;
   if (!by) throw new BookingError("not_found");
@@ -343,10 +336,10 @@ export async function cancelBooking(bookingId: string, actor: User, reason: stri
     },
   });
   const msg = `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nRemboursement : ${moneyText(out.refundAmount)}`;
-  await sendEmail(b.guest.email, `Diyafa — réservation annulée ${b.code}`, msg);
+  await emailGuest(b, "cancelled", { refund: out.refundAmount, reason: reason || undefined });
   await notifyOwner(`🟠 Diyafa — réservation annulée ${b.code} (par ${by === "guest" ? "le voyageur" : by === "host" ? "l'hôte" : "l'admin"})`, `${msg}\nRaison : ${reason || "—"}`);
   if (by === "host") await autoSuspendIfTooManyCancellations(b.listing.hostId);
-  await sendEmail(b.listing.host.email, `Diyafa — réservation annulée ${b.code}`, msg);
+  await emailHost(b, "cancelled", { reason: reason || undefined });
   return out;
 }
 
@@ -381,7 +374,7 @@ export async function autoSuspendIfTooManyCancellations(hostId: string) {
   if (changed.count > 0) {
     const host = await db.user.findUnique({ where: { id: hostId } });
     await notifyOwner(`⛔ Diyafa — hôte suspendu automatiquement`, `${host?.name} (${host?.email}) : ${n} annulations en 12 mois.\n${changed.count} annonce(s) masquée(s). Pour les remettre en ligne : Admin → Annonces → Valider.`);
-    if (host) await sendEmail(host.email, "Diyafa — vos annonces sont suspendues", `Suite à ${n} annulations en 12 mois, vos annonces ne sont plus visibles. Contactez Diyafa pour en discuter.`);
+    if (host) await emailSimple(host, "Diyafa — vos annonces sont suspendues", "Vos annonces sont suspendues", [`Suite à ${n} annulations en 12 mois, vos annonces ne sont plus visibles sur Diyafa.`, "Contactez-nous pour en discuter."], { label: "Nous contacter", url: `${process.env.APP_URL || ""}/contact` });
   }
   return true;
 }

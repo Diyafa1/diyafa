@@ -2,7 +2,7 @@ import "server-only";
 import { db } from "./db";
 import { respondToRequest, completeFinishedStays, expireStaleHolds } from "./bookings";
 import { getNumberSetting } from "./settings";
-import { sendEmail } from "./email";
+import { emailGuest, emailHost } from "./emails";
 import { addDays, dayKey, todayUTC } from "./dates";
 import { moneyText } from "./money";
 
@@ -30,14 +30,12 @@ export async function sendArrivalReminders() {
   const tomorrow = addDays(todayUTC(), 1);
   const list = await db.booking.findMany({
     where: { status: "CONFIRMED", checkIn: tomorrow, reminderSentAt: null },
-    include: { guest: true, listing: { include: { host: true } } },
+    include: { guest: true, listing: { include: { host: true, photos: { orderBy: { position: "asc" }, take: 1 } } }, bed: { include: { room: true } } },
     take: 200,
   });
   for (const b of list) {
-    await sendEmail(b.guest.email, `Diyafa — votre arrivée demain (${b.code})`,
-      `${b.listing.title}\n${b.listing.address}\nArrivée à partir de ${b.listing.checkInTime} (heure de La Mecque)\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}\nBon séjour !`);
-    await sendEmail(b.listing.host.email, `Diyafa — arrivée demain : ${b.guest.name} (${b.code})`,
-      `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)} · ${b.guests} pers.\nLe voyageur vous paiera sur place : ${moneyText(b.payOnSite)}`);
+    await emailGuest(b, "reminder");
+    await emailHost(b, "reminder");
     await db.booking.update({ where: { id: b.id }, data: { reminderSentAt: new Date() } });
   }
   return list.length;
@@ -47,12 +45,12 @@ export async function sendArrivalReminders() {
 export async function askForReviews() {
   const list = await db.booking.findMany({
     where: { status: "COMPLETED", reviewAskedAt: null, review: null, checkOut: { gte: addDays(todayUTC(), -7) } },
-    include: { guest: true, listing: true },
+    include: { guest: true, listing: { include: { host: true, photos: { orderBy: { position: "asc" }, take: 1 } } }, bed: { include: { room: true } } },
     take: 200,
   });
   const app = process.env.APP_URL || "http://localhost:3000";
   for (const b of list) {
-    await sendEmail(b.guest.email, `Diyafa — comment s'est passé votre séjour ?`, `${b.listing.title}\nLaissez un avis en 1 minute : ${app}/trips/${b.id}\nJazakum Allahu khayran.`);
+    await emailGuest(b, "review");
     await db.booking.update({ where: { id: b.id }, data: { reviewAskedAt: new Date() } });
   }
   return list.length;

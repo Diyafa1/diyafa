@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { str } from "@/lib/forms";
-import { sendEmail } from "@/lib/email";
+import { emailSimple } from "@/lib/emails";
 import { PUBLIC_LISTING } from "@/lib/listings";
 import { checkContact } from "@/lib/contact-filter";
 
@@ -36,7 +36,7 @@ export async function sendMessageAction(formData: FormData) {
   await db.message.create({ data: { conversationId: id, senderId: user.id, body } });
   await db.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
   const other = c.guestId === user.id ? c.host : c.guest;
-  await sendEmail(other.email, `Diyafa — nouveau message de ${user.name}`, `${c.listing.title}\n\n${body.slice(0, 300)}`);
+  await emailSimple(other, `Diyafa — nouveau message de ${user.name}`, `Nouveau message de ${user.name}`, [c.listing.title, `« ${body.slice(0, 300)} »`], { label: "Répondre", url: `${process.env.APP_URL || ""}/messages/${id}` });
   revalidatePath(`/messages/${id}`);
 }
 
