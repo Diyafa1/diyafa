@@ -41,7 +41,7 @@ const T = {
     hostNewS: (c: string) => `Nouvelle réservation ${c}`, hostNewT: "Vous avez une nouvelle réservation",
     hostReqS: (c: string) => `Nouvelle demande à accepter ${c}`, hostReqT: "Nouvelle demande de réservation",
     hostReqI: "Merci d'accepter ou de refuser dans les 24 heures. Sans réponse, la demande est refusée automatiquement.",
-    hostPay: "Le voyageur vous paiera sur place", hostReminderS: (c: string) => `Arrivée demain ${c}`, hostReminderT: "Un voyageur arrive demain",
+    hostPay: "Vous recevrez sur place", hostReminderS: (c: string) => `Arrivée demain ${c}`, hostReminderT: "Un voyageur arrive demain",
     reason: "Raison",
   },
   en: {
@@ -68,7 +68,7 @@ const T = {
     hostNewS: (c: string) => `New booking ${c}`, hostNewT: "You have a new booking",
     hostReqS: (c: string) => `New request to accept ${c}`, hostReqT: "New booking request",
     hostReqI: "Please accept or decline within 24 hours. Without an answer, the request is declined automatically.",
-    hostPay: "The traveller will pay you on site", hostReminderS: (c: string) => `Arrival tomorrow ${c}`, hostReminderT: "A traveller arrives tomorrow",
+    hostPay: "You will receive on site", hostReminderS: (c: string) => `Arrival tomorrow ${c}`, hostReminderT: "A traveller arrives tomorrow",
     reason: "Reason",
   },
   ar: {
@@ -95,7 +95,7 @@ const T = {
     hostNewS: (c: string) => `حجز جديد ${c}`, hostNewT: "لديك حجز جديد",
     hostReqS: (c: string) => `طلب حجز جديد ${c}`, hostReqT: "طلب حجز جديد",
     hostReqI: "يرجى القبول أو الرفض خلال 24 ساعة، وإلا سيُرفض الطلب تلقائيًا.",
-    hostPay: "سيدفع لك الضيف عند الوصول", hostReminderS: (c: string) => `وصول غدًا ${c}`, hostReminderT: "يصل ضيف غدًا",
+    hostPay: "ستستلم عند الوصول", hostReminderS: (c: string) => `وصول غدًا ${c}`, hostReminderT: "يصل ضيف غدًا",
     reason: "السبب",
   },
 };

@@ -31,8 +31,6 @@ export default async function HostBookings() {
             <StatusBadge status={b.status} label={t(`status.${b.status}`)} />
           </div>
           <div className="flex flex-wrap gap-4 text-neutral-700">
-            <span>{t("earn.gross")}: {formatMoney(b.subtotal, locale)}</span>
-            <span>{t("earn.commission")}: −{formatMoney(b.hostCommission, locale)}</span>
             <span className="font-medium">{t("earn.onSite")}: {formatMoney(["CANCELLED", "DECLINED"].includes(b.status) ? 0 : b.payOnSite, locale)}</span>
           </div>
           <div className="flex flex-wrap gap-2">
