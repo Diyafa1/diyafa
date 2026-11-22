@@ -211,3 +211,10 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Alertes WhatsApp : CallMeBot complet → reporté ; alertes par e-mail en attendant (notifications Gmail sur le téléphone).
 - **Reste avant lancement** : 1) nom de marque anglais + nom de domaine ; 2) au changement de domaine, mettre à jour : APP_URL, Google (origines + URI de redirection + branding), webhook Stripe (URL), Resend (vérifier le domaine, EMAIL_FROM) ; 3) Stripe en mode réel (sk_live_ + nouveau webhook live) ; 4) supprimer les annonces de test ; 5) textes juridiques / comptable.
 
+## Fin de séance 3 (22 nov.) — À REPRENDRE ICI
+- **Nom / domaine pas encore choisi.** Pris : diyafa.com, diyyafa.com, dardiyafa.com. Libres (vérifiés par le propriétaire) : diyafabayt.com, dardiyyafa.com, addiyafa.com. À vérifier : aldiyafa.com (favori s'il est libre), diyafastay.com, getdiyafa.com, mydiyafa.com. Idée : garder « Diyafa » comme nom affiché si le domaine a un mot en plus.
+- Renommage de marque préparé sur la branche `rename-dar-diyafa` (« Dar Diyyafa ») — NON fusionné ; à adapter au nom final.
+- Domaine à acheter chez **o2switch** (offre avec boîtes mail pro) ; le site reste sur **Vercel**. Ensuite : DNS vers Vercel (A @ → valeur donnée par Vercel, CNAME www → cname.vercel-dns.com), boîte contact@, domaine dans Resend + EMAIL_FROM, Google (origines/redirect/branding), webhook Stripe (URL), APP_URL.
+- **Stripe : problème de vérification de la société (LLC)** signalé par le propriétaire → à voir à la prochaine séance (nécessaire pour passer en mode réel sk_live_).
+- Projet futur : ouverture internationale (villes/pays gérés depuis l'admin, point d'intérêt par ville, devises).
+
