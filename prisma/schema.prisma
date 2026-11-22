@@ -160,6 +160,7 @@ model Listing {
   // Prices in cents (1 € = 100 cents)
   pricePerNight      Int?
   pricePerMonth      Int?
+  pricePerYear       Int? // long-term rentals: yearly rent in SAR (halalas), no online payment
   minNights          Int                @default(1)
   minMonths          Int                @default(1)
   instantBook        Boolean            @default(false)

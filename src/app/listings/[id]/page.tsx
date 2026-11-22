@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { getUser } from "@/lib/auth";
 import { PUBLIC_LISTING, displayPrice } from "@/lib/listings";
-import { formatMoney } from "@/lib/money";
+import { formatListingPrice, formatMoney } from "@/lib/money";
 import { DistanceBadge } from "@/components/DistanceBadge";
 import { BookingWidget } from "@/components/BookingWidget";
 import { toggleFavoriteAction } from "@/app/actions/booking";
@@ -51,8 +51,8 @@ export default async function ListingPage({ params, searchParams }: Props) {
   if (!l) notFound();
   const fav = user ? await db.favorite.findUnique({ where: { userId_listingId: { userId: user.id, listingId: l.id } } }) : null;
   const price = displayPrice(l);
-  const unit = l.type === "LONG_TERM" ? t("listing.perMonth") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
-  const priceLabel = `${l.type === "SHARED_BED" ? t("listing.from") + " " : ""}${formatMoney(price, locale)} ${unit}`;
+  const unit = l.type === "LONG_TERM" ? t("listing.perYear") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
+  const priceLabel = `${l.type === "SHARED_BED" ? t("listing.from") + " " : ""}${formatListingPrice(l, price, locale)} ${unit}`;
   const avg = l.reviews.length ? l.reviews.reduce((s, r) => s + r.rating, 0) / l.reviews.length : null;
   const hostName = l.host.hostProfile?.displayName ?? l.host.name;
 
@@ -194,7 +194,6 @@ export default async function ListingPage({ params, searchParams }: Props) {
             <LongTermContact
               t={t}
               priceLabel={priceLabel}
-              minMonths={l.minMonths}
               refCode={listingRef(l.id)}
               waNumber={longTermWhatsApp()}
               message={longTermMessage({ ref: listingRef(l.id), title: l.title, url: `${process.env.APP_URL || ""}/listings/${l.id}` })}

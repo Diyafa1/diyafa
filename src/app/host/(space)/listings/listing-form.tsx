@@ -71,9 +71,8 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
         <h2 className="text-lg">{t("lf.pricing")}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {(!l || l.type === "SHORT_STAY") && <Field label={t("lf.pricePerNight")} hint={!l ? t("type.SHORT_STAY") : undefined}><input name="pricePerNight" type="number" min={0} step="0.01" className="input" defaultValue={sar(l?.pricePerNight)} /></Field>}
-          {(!l || l.type === "LONG_TERM") && <Field label={t("lf.pricePerMonth")} hint={!l ? t("type.LONG_TERM") : undefined}><input name="pricePerMonth" type="number" min={0} step="0.01" className="input" defaultValue={sar(l?.pricePerMonth)} /></Field>}
+          {(!l || l.type === "LONG_TERM") && <Field label={t("lf.pricePerYear")} hint={!l ? t("type.LONG_TERM") : undefined}><input name="pricePerYear" type="number" min={0} step="1" className="input" defaultValue={sar(l?.pricePerYear)} /></Field>}
           {(!l || l.type !== "LONG_TERM") && <Field label={t("lf.minNights")}><input name="minNights" type="number" min={1} className="input" defaultValue={l?.minNights ?? 1} /></Field>}
-          {(!l || l.type === "LONG_TERM") && <Field label={t("lf.minMonths")}><input name="minMonths" type="number" min={1} className="input" defaultValue={l?.minMonths ?? 1} /></Field>}
         </div>
         <div className="grid grid-cols-2 gap-4">
           <Field label={t("lf.checkInTime")}><input name="checkInTime" type="time" className="input" defaultValue={l?.checkInTime ?? "15:00"} required /></Field>

@@ -61,7 +61,7 @@ async function main() {
       ] },
     },
   });
-  await db.listing.create({ data: { ...base, hostId: host2.id, type: "LONG_TERM", city: "MAKKAH", title: "استوديو للإيجار الشهري – العوالي", description: "استوديو هادئ مناسب للموظفين والطلاب. عقد شهري أو سنوي.", address: "Al Awali, Makkah", neighborhood: "العوالي", distanceToHaramM: 6500, latitude: 21.3720, longitude: 39.8600, maxGuests: 2, bedrooms: 1, bathrooms: 1, licenseNumber: "MT-73200981-01", pricePerMonth: 110000, minMonths: 3, amenities: ["wifi", "ac", "kitchen", "washer", "parking"], photos: photos([1, 5]) } });
+  await db.listing.create({ data: { ...base, hostId: host2.id, type: "LONG_TERM", city: "MAKKAH", title: "استوديو للإيجار الشهري – العوالي", description: "استوديو هادئ مناسب للموظفين والطلاب. عقد شهري أو سنوي.", address: "Al Awali, Makkah", neighborhood: "العوالي", distanceToHaramM: 6500, latitude: 21.3720, longitude: 39.8600, maxGuests: 2, bedrooms: 1, bathrooms: 1, licenseNumber: "MT-73200981-01", pricePerYear: 5400000, amenities: ["wifi", "ac", "kitchen", "washer", "parking"], photos: photos([1, 5]) } });
   const l5 = await db.listing.create({ data: { ...base, hostId: host2.id, type: "SHORT_STAY", city: "MADINAH", title: "شقة قرب المسجد النبوي – المنطقة المركزية", description: "على بعد 250 مترًا من المسجد النبوي، مناسبة للعائلات.", address: "Central Area, Madinah", neighborhood: "المنطقة المركزية", distanceToHaramM: 250, latitude: 24.4685, longitude: 39.6098, maxGuests: 4, bedrooms: 2, bathrooms: 1, licenseNumber: "MT-73200981-02", pricePerNight: 12500, instantBook: false, cancellationPolicy: "STRICT", amenities: [...base.amenities, "haramView", "familyFriendly", "wheelchair"], photos: photos([6, 2, 1]) } });
   await db.listing.create({
     data: {
@@ -74,7 +74,7 @@ async function main() {
       ] },
     },
   });
-  await db.listing.create({ data: { ...base, hostId: host2.id, type: "LONG_TERM", city: "MADINAH", title: "شقة 3 غرف للإيجار السنوي – العزيزية", description: "شقة عائلية واسعة، عقد سنوي.", address: "Al Aziziyah, Madinah", distanceToHaramM: 4200, maxGuests: 6, bedrooms: 3, bathrooms: 2, licenseNumber: "MT-73200981-04", pricePerMonth: 145000, minMonths: 12, amenities: ["ac", "kitchen", "parking", "washer", "familyFriendly"], photos: photos([5, 1, 2]) } });
+  await db.listing.create({ data: { ...base, hostId: host2.id, type: "LONG_TERM", city: "MADINAH", title: "شقة 3 غرف للإيجار السنوي – العزيزية", description: "شقة عائلية واسعة، عقد سنوي.", address: "Al Aziziyah, Madinah", distanceToHaramM: 4200, maxGuests: 6, bedrooms: 3, bathrooms: 2, licenseNumber: "MT-73200981-04", pricePerYear: 7200000, amenities: ["ac", "kitchen", "parking", "washer", "familyFriendly"], photos: photos([5, 1, 2]) } });
   await db.listing.create({ data: { ...base, status: "PENDING", hostId: host.id, type: "SHORT_STAY", city: "MADINAH", title: "شقة جديدة بانتظار الاعتماد", description: "إعلان تجريبي بانتظار مراجعة الإدارة.", address: "Madinah", distanceToHaramM: 900, maxGuests: 3, licenseNumber: "MT-73100245-09", pricePerNight: 8500, photos: photos([2]) } });
 
   // Some history for the dashboards

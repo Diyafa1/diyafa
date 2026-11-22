@@ -222,6 +222,8 @@ describe("search", () => {
   });
   it("filters by distance and price", async () => {
     expect((await searchListings({ maxDistance: 400 })).length).toBe(0);
-    expect((await searchListings({ maxPrice: 9000 })).map((l) => l.id).sort()).toEqual([bedsId, bedsWomenId].sort());
+    // price filters are in € and do not apply to long-term rentals (priced per year in SAR)
+    const cheap = await searchListings({ maxPrice: 9000 });
+    expect(cheap.filter((l) => l.type !== "LONG_TERM").map((l) => l.id).sort()).toEqual([bedsId, bedsWomenId].sort());
   });
 });

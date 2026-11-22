@@ -1,11 +1,11 @@
 import Link from "next/link";
 import type { ListingCardData } from "@/lib/listings";
 import type { Locale, T } from "@/lib/i18n";
-import { formatMoney } from "@/lib/money";
+import { formatListingPrice } from "@/lib/money";
 import { DistanceBadge } from "./DistanceBadge";
 
 export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; t: T; locale: Locale; query?: string }) {
-  const unit = l.type === "LONG_TERM" ? t("listing.perMonth") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
+  const unit = l.type === "LONG_TERM" ? t("listing.perYear") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
   return (
     <Link href={`/listings/${l.id}${query}`} className="group block text-neutral-900 no-underline">
       <div className="relative aspect-[4/3] overflow-hidden rounded-[12px] bg-neutral-100">
@@ -26,7 +26,7 @@ export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; 
       {l.type === "SHARED_BED" && l.bedGender && <div className="mt-1"><span className="badge-brand">{t(`beds.for.${l.bedGender}`)}</span></div>}
       <div className="mt-1 text-sm">
         {l.type === "SHARED_BED" && <span className="text-neutral-500">{t("listing.from")} </span>}
-        <span className="font-semibold">{formatMoney(l.displayPrice, locale)}</span>
+        <span className="font-semibold">{formatListingPrice(l, l.displayPrice, locale)}</span>
         <span className="text-neutral-500"> {unit}</span>
       </div>
     </Link>

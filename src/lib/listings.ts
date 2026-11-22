@@ -36,8 +36,8 @@ export type ListingCardData = Prisma.ListingGetPayload<{ include: typeof listing
   reviewCount: number;
 };
 
-export function displayPrice(l: { type: ListingType; pricePerNight: number | null; pricePerMonth: number | null; rooms: { beds: { pricePerNight: number }[] }[] }) {
-  if (l.type === "LONG_TERM") return l.pricePerMonth ?? 0;
+export function displayPrice(l: { type: ListingType; pricePerNight: number | null; pricePerYear: number | null; rooms: { beds: { pricePerNight: number }[] }[] }) {
+  if (l.type === "LONG_TERM") return l.pricePerYear ?? 0;
   if (l.type === "SHARED_BED") {
     const prices = l.rooms.flatMap((r) => r.beds.map((b) => b.pricePerNight));
     return prices.length ? Math.min(...prices) : 0;
@@ -69,8 +69,8 @@ export async function searchListings(f: SearchFilters): Promise<ListingCardData[
   }
   let rows = (await db.listing.findMany({ where, include: listingInclude, take: 300 })).map(decorate);
 
-  if (f.minPrice) rows = rows.filter((r) => r.displayPrice >= f.minPrice!);
-  if (f.maxPrice) rows = rows.filter((r) => r.displayPrice <= f.maxPrice!);
+  if (f.minPrice) rows = rows.filter((r) => r.type === "LONG_TERM" || r.displayPrice >= f.minPrice!);
+  if (f.maxPrice) rows = rows.filter((r) => r.type === "LONG_TERM" || r.displayPrice <= f.maxPrice!);
 
   if (f.checkIn) {
     const checkIn = f.checkIn;

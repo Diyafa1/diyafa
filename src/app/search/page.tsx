@@ -8,7 +8,7 @@ import { ListingCard } from "@/components/ListingCard";
 import { Empty } from "@/components/ui";
 import { MapView } from "@/components/MapView";
 import { HARAM_COORDS } from "@/lib/haram";
-import { formatMoney } from "@/lib/money";
+import { formatListingPrice } from "@/lib/money";
 import Link from "next/link";
 
 export const metadata = { title: "Search" };
@@ -52,7 +52,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           <MapView
             center={HARAM_COORDS[sp.city === "MADINAH" ? "MADINAH" : "MAKKAH"]}
             haramLabel={t(sp.city === "MADINAH" ? "map.nabawi" : "map.haram")}
-            points={results.filter((l) => l.latitude != null && l.longitude != null && (!sp.city || l.city === sp.city)).map((l) => ({ id: l.id, lat: l.latitude!, lng: l.longitude!, label: formatMoney(l.displayPrice, locale), href: `/listings/${l.id}${q}` }))}
+            points={results.filter((l) => l.latitude != null && l.longitude != null && (!sp.city || l.city === sp.city)).map((l) => ({ id: l.id, lat: l.latitude!, lng: l.longitude!, label: formatListingPrice(l, l.displayPrice, locale), href: `/listings/${l.id}${q}` }))}
           />
         </div>
       )}
