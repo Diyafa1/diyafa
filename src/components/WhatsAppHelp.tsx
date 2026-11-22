@@ -1,8 +1,10 @@
 import type { T } from "@/lib/i18n";
+import { longTermWhatsApp } from "@/lib/listing-ref";
 
 /** Floating "Help on WhatsApp" button, shown on every page when SUPPORT_WHATSAPP is set (e.g. +32470000000). */
 export function WhatsAppHelp({ t }: { t: T }) {
-  const n = (process.env.SUPPORT_WHATSAPP ?? "").replace(/[^\d]/g, "");
+  // Diyafa's number by default (same as long-term visits); can be changed with SUPPORT_WHATSAPP
+  const n = (process.env.SUPPORT_WHATSAPP || longTermWhatsApp()).replace(/[^\d]/g, "");
   if (!n) return null;
   return (
     <a
