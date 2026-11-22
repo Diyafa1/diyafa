@@ -143,6 +143,7 @@ export async function createListingAction(formData: FormData) {
   const user = await requireRole("HOST");
   const p = parseListingForm(formData);
   if (!p.success || (p.data.type === "SHARED_BED" && !p.data.bedGender)) redirect("/host/listings/new?error=form");
+  if ((p.data.type === "SHORT_STAY" && !p.data.pricePerNight) || (p.data.type === "LONG_TERM" && !p.data.pricePerMonth)) redirect("/host/listings/new?error=price");
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect("/host/listings/new?error=contact");
   const l = await db.listing.create({ data: { ...p.data, hostId: user.id, status: "DRAFT" } });
   redirect(`/host/listings/${l.id}?saved=1`);
@@ -153,6 +154,7 @@ export async function updateListingAction(formData: FormData) {
   const l = await ownListing(str(formData, "id"), user.id);
   const p = parseListingForm(formData);
   if (!p.success || (l.type === "SHARED_BED" && !p.data.bedGender)) redirect(`/host/listings/${l.id}?error=form`);
+  if ((l.type === "SHORT_STAY" && !p.data.pricePerNight) || (l.type === "LONG_TERM" && !p.data.pricePerMonth)) redirect(`/host/listings/${l.id}?error=price`);
   if (l.type === "SHARED_BED" && p.data.bedGender !== l.bedGender) {
     // Switching men ↔ women is only possible when no traveller is booked
     const active = await db.booking.count({ where: { listingId: l.id, status: { in: ["PENDING_PAYMENT", "REQUESTED", "CONFIRMED"] } } });

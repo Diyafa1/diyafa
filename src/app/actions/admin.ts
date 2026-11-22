@@ -41,6 +41,12 @@ export async function reviewListingAction(fd: FormData) {
     if (bookings === 0) await db.listing.delete({ where: { id: l.id } });
     else await db.listing.update({ where: { id: l.id }, data: { status: "SUSPENDED", rejectionReason: reason } });
   } else {
+    if (d === "approve") {
+      const photos = await db.listingPhoto.count({ where: { listingId: l.id } });
+      const beds = l.type === "SHARED_BED" ? await db.bed.count({ where: { room: { listingId: l.id }, active: true } }) : 1;
+      const priced = l.type === "SHORT_STAY" ? !!l.pricePerNight : l.type === "LONG_TERM" ? !!l.pricePerMonth : beds > 0;
+      if (!photos || !priced || !beds) redirect(`/admin/listings?incomplete=${l.id}&what=${!photos ? "photos" : !beds ? "beds" : "price"}`);
+    }
     const status = d === "approve" ? "APPROVED" : d === "suspend" ? "SUSPENDED" : "REJECTED";
     await db.listing.update({ where: { id: l.id }, data: { status, rejectionReason: status === "APPROVED" ? null : reason } });
     await sendEmail(l.host.email, `Diyafa — annonce ${status === "APPROVED" ? "publiée" : status === "SUSPENDED" ? "suspendue" : "refusée"}`, `${l.title}${reason ? `\n${reason}` : ""}`);

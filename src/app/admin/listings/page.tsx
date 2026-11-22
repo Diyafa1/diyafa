@@ -9,7 +9,7 @@ import { displayPrice } from "@/lib/listings";
 import { formatMoney } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
 
-export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; incomplete?: string; what?: string }> }) {
   await requireSection("listings");
   const { t, locale } = await getT();
   const sp = await searchParams;
@@ -23,6 +23,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
   });
   return (
     <div className="space-y-4">
+      {sp.incomplete && <div className="alert-brand">{t(sp.what === "photos" ? "admin.incompletePhotos" : sp.what === "beds" ? "admin.incompleteBeds" : "admin.incompletePrice")}</div>}
       <form className="flex flex-wrap gap-2">
         <input name="q" defaultValue={sp.q} placeholder={t("admin.search")} className="input max-w-xs" />
         <select name="status" defaultValue={sp.status ?? ""} className="input max-w-[180px]">
@@ -45,6 +46,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
             <div className="text-neutral-600">{t(`type.${l.type}`)} · {t(`city.${l.city}`)} · {l.distanceToHaramM} m · {formatMoney(displayPrice(l), locale)}</div>
             <div className="text-neutral-600">{l.host.hostProfile?.displayName ?? l.host.name} ({l.host.hostProfile ? t(`rstatus.${l.host.hostProfile.status}`) : "—"})</div>
             <div className="text-xs text-neutral-500">{t("lf.photos")}: {l._count.photos} · {t("admin.bookings")}: {l._count.bookings}</div>
+            {(l._count.photos === 0 || displayPrice(l) === 0) && <div className="text-xs font-medium text-brand">⚠️ {l._count.photos === 0 ? t("admin.incompletePhotos") : t("admin.incompletePrice")}</div>}
             <form action={reviewListingAction} className="flex flex-wrap gap-2 pt-2">
               <input type="hidden" name="id" value={l.id} />
               <input name="reason" placeholder={t("admin.reason")} className="input max-w-xs py-1.5" />
