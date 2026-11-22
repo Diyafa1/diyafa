@@ -6,7 +6,10 @@ import { googleEnabled } from "@/lib/google";
 export default async function Diagnostic() {
   await requireSection("settings");
   const env = process.env;
-  const raw = (v?: string) => (v === undefined ? "❌ absente" : v === "" ? "⚠️ vide" : `"${v}"`);
+  // Never print anything that looks like a secret key, even if it was pasted in the wrong setting
+  const looksSecret = (v: string) => /^(sk|rk|pk|re|sb|mk|whsec)_/i.test(v.trim()) || v.trim().length > 60;
+  const raw = (v?: string) =>
+    v === undefined ? "❌ absente" : v === "" ? "⚠️ vide" : looksSecret(v) ? `⚠️ contient une CLÉ SECRÈTE (« ${v.trim().slice(0, 8)}… ») — mauvaise case !` : `"${v}"`;
   const secret = (v?: string) => {
     const s = (v ?? "").trim();
     return !v ? "❌ absente" : `✅ présente — commence par « ${s.slice(0, 8)}… » (${s.length} caractères)${v !== s ? " ⚠️ espaces autour" : ""}`;
