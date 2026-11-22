@@ -8,10 +8,14 @@ import { db } from "@/lib/db";
 import { int, num, str } from "@/lib/forms";
 import { savePrivateDoc, savePublicImage, UploadError } from "@/lib/storage";
 import { sendEmail } from "@/lib/email";
+import { notifyOwner } from "@/lib/notify";
 import { distanceMeters, HARAM_COORDS } from "@/lib/haram";
 import { AMENITIES } from "@/lib/amenities";
 import { BookingError, respondToRequest } from "@/lib/bookings";
-import { parseDay } from "@/lib/dates";
+import { isTime, parseDay } from "@/lib/dates";
+import { checkContact } from "@/lib/contact-filter";
+
+const hasContact = (...texts: (string | null | undefined)[]) => texts.some((x) => x && !checkContact(x).ok);
 
 const file = (fd: FormData, k: string) => {
   const f = fd.get(k);
@@ -40,6 +44,7 @@ export async function hostApplicationAction(formData: FormData) {
     bankName: str(formData, "bankName"),
   });
   if (!p.success) redirect("/host/onboarding?error=form");
+  if (hasContact(p.data.bio, p.data.displayName)) redirect("/host/onboarding?error=contact");
   let idDocPath = existing?.idDocPath ?? null;
   try {
     const idf = file(formData, "idDoc");
@@ -53,8 +58,7 @@ export async function hostApplicationAction(formData: FormData) {
   await db.hostProfile.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
   const updated = await db.user.update({ where: { id: user.id }, data: { role: "HOST" } });
   await startSession(updated); // refresh role in the session cookie
-  const admins = await db.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
-  for (const a of admins) await sendEmail(a.email, "Diyafa — nouvelle demande d'hôte", `${p.data.displayName} (${user.email})`);
+  await notifyOwner("Diyafa — nouvelle demande d'hôte", `${p.data.displayName} (${user.email})`);
   redirect("/host?applied=1");
 }
 
@@ -100,6 +104,9 @@ function parseListingForm(fd: FormData) {
     minNights: z.number().int().min(1).max(90),
     minMonths: z.number().int().min(1).max(24),
     instantBook: z.boolean(),
+    checkInTime: z.string().refine(isTime),
+    checkOutTime: z.string().refine(isTime),
+    seasonalPricing: z.boolean(),
     cancellationPolicy: z.enum(["FLEXIBLE", "MODERATE", "STRICT"]),
   });
   return schema.safeParse({
@@ -122,6 +129,9 @@ function parseListingForm(fd: FormData) {
     minNights: int(fd, "minNights") ?? 1,
     minMonths: int(fd, "minMonths") ?? 1,
     instantBook: fd.get("instantBook") === "on",
+    checkInTime: str(fd, "checkInTime") || "15:00",
+    checkOutTime: str(fd, "checkOutTime") || "12:00",
+    seasonalPricing: fd.get("seasonalPricing") === "on" && type !== "LONG_TERM",
     cancellationPolicy: (str(fd, "cancellationPolicy") || "MODERATE") as CancellationPolicy,
   });
 }
@@ -130,6 +140,7 @@ export async function createListingAction(formData: FormData) {
   const user = await requireRole("HOST");
   const p = parseListingForm(formData);
   if (!p.success) redirect("/host/listings/new?error=form");
+  if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect("/host/listings/new?error=contact");
   const l = await db.listing.create({ data: { ...p.data, hostId: user.id, status: "DRAFT" } });
   redirect(`/host/listings/${l.id}?saved=1`);
 }
@@ -139,6 +150,7 @@ export async function updateListingAction(formData: FormData) {
   const l = await ownListing(str(formData, "id"), user.id);
   const p = parseListingForm(formData);
   if (!p.success) redirect(`/host/listings/${l.id}?error=form`);
+  if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect(`/host/listings/${l.id}?error=contact`);
   // Type cannot change once created (rooms/beds and bookings depend on it)
   const { type: _type, ...rest } = p.data;
   void _type;
@@ -197,6 +209,7 @@ export async function roomAction(formData: FormData) {
     const room = await db.room.findFirst({ where: { id: str(formData, "roomId"), listingId: l.id } });
     const price = num(formData, "price");
     const label = str(formData, "label").slice(0, 40);
+    if (hasContact(label)) return;
     if (room && label && price !== null && price > 0) await db.bed.create({ data: { roomId: room.id, label, pricePerNight: Math.round(price * 100) } });
   } else if (op === "toggleBed") {
     const bed = await db.bed.findFirst({ where: { id: str(formData, "bedId"), room: { listingId: l.id } } });
@@ -218,8 +231,7 @@ export async function submitListingAction(formData: FormData) {
   }
   if (!["DRAFT", "REJECTED"].includes(l.status)) redirect(`/host/listings/${l.id}`);
   await db.listing.update({ where: { id: l.id }, data: { status: "PENDING", rejectionReason: null } });
-  const admins = await db.user.findMany({ where: { role: "ADMIN" }, select: { email: true } });
-  for (const a of admins) await sendEmail(a.email, "Diyafa — annonce à valider", l.title);
+  await notifyOwner("Diyafa — annonce à valider", l.title);
   redirect(`/host/listings/${l.id}?submitted=1`);
 }
 

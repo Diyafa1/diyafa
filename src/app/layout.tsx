@@ -8,6 +8,7 @@ import { Header, MobileNav } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { I18nProvider } from "@/components/I18nProvider";
 import { PwaRegister } from "@/components/PwaRegister";
+import { WhatsAppHelp } from "@/components/WhatsAppHelp";
 
 export const metadata: Metadata = {
   title: { default: "Diyafa ضيافة", template: "%s · Diyafa" },
@@ -29,6 +30,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <main className="flex-1 pb-20 md:pb-0">{children}</main>
           <Footer t={t} />
           <MobileNav user={user} t={t} />
+          <WhatsAppHelp t={t} />
           <PwaRegister />
         </I18nProvider>
       </body>

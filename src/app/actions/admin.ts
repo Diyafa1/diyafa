@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { num, str } from "@/lib/forms";
 import { sendEmail } from "@/lib/email";
 import { createPayout } from "@/lib/payouts";
+import { parseDay } from "@/lib/dates";
+import { normalizeCode } from "@/lib/bookings";
 import { moneyText } from "@/lib/money";
 
 const admin = () => requireRole("ADMIN");
@@ -150,4 +152,45 @@ export async function createDemoListingAction() {
     },
   });
   redirect(`/listings/${listing.id}`);
+}
+
+// ---------- Seasons (automatic price increases) ----------
+export async function seasonAction(fd: FormData) {
+  await admin();
+  if (str(fd, "op") === "delete") {
+    await db.season.delete({ where: { id: str(fd, "id") } }).catch(() => {});
+  } else {
+    const name = str(fd, "name").slice(0, 60);
+    const percent = num(fd, "percent");
+    let start: Date, end: Date;
+    try {
+      start = parseDay(str(fd, "startDate"));
+      end = parseDay(str(fd, "endDate"));
+    } catch {
+      return;
+    }
+    if (name && percent !== null && percent > 0 && percent <= 300 && end >= start) await db.season.create({ data: { name, startDate: start, endDate: end, percent } });
+  }
+  refresh();
+}
+
+// ---------- Promo codes ----------
+export async function promoAction(fd: FormData) {
+  await admin();
+  const op = str(fd, "op");
+  if (op === "toggle") {
+    const p = await db.promoCode.findUnique({ where: { id: str(fd, "id") } });
+    if (p) await db.promoCode.update({ where: { id: p.id }, data: { active: !p.active } });
+  } else {
+    const code = normalizeCode(str(fd, "code"));
+    const percent = num(fd, "percentOff");
+    const maxUses = num(fd, "maxUses");
+    const until = str(fd, "validUntil");
+    if (/^[A-Z0-9-]{3,20}$/.test(code) && percent !== null && percent > 0 && percent <= 100) {
+      await db.promoCode
+        .create({ data: { code, percentOff: percent, maxUses: maxUses && maxUses > 0 ? Math.round(maxUses) : null, validUntil: until ? parseDay(until) : null, note: str(fd, "note").slice(0, 100) || null } })
+        .catch(() => {});
+    }
+  }
+  refresh();
 }

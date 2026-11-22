@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { startSession } from "@/lib/auth";
 import { getLocale } from "@/lib/i18n/server";
 import { GOOGLE_STATE_COOKIE, googleEnabled, googleProfileFromCode } from "@/lib/google";
+import { referrerFromCookie } from "@/lib/referral";
 
 /** Step 2: Google sends the visitor back here. We check everything server-side, then log in or create the account. */
 export async function GET(req: Request) {
@@ -34,6 +35,7 @@ export async function GET(req: Request) {
         email: profile.email,
         name: profile.name,
         passwordHash: "!google", // no password: this account signs in with Google
+        referredById: await referrerFromCookie(),
         role: admins.includes(profile.email) ? "ADMIN" : "GUEST",
         locale: await getLocale(),
       },

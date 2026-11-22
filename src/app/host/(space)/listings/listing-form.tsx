@@ -66,6 +66,16 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
           {(!l || l.type !== "LONG_TERM") && <Field label={t("lf.minNights")}><input name="minNights" type="number" min={1} className="input" defaultValue={l?.minNights ?? 1} /></Field>}
           {(!l || l.type === "LONG_TERM") && <Field label={t("lf.minMonths")}><input name="minMonths" type="number" min={1} className="input" defaultValue={l?.minMonths ?? 1} /></Field>}
         </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Field label={t("lf.checkInTime")}><input name="checkInTime" type="time" className="input" defaultValue={l?.checkInTime ?? "15:00"} required /></Field>
+          <Field label={t("lf.checkOutTime")}><input name="checkOutTime" type="time" className="input" defaultValue={l?.checkOutTime ?? "12:00"} required /></Field>
+        </div>
+        {(!l || l.type !== "LONG_TERM") && (
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="seasonalPricing" defaultChecked={l?.seasonalPricing} className="mt-1 accent-[#7A2E3A]" />
+            <span>{t("lf.seasonal")}<span className="block text-xs text-neutral-500">{t("lf.seasonalHint")}</span></span>
+          </label>
+        )}
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" name="instantBook" defaultChecked={l?.instantBook} className="accent-[#7A2E3A]" />
           {t("lf.instantBook")}

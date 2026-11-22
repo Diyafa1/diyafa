@@ -6,8 +6,9 @@ import { getT } from "@/lib/i18n/server";
 import { reportMessageAction, sendMessageAction } from "@/app/actions/messages";
 import { AutoRefresh } from "@/components/AutoRefresh";
 
-export default async function ThreadPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ThreadPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ blocked?: string }> }) {
   const { id } = await params;
+  const sp = await searchParams;
   const user = await requireUser();
   const { t, locale } = await getT();
   const c = await db.conversation.findUnique({
@@ -30,8 +31,10 @@ export default async function ThreadPage({ params }: { params: Promise<{ id: str
       <Link href="/messages" className="mb-2 text-sm text-neutral-500">← {t("common.back")}</Link>
       <h1 className="text-xl">{other}</h1>
       <Link href={`/listings/${c.listing.id}`} className="mb-4 text-sm text-brand">{t("msg.about", { title: c.listing.title })}</Link>
+      <div className="alert mb-3 text-xs">{t("msg.rules")}</div>
+      {sp.blocked && <div className="alert-brand mb-3">{t("msg.blocked")}</div>}
       <div className="card mb-4 flex min-h-[40vh] flex-col gap-3 p-4">
-        {c.messages.map((m) => {
+        {c.messages.filter((m) => !(m.hidden && m.reported && m.senderId !== user.id)).map((m) => {
           const mine = m.senderId === user.id;
           return (
             <div key={m.id} className={`flex flex-col ${mine ? "items-end" : "items-start"}`}>

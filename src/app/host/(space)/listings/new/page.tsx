@@ -11,7 +11,7 @@ export default async function NewListing({ searchParams }: { searchParams: Promi
   return (
     <div className="max-w-3xl">
       <h1 className="mb-4 text-2xl">{t("host.newListing")}</h1>
-      {sp.error && <div className="mb-4"><Notice kind="brand">{t("auth.err.form")}</Notice></div>}
+      {sp.error && <div className="mb-4"><Notice kind="brand">{t(sp.error === "contact" ? "lf.err.contact" : "auth.err.form")}</Notice></div>}
       <ListingForm t={t} action={createListingAction} />
     </div>
   );

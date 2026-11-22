@@ -7,7 +7,7 @@ import { bookAction } from "@/app/actions/booking";
 import type { TKey } from "@/lib/i18n";
 
 type Bed = { id: string; label: string; pricePerNight: number; roomName: string; gender: "MALE" | "FEMALE" };
-type Quote = { subtotal: number; serviceFee: number; vat: number; total: number; onlineAmount: number; payOnSite: number };
+type Quote = { subtotal: number; serviceFee: number; vat: number; total: number; onlineAmount: number; payOnSite: number; discount: number };
 
 export function BookingWidget(props: {
   listingId: string;
@@ -29,6 +29,8 @@ export function BookingWidget(props: {
   const [months, setMonths] = useState(props.initial.months ?? String(props.minMonths));
   const [guests, setGuests] = useState(props.initial.guests ?? "1");
   const [bedId, setBedId] = useState("");
+  const [promo, setPromo] = useState("");
+  const [promoApplied, setPromoApplied] = useState("");
   const [gender, setGender] = useState<"MALE" | "FEMALE" | "">(props.userGender ?? "");
   const [quote, setQuote] = useState<{ q: Quote; nights: number; months: number | null; vatPercent: number } | null>(null);
   const [qError, setQError] = useState<string | null>(null);
@@ -47,7 +49,7 @@ export function BookingWidget(props: {
     fetch("/api/quote", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ listingId: props.listingId, checkIn, checkOut: isLong ? undefined : checkOut, months: isLong ? months : undefined, guests, bedId: isBed ? bedId || undefined : undefined }),
+      body: JSON.stringify({ listingId: props.listingId, checkIn, checkOut: isLong ? undefined : checkOut, months: isLong ? months : undefined, guests, bedId: isBed ? bedId || undefined : undefined, promoCode: promoApplied || undefined }),
       signal: ctrl.signal,
     })
       .then((r) => r.json())
@@ -58,7 +60,7 @@ export function BookingWidget(props: {
       })
       .catch(() => {});
     return () => ctrl.abort();
-  }, [checkIn, checkOut, months, guests, bedId, isLong, isBed, props.listingId]);
+  }, [checkIn, checkOut, months, guests, bedId, isLong, isBed, props.listingId, promoApplied]);
 
   const err = state?.error ?? qError;
 
@@ -129,10 +131,16 @@ export function BookingWidget(props: {
       )}
       <p className="text-xs text-neutral-500">{isLong ? t("listing.minMonths", { n: props.minMonths }) : t("listing.minNights", { n: props.minNights })}</p>
 
+      <input type="hidden" name="promoCode" value={promoApplied} />
+      <div className="flex gap-2">
+        <input value={promo} onChange={(e) => setPromo(e.target.value.toUpperCase())} placeholder={t("promo.code")} className="input py-2" dir="ltr" aria-label={t("promo.code")} />
+        <button type="button" className="btn-secondary btn-sm" onClick={() => setPromoApplied(promo.trim())}>{t("promo.apply")}</button>
+      </div>
       {quote && !err && (
         <dl className="space-y-1 border-t border-neutral-100 pt-3 text-sm">
           <div className="flex justify-between"><dt>{t("book.subtotal", { n: quote.months ? t("book.months", { n: quote.months }) : t("book.nights", { n: quote.nights }) })}</dt><dd>{formatMoney(quote.q.subtotal, locale)}</dd></div>
           <div className="flex justify-between"><dt>{t("book.serviceFee")}</dt><dd>{formatMoney(quote.q.serviceFee, locale)}</dd></div>
+          {quote.q.discount > 0 && <div className="flex justify-between text-brand"><dt>{t("book.discount")}</dt><dd>−{formatMoney(quote.q.discount, locale)}</dd></div>}
           <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold"><dt>{t("book.totalStay")}</dt><dd>{formatMoney(quote.q.total, locale)}</dd></div>
           <div className="mt-2 space-y-1 rounded-[12px] bg-brand-50 p-3">
             <div className="flex justify-between font-semibold text-brand-dark"><dt>{t("book.online")}</dt><dd>{formatMoney(quote.q.onlineAmount, locale)}</dd></div>

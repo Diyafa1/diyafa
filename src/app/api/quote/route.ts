@@ -26,12 +26,12 @@ export async function POST(req: Request) {
   if (input.bedId && takenBeds.includes(input.bedId)) return NextResponse.json({ error: "not_available", takenBeds });
 
   try {
-    const p = await prepareBooking(input, user ? { id: user.id, gender: user.gender } : { id: "", gender: null });
+    const p = await prepareBooking(input, user ? { id: user.id, gender: user.gender, referredById: user.referredById } : { id: "", gender: null, referredById: null });
     if (p.listing.type !== "SHARED_BED") {
       const taken = await takenNights(p.unitKey, p.checkIn, p.checkOut);
       if (taken.size) return NextResponse.json({ error: "not_available", takenBeds });
     }
-    return NextResponse.json({ quote: p.quote, nights: p.nights, months: p.months, vatPercent: p.rates.vatPercent, checkOut: p.checkOut.toISOString().slice(0, 10), takenBeds });
+    return NextResponse.json({ promoCode: p.promoCode, quote: p.quote, nights: p.nights, months: p.months, vatPercent: p.rates.vatPercent, checkOut: p.checkOut.toISOString().slice(0, 10), takenBeds });
   } catch (e) {
     if (e instanceof BookingError) {
       // For anonymous visitors, gender checks only apply once logged in

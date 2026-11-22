@@ -11,6 +11,8 @@ import { BookingWidget } from "@/components/BookingWidget";
 import { toggleFavoriteAction } from "@/app/actions/booking";
 import { startConversationAction } from "@/app/actions/messages";
 import { AMENITIES } from "@/lib/amenities";
+import { MapView } from "@/components/MapView";
+import { HARAM_COORDS } from "@/lib/haram";
 import type { TKey } from "@/lib/i18n";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> };
@@ -50,7 +52,6 @@ export default async function ListingPage({ params, searchParams }: Props) {
   const unit = l.type === "LONG_TERM" ? t("listing.perMonth") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
   const priceLabel = `${l.type === "SHARED_BED" ? t("listing.from") + " " : ""}${formatMoney(price, locale)} ${unit}`;
   const avg = l.reviews.length ? l.reviews.reduce((s, r) => s + r.rating, 0) / l.reviews.length : null;
-  const wa = l.host.hostProfile?.whatsapp?.replace(/[^\d]/g, "");
   const hostName = l.host.hostProfile?.displayName ?? l.host.name;
 
   return (
@@ -130,6 +131,18 @@ export default async function ListingPage({ params, searchParams }: Props) {
             </section>
           )}
 
+          {l.latitude != null && l.longitude != null && (
+            <section>
+              <h2 className="mb-2 text-lg">{t("listing.location")}</h2>
+              <MapView center={HARAM_COORDS[l.city]} haramLabel={t(l.city === "MADINAH" ? "map.nabawi" : "map.haram")} points={[{ id: l.id, lat: l.latitude, lng: l.longitude, label: "📍" }]} height={260} />
+            </section>
+          )}
+
+          <section>
+            <h2 className="mb-2 text-lg">{t("listing.times")}</h2>
+            <p className="text-sm text-neutral-700">{t("listing.checkInFrom", { time: l.checkInTime })} · {t("listing.checkOutBefore", { time: l.checkOutTime })}</p>
+          </section>
+
           <section>
             <h2 className="mb-2 text-lg">{t("listing.cancellation")}</h2>
             <p className="text-sm text-neutral-700"><strong>{t(`policy.${l.cancellationPolicy}`)}</strong> — {t(`policy.${l.cancellationPolicy}.desc`)}</p>
@@ -145,7 +158,6 @@ export default async function ListingPage({ params, searchParams }: Props) {
             </div>
             {l.host.hostProfile?.bio && <p className="mt-3 text-sm text-neutral-700">{l.host.hostProfile.bio}</p>}
             <div className="mt-4 flex flex-wrap gap-2">
-              {wa && <a href={`https://wa.me/${wa}?text=${encodeURIComponent(l.title)}`} target="_blank" rel="noopener noreferrer" className="btn-primary no-underline">{t("listing.whatsapp")}</a>}
               {user && user.id !== l.hostId && (
                 <form action={startConversationAction}>
                   <input type="hidden" name="listingId" value={l.id} />

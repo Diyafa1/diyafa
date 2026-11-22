@@ -178,6 +178,19 @@ describe("payment, requests, cancellation, payouts", () => {
   });
 });
 
+describe("promo codes", () => {
+  it("applies a valid code, refuses an unknown or used-up one, and counts uses after payment", async () => {
+    await db.promoCode.create({ data: { code: "TEST50", percentOff: 50, maxUses: 1 } });
+    expect(await code(createBooking(guest, { listingId: flatId, checkIn: d(80), checkOut: d(81), guests: 1, promoCode: "NOPE" }))).toBe("promo_invalid");
+    const { booking } = await createBooking(guest, { listingId: flatId, checkIn: d(80), checkOut: d(81), guests: 1, promoCode: " test50 " });
+    expect(booking.discount).toBeGreaterThan(0);
+    expect(booking.payOnSite).toBe(9000); // the host's share is untouched
+    await markPaymentPaid((await db.payment.findFirstOrThrow({ where: { bookingId: booking.id } })).id);
+    expect((await db.promoCode.findUniqueOrThrow({ where: { code: "TEST50" } })).uses).toBe(1);
+    expect(await code(createBooking(guest2, { listingId: flatId, checkIn: d(82), checkOut: d(83), guests: 1, promoCode: "TEST50" }))).toBe("promo_invalid");
+  });
+});
+
 describe("search", () => {
   it("hides apartments already booked for the requested dates", async () => {
     await createBooking(guest, { listingId: flatId, checkIn: d(10), checkOut: d(12), guests: 1 });

@@ -2,13 +2,14 @@ import "server-only";
 import { Prisma, type Booking, type Listing, type User } from "@prisma/client";
 import crypto from "node:crypto";
 import { db } from "./db";
-import { addDays, addMonths, dayKey, eachNight, nightsBetween, todayUTC } from "./dates";
+import { addDays, addMonths, checkInInstant, dayKey, eachNight, nightsBetween, todayUTC } from "./dates";
 import { computeQuote, nightlySubtotal, type Quote } from "./pricing";
 import { getRates } from "./settings";
 import { computeCancellation } from "./cancellation";
 import { getPaymentProvider } from "./payments";
 import { sendEmail } from "./email";
 import { moneyText } from "./money";
+import { notifyOwner } from "./notify";
 
 export const ACTIVE_STATUSES = ["PENDING_PAYMENT", "REQUESTED", "CONFIRMED", "COMPLETED"] as const;
 export const HOLD_MINUTES = 30; // Stripe Checkout sessions last at least 30 minutes
@@ -26,9 +27,11 @@ export type BookingInput = {
   checkOut?: Date; // nightly stays
   months?: number; // long-term
   guests: number;
+  promoCode?: string | null;
 };
 
 export type PreparedBooking = {
+  promoCode: string | null;
   listing: Listing;
   bedId: string | null;
   unitKey: string;
@@ -40,6 +43,31 @@ export type PreparedBooking = {
   quote: Quote;
   rates: { hostPercent: number; guestFeePercent: number; vatPercent: number };
 };
+
+export const REFERRAL_PERCENT = 10;
+
+async function seasonsFor(listing: { seasonalPricing: boolean }) {
+  if (!listing.seasonalPricing) return [];
+  return db.season.findMany();
+}
+
+export const normalizeCode = (c: string | null | undefined) => (c ?? "").trim().toUpperCase().replace(/\s+/g, "");
+
+/** A valid promo code, or the referral welcome discount on a referred traveller's first booking. */
+export async function resolveDiscount(code: string | null | undefined, user: Pick<User, "id" | "referredById"> | null) {
+  const c = normalizeCode(code);
+  if (c) {
+    const p = await db.promoCode.findUnique({ where: { code: c } });
+    const valid = p && p.active && (!p.validUntil || p.validUntil > new Date()) && (p.maxUses === null || p.uses < p.maxUses);
+    if (!valid) throw new BookingError("promo_invalid");
+    return { code: c, percent: p.percentOff };
+  }
+  if (user?.referredById) {
+    const before = await db.booking.count({ where: { guestId: user.id, status: { in: ["REQUESTED", "CONFIRMED", "COMPLETED"] } } });
+    if (before === 0) return { code: "PARRAINAGE", percent: REFERRAL_PERCENT };
+  }
+  return { code: null, percent: 0 };
+}
 
 /** Releases holds whose payment window has passed so the dates become free again. */
 export async function expireStaleHolds(tx: Prisma.TransactionClient | typeof db = db) {
@@ -55,7 +83,7 @@ export async function completeFinishedStays() {
 }
 
 /** Validates the request and computes the price. Does NOT reserve anything. */
-export async function prepareBooking(input: BookingInput, user: Pick<User, "id" | "gender"> | null, now = new Date()): Promise<PreparedBooking> {
+export async function prepareBooking(input: BookingInput, user: Pick<User, "id" | "gender" | "referredById"> | null, now = new Date()): Promise<PreparedBooking> {
   const listing = await db.listing.findUnique({
     where: { id: input.listingId },
     include: { host: { include: { hostProfile: true } }, rooms: { include: { beds: true } } },
@@ -100,12 +128,12 @@ export async function prepareBooking(input: BookingInput, user: Pick<User, "id" 
       guests = 1;
       // blocked days apply to the whole apartment; beds keep their own price
       if (days.some((d) => d.blocked)) throw new BookingError("blocked");
-      subtotal = bed.pricePerNight * nights.length;
+      subtotal = nightlySubtotal(nights, bed.pricePerNight, new Map(), await seasonsFor(listing));
     } else {
       if (guests > listing.maxGuests) throw new BookingError("guests");
       if (!listing.pricePerNight) throw new BookingError("unavailable");
       if (days.some((d) => d.blocked)) throw new BookingError("blocked");
-      subtotal = nightlySubtotal(nights, listing.pricePerNight, new Map(days.map((d) => [dayKey(d.date), d.price])));
+      subtotal = nightlySubtotal(nights, listing.pricePerNight, new Map(days.map((d) => [dayKey(d.date), d.price])), await seasonsFor(listing));
     }
   }
   if (listing.type === "LONG_TERM") {
@@ -114,6 +142,7 @@ export async function prepareBooking(input: BookingInput, user: Pick<User, "id" 
   }
 
   const rates = await getRates(listing.type);
+  const promo = await resolveDiscount(input.promoCode, user);
   return {
     listing,
     bedId,
@@ -123,7 +152,8 @@ export async function prepareBooking(input: BookingInput, user: Pick<User, "id" 
     nights: nightsBetween(input.checkIn, checkOut),
     months,
     guests,
-    quote: computeQuote(subtotal, rates),
+    quote: computeQuote(subtotal, rates, promo.percent),
+    promoCode: promo.code,
     rates,
   };
 }
@@ -167,6 +197,8 @@ export async function createBooking(user: User, input: BookingInput) {
           guestFeePercent: p.rates.guestFeePercent,
           vatPercent: p.rates.vatPercent,
           cancellationPolicy: p.listing.cancellationPolicy,
+          promoCode: p.promoCode,
+          discount: p.quote.discount,
           expiresAt: new Date(Date.now() + HOLD_MINUTES * 60000),
         },
       });
@@ -198,6 +230,15 @@ export async function createBooking(user: User, input: BookingInput) {
   return { booking, redirectUrl: r.redirectUrl };
 }
 
+/** The friend who invited a new traveller gets a one-time 10% code when that traveller books for the first time. */
+async function rewardReferrer(referrerId: string, friendName: string) {
+  const referrer = await db.user.findUnique({ where: { id: referrerId } });
+  if (!referrer) return;
+  const code = "MERCI-" + crypto.randomBytes(3).toString("hex").toUpperCase();
+  await db.promoCode.create({ data: { code, percentOff: REFERRAL_PERCENT, maxUses: 1, note: `Parrainage : ${friendName}` } });
+  await sendEmail(referrer.email, "Diyafa — merci pour votre parrainage 🎁", `${friendName} a réservé grâce à vous.\nVoici votre code de réduction de ${REFERRAL_PERCENT} % pour votre prochain séjour : ${code}`);
+}
+
 /** Called once the gateway confirms the payment. Idempotent. */
 export async function markPaymentPaid(paymentId: string) {
   const payment = await db.payment.findUnique({ where: { id: paymentId }, include: { booking: { include: { listing: { include: { host: true } }, guest: true } } } });
@@ -223,11 +264,17 @@ export async function markPaymentPaid(paymentId: string) {
   await db.$transaction([
     db.payment.update({ where: { id: payment.id }, data: { status: "PAID" } }),
     db.booking.update({ where: { id: b.id }, data: { status, expiresAt: null } }),
+    ...(b.promoCode && b.promoCode !== "PARRAINAGE" ? [db.promoCode.updateMany({ where: { code: b.promoCode }, data: { uses: { increment: 1 } } })] : []),
   ]);
+  if (b.promoCode === "PARRAINAGE" && b.guest.referredById) await rewardReferrer(b.guest.referredById, b.guest.name);
+  await notifyOwner(
+    `🟢 Diyafa — nouvelle réservation ${b.code}`,
+    `${b.listing.title}\n${b.guest.name} · ${b.guests} pers.\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nEncaissé en ligne : ${moneyText(b.onlineAmount)}\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}\n${status === "CONFIRMED" ? "Confirmée (réservation instantanée)" : "En attente de l'hôte"}`,
+  );
   await sendEmail(
     b.guest.email,
     status === "CONFIRMED" ? `Diyafa — réservation confirmée ${b.code}` : `Diyafa — demande envoyée ${b.code}`,
-    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nPayé en ligne : ${moneyText(b.onlineAmount)}\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}`,
+    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nArrivée à partir de ${b.listing.checkInTime}, départ avant ${b.listing.checkOutTime} (heure de La Mecque)\nPayé en ligne : ${moneyText(b.onlineAmount)}\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}`,
   );
   await sendEmail(
     b.listing.host.email,
@@ -272,6 +319,7 @@ export async function respondToRequest(bookingId: string, hostId: string, accept
       where: { id: b.id },
       data: { status: "DECLINED", refundedAmount: b.onlineAmount, hostPayout: 0 },
     });
+    await notifyOwner(`🔴 Diyafa — demande refusée par l'hôte ${b.code}`, `${b.listing.title}\nAcompte remboursé : ${moneyText(b.onlineAmount)}`);
     await sendEmail(b.guest.email, `Diyafa — demande refusée ${b.code}`, `${b.listing.title}\nVotre acompte vous est remboursé intégralement.`);
   }
 }
@@ -285,8 +333,9 @@ export async function cancelBooking(bookingId: string, actor: User, reason: stri
   if (!["REQUESTED", "CONFIRMED"].includes(b.status)) throw new BookingError("state");
   if (b.payoutId) throw new BookingError("paid_out");
   if (by !== "admin" && b.checkIn <= todayUTC()) throw new BookingError("started");
+  const checkInAt = checkInInstant(b.checkIn, b.listing.checkInTime);
 
-  const out = computeCancellation(b, by, new Date(), adminShare);
+  const out = computeCancellation({ ...b, checkIn: checkInAt }, by, new Date(), adminShare);
   await refundBooking(b.id, out.refundAmount);
   await db.booking.update({
     where: { id: b.id },
@@ -300,6 +349,7 @@ export async function cancelBooking(bookingId: string, actor: User, reason: stri
   });
   const msg = `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nRemboursement : ${moneyText(out.refundAmount)}`;
   await sendEmail(b.guest.email, `Diyafa — réservation annulée ${b.code}`, msg);
+  await notifyOwner(`🟠 Diyafa — réservation annulée ${b.code} (par ${by === "guest" ? "le voyageur" : by === "host" ? "l'hôte" : "l'admin"})`, msg);
   await sendEmail(b.listing.host.email, `Diyafa — réservation annulée ${b.code}`, msg);
   return out;
 }

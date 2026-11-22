@@ -19,5 +19,6 @@ export function parseBookingInput(o: Record<string, unknown>): BookingInput {
     checkOut,
     months,
     guests: Number(s("guests") || "1"),
+    promoCode: s("promoCode") || null,
   };
 }

@@ -27,3 +27,15 @@ export function eachNight(checkIn: Date, checkOut: Date): Date[] {
   return out;
 }
 export const todayUTC = () => parseDay(new Date().toISOString().slice(0, 10));
+
+/** Saudi Arabia is UTC+3 all year (no daylight saving). */
+export const RIYADH_OFFSET_HOURS = 3;
+
+/** The exact moment of check-in: the stay date at the host's check-in time, Makkah/Madinah time. */
+export function checkInInstant(day: Date, time = "15:00"): Date {
+  const m = /^(\d{1,2}):(\d{2})$/.exec(time);
+  const h = m ? Math.min(23, Number(m[1])) : 15;
+  const min = m ? Math.min(59, Number(m[2])) : 0;
+  return new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), h - RIYADH_OFFSET_HOURS, min));
+}
+export const isTime = (s: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(s);

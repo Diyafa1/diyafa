@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { computeQuote, nightlySubtotal } from "@/lib/pricing";
+import { computeQuote, nightlySubtotal, seasonPercent } from "@/lib/pricing";
 import { computeCancellation, guestRefundShare } from "@/lib/cancellation";
-import { addMonths, eachNight, parseDay } from "@/lib/dates";
+import { addMonths, checkInInstant, eachNight, parseDay } from "@/lib/dates";
 import { checkAccess } from "@/lib/access";
 import { distanceMeters, HARAM_COORDS, walkMinutes } from "@/lib/haram";
 
@@ -106,5 +106,28 @@ describe("dates and distances", () => {
     expect(d).toBeGreaterThan(300);
     expect(d).toBeLessThan(400);
     expect(walkMinutes(750)).toBe(10);
+  });
+});
+
+describe("seasons, promo codes, check-in time", () => {
+  const ramadan = { startDate: parseDay("2027-02-08"), endDate: parseDay("2027-03-09"), percent: 30 };
+  it("raises the nightly price during the season, but the host's special price wins", () => {
+    const nights = eachNight(parseDay("2027-02-07"), parseDay("2027-02-10")); // 7, 8, 9 Feb
+    expect(seasonPercent(parseDay("2027-02-07"), [ramadan])).toBe(0);
+    expect(nightlySubtotal(nights, 10000, new Map(), [ramadan])).toBe(10000 + 13000 + 13000);
+    expect(nightlySubtotal(nights, 10000, new Map([["2027-02-09", 20000]]), [ramadan])).toBe(10000 + 13000 + 20000);
+  });
+  it("a promo discount comes out of Diyafa's share, never the host's", () => {
+    const q = computeQuote(100000, { hostPercent: 20, guestFeePercent: 10, vatPercent: 0 }, 10);
+    expect(q.discount).toBe(10000);
+    expect(q.onlineAmount).toBe(20000); // 300 € - 100 €
+    expect(q.payOnSite).toBe(80000); // host still gets 800 €
+    expect(q.total).toBe(100000);
+    // a discount can never exceed Diyafa's share
+    expect(computeQuote(100000, { hostPercent: 20, guestFeePercent: 10, vatPercent: 0 }, 100).onlineAmount).toBe(0);
+  });
+  it("check-in time is Makkah time (UTC+3)", () => {
+    expect(checkInInstant(parseDay("2027-03-01"), "15:00").toISOString()).toBe("2027-03-01T12:00:00.000Z");
+    expect(checkInInstant(parseDay("2027-03-01"), "02:00").toISOString()).toBe("2027-02-28T23:00:00.000Z");
   });
 });

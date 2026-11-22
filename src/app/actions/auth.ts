@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { endSession, hashPassword, startSession, verifyPassword } from "@/lib/auth";
 import { getLocale } from "@/lib/i18n/server";
 import { safeNext, str } from "@/lib/forms";
+import { referrerFromCookie } from "@/lib/referral";
 
 const RegisterSchema = z.object({
   name: z.string().min(2).max(100),
@@ -28,7 +29,7 @@ export async function registerAction(formData: FormData) {
   // E-mails listed in ADMIN_EMAILS become administrators when they sign up
   const admins = (process.env.ADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
   const user = await db.user.create({
-    data: { role: admins.includes(d.email) ? "ADMIN" : "GUEST", name: d.name, email: d.email, phone: d.phone, passwordHash: await hashPassword(d.password), locale: await getLocale() },
+    data: { referredById: await referrerFromCookie(), role: admins.includes(d.email) ? "ADMIN" : "GUEST", name: d.name, email: d.email, phone: d.phone, passwordHash: await hashPassword(d.password), locale: await getLocale() },
   });
   await startSession(user);
   redirect(user.role === "ADMIN" ? "/admin" : d.intent === "host" ? "/host/onboarding" : safeNext(str(formData, "next")));

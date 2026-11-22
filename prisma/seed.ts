@@ -16,7 +16,7 @@ async function main() {
     db.payment.deleteMany(), db.booking.deleteMany(), db.payout.deleteMany(), db.favorite.deleteMany(),
     db.calendarDay.deleteMany(), db.bed.deleteMany(), db.room.deleteMany(), db.listingPhoto.deleteMany(),
     db.listing.deleteMany(), db.hostProfile.deleteMany(), db.user.deleteMany(), db.commissionSetting.deleteMany(),
-    db.emailLog.deleteMany(), db.contactMessage.deleteMany(),
+    db.emailLog.deleteMany(), db.contactMessage.deleteMany(), db.season.deleteMany(), db.promoCode.deleteMany(), db.passwordReset.deleteMany(),
   ]);
 
   for (const [type, r] of Object.entries(DEFAULT_RATES))
@@ -48,22 +48,22 @@ async function main() {
   const base = { amenities: ["wifi", "ac", "elevator", "prayerArea"], status: "APPROVED" as const, cancellationPolicy: "MODERATE" as const };
   const photos = (ids: number[]) => ({ create: ids.map((n, i) => ({ url: `/seed/${n}.jpg`, position: i })) });
 
-  const l1 = await db.listing.create({ data: { ...base, hostId: host.id, type: "SHORT_STAY", city: "MAKKAH", title: "شقة غرفتين في أجياد – إطلالة على الحرم", description: "شقة مفروشة بالكامل على بعد دقائق من المسجد الحرام. غرفتا نوم، صالة، مطبخ صغير.\nFurnished 2-bedroom apartment a few minutes from Masjid al-Haram.", address: "Ajyad St, Makkah", neighborhood: "أجياد", distanceToHaramM: 350, maxGuests: 5, bedrooms: 2, bathrooms: 2, licenseNumber: "MT-73100245-01", pricePerNight: 11000, minNights: 2, instantBook: true, amenities: [...base.amenities, "haramView", "kitchen", "zamzam", "familyFriendly"], photos: photos([6, 1, 2, 5]) } });
-  const l2 = await db.listing.create({ data: { ...base, hostId: host.id, type: "SHORT_STAY", city: "MAKKAH", title: "جناح عائلي في العزيزية مع نقل للحرم", description: "جناح واسع للعائلات مع خدمة نقل مجانية إلى الحرم كل ساعة.", address: "Al Aziziyah, Makkah", neighborhood: "العزيزية", distanceToHaramM: 2600, maxGuests: 6, bedrooms: 3, bathrooms: 2, licenseNumber: "MT-73100245-02", pricePerNight: 7500, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "shuttle", "parking", "kitchen", "washer"], photos: photos([2, 1, 5]) } });
+  const l1 = await db.listing.create({ data: { ...base, hostId: host.id, type: "SHORT_STAY", city: "MAKKAH", title: "شقة غرفتين في أجياد – إطلالة على الحرم", description: "شقة مفروشة بالكامل على بعد دقائق من المسجد الحرام. غرفتا نوم، صالة، مطبخ صغير.\nFurnished 2-bedroom apartment a few minutes from Masjid al-Haram.", address: "Ajyad St, Makkah", neighborhood: "أجياد", distanceToHaramM: 350, latitude: 21.4195, longitude: 39.8268, maxGuests: 5, bedrooms: 2, bathrooms: 2, licenseNumber: "MT-73100245-01", pricePerNight: 11000, minNights: 2, instantBook: true, seasonalPricing: true, amenities: [...base.amenities, "haramView", "kitchen", "zamzam", "familyFriendly"], photos: photos([6, 1, 2, 5]) } });
+  const l2 = await db.listing.create({ data: { ...base, hostId: host.id, type: "SHORT_STAY", city: "MAKKAH", title: "جناح عائلي في العزيزية مع نقل للحرم", description: "جناح واسع للعائلات مع خدمة نقل مجانية إلى الحرم كل ساعة.", address: "Al Aziziyah, Makkah", neighborhood: "العزيزية", distanceToHaramM: 2600, latitude: 21.4060, longitude: 39.8790, maxGuests: 6, bedrooms: 3, bathrooms: 2, licenseNumber: "MT-73100245-02", pricePerNight: 7500, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "shuttle", "parking", "kitchen", "washer"], photos: photos([2, 1, 5]) } });
   const l3 = await db.listing.create({
     data: {
-      ...base, hostId: host.id, type: "SHARED_BED", city: "MAKKAH", title: "سكن مشترك للحجاج والمعتمرين – المسفلة", description: "أسرّة في غرف منفصلة للرجال والنساء، خزائن خاصة، تنظيف يومي.", address: "Misfalah, Makkah", neighborhood: "المسفلة", distanceToHaramM: 700, maxGuests: 7, bedrooms: 2, bathrooms: 3, licenseNumber: "MT-73100245-03", instantBook: true, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "lockers", "cleaning", "zamzam"], photos: photos([4, 3]),
+      ...base, hostId: host.id, type: "SHARED_BED", city: "MAKKAH", title: "سكن مشترك للحجاج والمعتمرين – المسفلة", description: "أسرّة في غرف منفصلة للرجال والنساء، خزائن خاصة، تنظيف يومي.", address: "Misfalah, Makkah", neighborhood: "المسفلة", distanceToHaramM: 700, latitude: 21.4160, longitude: 39.8228, maxGuests: 7, bedrooms: 2, bathrooms: 3, licenseNumber: "MT-73100245-03", instantBook: true, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "lockers", "cleaning", "zamzam"], photos: photos([4, 3]),
       rooms: { create: [
         { name: "غرفة الرجال", gender: "MALE", beds: { create: [1, 2, 3, 4].map((n) => ({ label: `سرير ${n}`, pricePerNight: 2000 })) } },
         { name: "غرفة النساء", gender: "FEMALE", beds: { create: [1, 2, 3].map((n) => ({ label: `سرير ${n}`, pricePerNight: 2200 })) } },
       ] },
     },
   });
-  await db.listing.create({ data: { ...base, hostId: host2.id, type: "LONG_TERM", city: "MAKKAH", title: "استوديو للإيجار الشهري – العوالي", description: "استوديو هادئ مناسب للموظفين والطلاب. عقد شهري أو سنوي.", address: "Al Awali, Makkah", neighborhood: "العوالي", distanceToHaramM: 6500, maxGuests: 2, bedrooms: 1, bathrooms: 1, licenseNumber: "MT-73200981-01", pricePerMonth: 110000, minMonths: 3, amenities: ["wifi", "ac", "kitchen", "washer", "parking"], photos: photos([1, 5]) } });
-  const l5 = await db.listing.create({ data: { ...base, hostId: host2.id, type: "SHORT_STAY", city: "MADINAH", title: "شقة قرب المسجد النبوي – المنطقة المركزية", description: "على بعد 250 مترًا من المسجد النبوي، مناسبة للعائلات.", address: "Central Area, Madinah", neighborhood: "المنطقة المركزية", distanceToHaramM: 250, maxGuests: 4, bedrooms: 2, bathrooms: 1, licenseNumber: "MT-73200981-02", pricePerNight: 12500, instantBook: false, cancellationPolicy: "STRICT", amenities: [...base.amenities, "haramView", "familyFriendly", "wheelchair"], photos: photos([6, 2, 1]) } });
+  await db.listing.create({ data: { ...base, hostId: host2.id, type: "LONG_TERM", city: "MAKKAH", title: "استوديو للإيجار الشهري – العوالي", description: "استوديو هادئ مناسب للموظفين والطلاب. عقد شهري أو سنوي.", address: "Al Awali, Makkah", neighborhood: "العوالي", distanceToHaramM: 6500, latitude: 21.3720, longitude: 39.8600, maxGuests: 2, bedrooms: 1, bathrooms: 1, licenseNumber: "MT-73200981-01", pricePerMonth: 110000, minMonths: 3, amenities: ["wifi", "ac", "kitchen", "washer", "parking"], photos: photos([1, 5]) } });
+  const l5 = await db.listing.create({ data: { ...base, hostId: host2.id, type: "SHORT_STAY", city: "MADINAH", title: "شقة قرب المسجد النبوي – المنطقة المركزية", description: "على بعد 250 مترًا من المسجد النبوي، مناسبة للعائلات.", address: "Central Area, Madinah", neighborhood: "المنطقة المركزية", distanceToHaramM: 250, latitude: 24.4685, longitude: 39.6098, maxGuests: 4, bedrooms: 2, bathrooms: 1, licenseNumber: "MT-73200981-02", pricePerNight: 12500, instantBook: false, cancellationPolicy: "STRICT", amenities: [...base.amenities, "haramView", "familyFriendly", "wheelchair"], photos: photos([6, 2, 1]) } });
   await db.listing.create({
     data: {
-      ...base, hostId: host2.id, type: "SHARED_BED", city: "MADINAH", title: "أسرّة في شقة مشتركة – طريق قباء", description: "غرف منفصلة للرجال والنساء على طريق قباء.", address: "Quba Rd, Madinah", neighborhood: "قباء", distanceToHaramM: 1800, maxGuests: 6, bedrooms: 2, bathrooms: 2, licenseNumber: "MT-73200981-03", instantBook: true, amenities: ["wifi", "ac", "lockers", "shuttle"], photos: photos([3, 4]),
+      ...base, hostId: host2.id, type: "SHARED_BED", city: "MADINAH", title: "أسرّة في شقة مشتركة – طريق قباء", description: "غرف منفصلة للرجال والنساء على طريق قباء.", address: "Quba Rd, Madinah", neighborhood: "قباء", distanceToHaramM: 1800, latitude: 24.4550, longitude: 39.6140, maxGuests: 6, bedrooms: 2, bathrooms: 2, licenseNumber: "MT-73200981-03", instantBook: true, amenities: ["wifi", "ac", "lockers", "shuttle"], photos: photos([3, 4]),
       rooms: { create: [
         { name: "Men room", gender: "MALE", beds: { create: [1, 2, 3].map((n) => ({ label: `Bed ${n}`, pricePerNight: 1500 })) } },
         { name: "Women room", gender: "FEMALE", beds: { create: [1, 2, 3].map((n) => ({ label: `Bed ${n}`, pricePerNight: 1500 })) } },
@@ -104,6 +104,8 @@ async function main() {
     { conversationId: convo.id, senderId: host.id, body: "وعليكم السلام، نعم يوجد مصعد. Yes, there is an elevator." },
   ] });
 
+  await db.season.create({ data: { name: "Ramadan 2027", startDate: new Date("2027-02-08"), endDate: new Date("2027-03-09"), percent: 30 } });
+  await db.promoCode.create({ data: { code: "BIENVENUE10", percentOff: 10, note: "Démo" } });
   console.log("✅ Demo data created");
 }
 

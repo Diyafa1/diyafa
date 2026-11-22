@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { computeCancellation } from "@/lib/cancellation";
 import { formatMoney } from "@/lib/money";
-import { todayUTC } from "@/lib/dates";
+import { checkInInstant, todayUTC } from "@/lib/dates";
 import { CancelForm } from "@/components/CancelForm";
 import { PriceBreakdown } from "@/components/PriceBreakdown";
 import { Notice, StatusBadge } from "@/components/ui";
@@ -31,7 +31,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
   });
   if (!b || b.guestId !== user.id) notFound();
   const canCancel = ["REQUESTED", "CONFIRMED"].includes(b.status) && b.checkIn > todayUTC() && !b.payoutId;
-  const preview = canCancel ? computeCancellation(b, "guest", new Date()) : null;
+  const preview = canCancel ? computeCancellation({ ...b, checkIn: checkInInstant(b.checkIn, b.listing.checkInTime) }, "guest", new Date()) : null;
   const wa = b.listing.host.hostProfile?.whatsapp?.replace(/[^\d]/g, "");
   const payMsg: Record<string, TKey> = { success: "pay.success", failed: "pay.failed", not_available: "book.err.not_available" };
 
@@ -39,7 +39,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
     <div className="container-page max-w-3xl space-y-6 py-6">
       <Link href="/trips" className="text-sm text-neutral-500">← {t("trips.title")}</Link>
       {sp.pay && payMsg[sp.pay] && <Notice kind="brand">{t(payMsg[sp.pay])}</Notice>}
-      {sp.review && <Notice kind="brand">{t("review.thanks")}</Notice>}
+      {sp.review && <Notice kind="brand">{sp.review === "contact" ? t("lf.err.contact") : t("review.thanks")}</Notice>}
 
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -51,8 +51,8 @@ export default async function TripPage({ params, searchParams }: { params: Promi
 
       <div className="card grid gap-4 p-4 sm:grid-cols-2">
         <div className="space-y-1 text-sm">
-          <div><span className="text-neutral-500">{t("search.checkIn")}:</span> {fmtDay(b.checkIn, locale)}</div>
-          <div><span className="text-neutral-500">{t("search.checkOut")}:</span> {fmtDay(b.checkOut, locale)}</div>
+          <div><span className="text-neutral-500">{t("search.checkIn")}:</span> {fmtDay(b.checkIn, locale)} · {t("listing.checkInFrom", { time: b.listing.checkInTime })}</div>
+          <div><span className="text-neutral-500">{t("search.checkOut")}:</span> {fmtDay(b.checkOut, locale)} · {t("listing.checkOutBefore", { time: b.listing.checkOutTime })}</div>
           <div><span className="text-neutral-500">{t("search.guests")}:</span> {b.guests}</div>
           {b.bed && <div>{b.bed.room.name} · {b.bed.label} ({t(`gender.${b.bed.room.gender}`)})</div>}
           <div><span className="text-neutral-500">{t("listing.cancellation")}:</span> {t(`policy.${b.cancellationPolicy}`)}</div>
@@ -65,7 +65,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
       )}
 
       <div className="flex flex-wrap gap-2">
-        {wa && ["REQUESTED", "CONFIRMED", "COMPLETED"].includes(b.status) && (
+        {wa && ["CONFIRMED", "COMPLETED"].includes(b.status) && (
           <a href={`https://wa.me/${wa}?text=${encodeURIComponent(b.code)}`} target="_blank" rel="noopener noreferrer" className="btn-primary no-underline">{t("listing.whatsapp")}</a>
         )}
         <form action={startConversationAction}>

@@ -162,3 +162,24 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - **Connexion avec Google (Gmail)** : bouton sur Connexion et Inscription, actif dès que `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont dans Vercel. URI de redirection à déclarer chez Google : `https://diyafa-omega.vercel.app/api/auth/google/callback` (à refaire avec le nom de domaine définitif).
 - 42 tests automatiques OK.
 
+## Séance 3 (suite) — nouvelles fonctions
+- **Langue automatique** à la première visite : France/Belgique/Maghreb → français, pays arabes → arabe, sinon langue du navigateur ou anglais (`src/lib/locale-detect.ts`, middleware).
+- **Carte** OpenStreetMap (gratuite) : bouton Liste / Carte dans la recherche, carte sur chaque fiche. Seuls les logements avec coordonnées GPS apparaissent → demander aux hôtes de remplir latitude/longitude.
+- **Heures d'arrivée / départ** par annonce (défaut 15:00 / 12:00), affichées sur la fiche, la réservation et l'e-mail. Les délais d'annulation se calculent à partir de l'heure réelle d'arrivée (heure de La Mecque).
+- **Prix de saison** : Admin → Saisons (ex. Ramadan +30 %) ; l'hôte active « prix de saison » sur son annonce. Les prix spéciaux du calendrier restent prioritaires.
+- **Codes promo** : Admin → Codes promo. La réduction est prise sur la commission Diyafa, jamais sur la part de l'hôte.
+- **Parrainage** : lien personnel dans « Mon compte » (+ partage WhatsApp) ; le filleul a -10 % sur sa 1re réservation, le parrain reçoit un code -10 % par e-mail.
+- **Mot de passe oublié** : lien valable 1 h (nécessite les vrais e-mails pour fonctionner en ligne).
+- **Bouton « Aide sur WhatsApp »** pour les visiteurs : variable `SUPPORT_WHATSAPP`.
+- **Messagerie protégée** : numéros, e-mails, liens et applis (WhatsApp, Telegram…) bloqués, même déguisés (chiffres arabes, en lettres, espacés, « arobase »). Le message n'est pas envoyé, un rappel « craignez Allah et respectez les règles » s'affiche, et la tentative apparaît dans Admin → Modération. Même filtre sur les annonces, la bio de l'hôte et les avis. Le bouton WhatsApp de l'hôte n'apparaît plus qu'une fois la réservation confirmée.
+- **Alertes pour le propriétaire** à chaque réservation, annulation, refus, nouvel hôte, nouvelle annonce, litige, message de contact : e-mail aux admins + WhatsApp via CallMeBot (`OWNER_WHATSAPP`, `CALLMEBOT_API_KEY`).
+- 53 tests automatiques OK.
+
+### À configurer par le propriétaire (Vercel → Environment Variables, puis Redeploy)
+- E-mails réels : compte Resend + domaine → `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM`
+- WhatsApp alertes : `OWNER_WHATSAPP`, `CALLMEBOT_API_KEY` · Aide visiteurs : `SUPPORT_WHATSAPP`
+- Google : `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
+- Bancontact : à activer dans Stripe (Settings → Payment methods), aucun code nécessaire si le compte le permet
+- SMS (vérification du téléphone) : pas encore fait — nécessite un service payant (Twilio…), à décider
+- **Règles de la messagerie et de remboursement** : à rédiger ensemble.
+

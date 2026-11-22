@@ -5,11 +5,13 @@ import { LOCALES, LOCALE_NAMES } from "@/lib/i18n";
 import { updateAccountAction } from "@/app/actions/account";
 import { logoutAction } from "@/app/actions/auth";
 import { Field, Notice, PageTitle } from "@/components/ui";
+import { ensureReferralCode } from "@/lib/referral";
 
 export default async function AccountPage({ searchParams }: { searchParams: Promise<{ saved?: string; error?: string }> }) {
   const user = await requireUser();
   const { t } = await getT();
   const sp = await searchParams;
+  const refLink = `${process.env.APP_URL || "http://localhost:3000"}/?ref=${await ensureReferralCode(user.id)}`;
   return (
     <div className="container-page max-w-lg py-6">
       <PageTitle>{t("account.title")}</PageTitle>
@@ -34,6 +36,12 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
         <Field label={t("account.newPassword")}><input className="input" name="password" type="password" minLength={8} autoComplete="new-password" /></Field>
         <button className="btn-primary w-full">{t("common.save")}</button>
       </form>
+      <section className="card mt-8 space-y-3 p-4">
+        <h2 className="text-lg">{t("ref.title")}</h2>
+        <p className="text-sm text-neutral-600">{t("ref.intro")}</p>
+        <input readOnly value={refLink} className="input bg-neutral-50" dir="ltr" />
+        <a href={`https://wa.me/?text=${encodeURIComponent(t("ref.share") + " " + refLink)}`} target="_blank" rel="noopener noreferrer" className="btn-primary no-underline">{t("ref.whatsapp")}</a>
+      </section>
       <div className="mt-8 flex flex-wrap gap-2">
         {user.role === "GUEST" && <Link href="/host/onboarding" className="btn-secondary no-underline">{t("nav.becomeHost")}</Link>}
         {user.role === "HOST" && <Link href="/host" className="btn-secondary no-underline">{t("nav.host")}</Link>}

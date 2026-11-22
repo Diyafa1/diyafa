@@ -98,6 +98,8 @@ model User {
   status       UserStatus @default(ACTIVE)
   gender       Gender?
   locale       String     @default("ar")
+  referralCode String?    @unique
+  referredById String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
 
@@ -111,6 +113,7 @@ model User {
   messages      Message[]
   payouts       Payout[]
   disputes      Dispute[]
+  passwordResets PasswordReset[]
 }
 
 model HostProfile {
@@ -158,6 +161,9 @@ model Listing {
   minNights          Int                @default(1)
   minMonths          Int                @default(1)
   instantBook        Boolean            @default(false)
+  checkInTime        String             @default("15:00")
+  checkOutTime       String             @default("12:00")
+  seasonalPricing    Boolean            @default(false)
   cancellationPolicy CancellationPolicy @default(MODERATE)
   status             ListingStatus      @default(DRAFT)
   rejectionReason    String?
@@ -254,6 +260,8 @@ model Booking {
   vatPercent      Float
   cancellationPolicy CancellationPolicy
   refundedAmount  Int           @default(0)
+  promoCode       String?
+  discount        Int           @default(0) // paid by Diyafa: reduces the online part
   cancelledBy     String?
   cancelReason    String?
   expiresAt       DateTime?
@@ -378,4 +386,37 @@ model ContactMessage {
   body      String
   handled   Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model PasswordReset {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+/// Busy seasons (Ramadan, Hajj…): hosts who opt in get their nightly price raised automatically.
+model Season {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date // last night included
+  percent   Float
+  createdAt DateTime @default(now())
+}
+
+/// Promo codes: a percentage off the stay price, paid by Diyafa (taken from the online part).
+model PromoCode {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  percentOff  Float
+  maxUses     Int?
+  uses        Int       @default(0)
+  validUntil  DateTime?
+  active      Boolean   @default(true)
+  note        String?
+  createdAt   DateTime  @default(now())
 }

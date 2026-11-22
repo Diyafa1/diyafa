@@ -13,13 +13,13 @@ export default async function MessagesPage() {
       listing: { select: { title: true } },
       guest: { select: { name: true } },
       host: { select: { name: true, hostProfile: { select: { displayName: true } } } },
-      messages: { orderBy: { createdAt: "desc" }, take: 1 },
+      messages: { where: { hidden: false }, orderBy: { createdAt: "desc" }, take: 1 },
     },
     orderBy: { updatedAt: "desc" },
   });
   const unread = await db.message.groupBy({
     by: ["conversationId"],
-    where: { conversationId: { in: convos.map((c) => c.id) }, senderId: { not: user.id }, readAt: null },
+    where: { conversationId: { in: convos.map((c) => c.id) }, senderId: { not: user.id }, readAt: null, hidden: false },
     _count: true,
   });
   return (

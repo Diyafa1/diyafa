@@ -16,7 +16,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
       <h1 className="mb-2 text-2xl">{t("host.onboardingTitle")}</h1>
       <p className="mb-6 text-sm text-neutral-600">{t("host.onboardingIntro")}</p>
       {p && <div className="mb-4"><Notice kind="brand">{p.status === "APPROVED" ? t("host.approved") : p.status === "REJECTED" ? t("host.rejected", { reason: p.rejectionReason ?? "—" }) : t("host.pending")}</Notice></div>}
-      {sp.error && <div className="mb-4"><Notice kind="brand">{sp.error === "upload" ? t("lf.err.upload") : t("auth.err.form")}</Notice></div>}
+      {sp.error && <div className="mb-4"><Notice kind="brand">{sp.error === "upload" ? t("lf.err.upload") : sp.error === "contact" ? t("lf.err.contact") : t("auth.err.form")}</Notice></div>}
       <form action={hostApplicationAction} className="space-y-4">
         <Field label={t("host.displayName")}><input className="input" name="displayName" required minLength={2} defaultValue={p?.displayName ?? user.name} /></Field>
         <Field label={t("host.whatsapp")}><input className="input" name="whatsapp" required dir="ltr" placeholder="+9665xxxxxxxx" defaultValue={p?.whatsapp ?? user.phone ?? ""} /></Field>

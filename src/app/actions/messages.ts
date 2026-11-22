@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { str } from "@/lib/forms";
 import { sendEmail } from "@/lib/email";
 import { PUBLIC_LISTING } from "@/lib/listings";
+import { checkContact } from "@/lib/contact-filter";
 
 export async function startConversationAction(formData: FormData) {
   const user = await requireUser();
@@ -27,6 +28,11 @@ export async function sendMessageAction(formData: FormData) {
   const c = await db.conversation.findUnique({ where: { id }, include: { guest: true, host: true, listing: true } });
   if (!c || (c.guestId !== user.id && c.hostId !== user.id)) redirect("/messages");
   if (!body) return;
+  if (!checkContact(body).ok) {
+    // Not delivered: kept hidden and flagged so the admin can see repeated attempts.
+    await db.message.create({ data: { conversationId: id, senderId: user.id, body, hidden: true, reported: true } });
+    redirect(`/messages/${id}?blocked=1`);
+  }
   await db.message.create({ data: { conversationId: id, senderId: user.id, body } });
   await db.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
   const other = c.guestId === user.id ? c.host : c.guest;

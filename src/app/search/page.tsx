@@ -4,6 +4,10 @@ import { parseSearch } from "@/lib/search-params";
 import { SearchForm } from "@/components/SearchForm";
 import { ListingCard } from "@/components/ListingCard";
 import { Empty } from "@/components/ui";
+import { MapView } from "@/components/MapView";
+import { HARAM_COORDS } from "@/lib/haram";
+import { formatMoney } from "@/lib/money";
+import Link from "next/link";
 
 export const metadata = { title: "Search" };
 
@@ -14,13 +18,34 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
   const keep = new URLSearchParams();
   for (const k of ["checkIn", "checkOut", "guests", "months"]) if (sp[k]) keep.set(k, sp[k]!);
   const q = keep.toString() ? `?${keep}` : "";
+  const showMap = sp.view === "map";
+  const base = new URLSearchParams(Object.entries(sp).filter(([k, v]) => k !== "view" && v) as [string, string][]);
+  const listQs = base.toString();
+  base.set("view", "map");
+  if (!sp.city) base.set("city", "MAKKAH");
+  const mapQs = base.toString();
   return (
     <div className="container-page py-6">
-      <details className="mb-6" open>
+      <details className="mb-6" open={!showMap}>
         <summary className="mb-3 cursor-pointer text-sm font-medium text-neutral-700">{t("search.filters")}</summary>
         <SearchForm t={t} sp={sp} full />
       </details>
-      <p className="mb-4 text-sm text-neutral-600">{t("search.results", { n: results.length })}</p>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+        <p className="text-sm text-neutral-600">{t("search.results", { n: results.length })}</p>
+        <div className="flex gap-1">
+          <Link href={`/search?${listQs}`} className={`${!showMap ? "btn-primary" : "btn-secondary"} btn-sm no-underline`}>{t("search.list")}</Link>
+          <Link href={`/search?${mapQs}`} className={`${showMap ? "btn-primary" : "btn-secondary"} btn-sm no-underline`}>{t("search.map")}</Link>
+        </div>
+      </div>
+      {showMap && (
+        <div className="mb-6">
+          <MapView
+            center={HARAM_COORDS[sp.city === "MADINAH" ? "MADINAH" : "MAKKAH"]}
+            haramLabel={t(sp.city === "MADINAH" ? "map.nabawi" : "map.haram")}
+            points={results.filter((l) => l.latitude != null && l.longitude != null && (!sp.city || l.city === sp.city)).map((l) => ({ id: l.id, lat: l.latitude!, lng: l.longitude!, label: formatMoney(l.displayPrice, locale), href: `/listings/${l.id}${q}` }))}
+          />
+        </div>
+      )}
       {results.length === 0 ? (
         <Empty>{t("search.none")}</Empty>
       ) : (

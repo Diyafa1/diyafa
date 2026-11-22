@@ -21,17 +21,20 @@ export type Quote = {
   payOnSite: number; // paid to the host on arrival = subtotal - hostCommission
   total: number; // whole stay for the guest = onlineAmount + payOnSite
   hostPayout: number; // owed by Diyafa to the host: always 0 in this model (the host is paid on site)
-  platformRevenue: number; // serviceFee + hostCommission (excl. VAT)
+  platformRevenue: number; // serviceFee + hostCommission - discount (excl. VAT)
+  discount: number; // promo / referral discount, paid by Diyafa (taken from the online part)
 };
 
 const pct = (amount: number, p: number) => Math.round((amount * p) / 100);
 
-export function computeQuote(subtotal: number, rates: Rates): Quote {
+export function computeQuote(subtotal: number, rates: Rates, discountPercent = 0): Quote {
   if (!Number.isInteger(subtotal) || subtotal < 0) throw new Error("invalid subtotal");
   const serviceFee = pct(subtotal, rates.guestFeePercent);
   const hostCommission = Math.min(subtotal, pct(subtotal, rates.hostPercent));
   const vat = pct(serviceFee + hostCommission, rates.vatPercent);
-  const onlineAmount = serviceFee + hostCommission + vat;
+  // The discount never touches the host's share: Diyafa gives up part of its own commission.
+  const discount = Math.min(pct(subtotal, Math.max(0, discountPercent)), serviceFee + hostCommission);
+  const onlineAmount = serviceFee + hostCommission + vat - discount;
   const payOnSite = subtotal - hostCommission;
   return {
     subtotal,
@@ -42,14 +45,26 @@ export function computeQuote(subtotal: number, rates: Rates): Quote {
     payOnSite,
     total: onlineAmount + payOnSite,
     hostPayout: 0,
-    platformRevenue: serviceFee + hostCommission,
+    platformRevenue: serviceFee + hostCommission - discount,
+    discount,
   };
 }
 
-/** Sum of nightly prices, using per-day overrides where present. */
-export function nightlySubtotal(nights: Date[], basePrice: number, overrides: Map<string, number | null>): number {
+export type SeasonRange = { startDate: Date; endDate: Date; percent: number };
+
+/** Season increase (in %) for a night: the highest matching season, 0 if none. */
+export function seasonPercent(night: Date, seasons: SeasonRange[]): number {
+  return seasons.reduce((m, s) => (night >= s.startDate && night <= s.endDate ? Math.max(m, s.percent) : m), 0);
+}
+
+/**
+ * Sum of nightly prices: a special price set by the host in the calendar always wins;
+ * otherwise the base price, raised during busy seasons if the host opted in.
+ */
+export function nightlySubtotal(nights: Date[], basePrice: number, overrides: Map<string, number | null>, seasons: SeasonRange[] = []): number {
   return nights.reduce((sum, d) => {
     const o = overrides.get(d.toISOString().slice(0, 10));
-    return sum + (o ?? basePrice);
+    if (o != null) return sum + o;
+    return sum + Math.round(basePrice * (1 + seasonPercent(d, seasons) / 100));
   }, 0);
 }

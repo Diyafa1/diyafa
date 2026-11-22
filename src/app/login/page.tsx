@@ -18,6 +18,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         <input type="hidden" name="next" value={sp.next ?? ""} />
         <Field label={t("auth.email")}><input className="input" name="email" type="email" required autoComplete="email" /></Field>
         <Field label={t("auth.password")}><input className="input" name="password" type="password" required autoComplete="current-password" /></Field>
+        <div className="text-end text-sm"><Link href="/forgot" className="link">{t("pw.forgotLink")}</Link></div>
         <button className="btn-primary w-full">{t("nav.login")}</button>
       </form>
       <p className="mt-6 text-center text-sm text-neutral-600">
