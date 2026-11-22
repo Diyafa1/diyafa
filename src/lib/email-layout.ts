@@ -1,5 +1,5 @@
 /**
- * Branded HTML e-mails (Dar Diyafa burgundy, logo, clear summary, button), built with tables and inline styles
+ * Branded HTML e-mails (Dar Diyyafa burgundy, logo, clear summary, button), built with tables and inline styles
  * so they look right in Gmail, Outlook and Apple Mail. Arabic e-mails are right-to-left.
  */
 export type EmailLocale = "fr" | "en" | "ar";
@@ -24,8 +24,8 @@ const appUrl = () => (process.env.APP_URL || "http://localhost:3000").replace(/\
 export const absoluteUrl = (u: string | null | undefined) => (!u ? null : /^https?:\/\//.test(u) ? u : `${appUrl()}${u.startsWith("/") ? "" : "/"}${u}`);
 
 const FOOTER: Record<EmailLocale, { help: string; rights: string; auto: string }> = {
-  fr: { help: "Besoin d'aide ? Répondez via la page Contact du site.", rights: "Tous droits réservés.", auto: "Cet e-mail vous a été envoyé automatiquement par Dar Diyafa." },
-  en: { help: "Need help? Use the Contact page on the website.", rights: "All rights reserved.", auto: "This e-mail was sent automatically by Dar Diyafa." },
+  fr: { help: "Besoin d'aide ? Répondez via la page Contact du site.", rights: "Tous droits réservés.", auto: "Cet e-mail vous a été envoyé automatiquement par Dar Diyyafa." },
+  en: { help: "Need help? Use the Contact page on the website.", rights: "All rights reserved.", auto: "This e-mail was sent automatically by Dar Diyyafa." },
   ar: { help: "تحتاج مساعدة؟ تواصل معنا عبر صفحة «تواصل معنا» في الموقع.", rights: "جميع الحقوق محفوظة.", auto: "أُرسلت هذه الرسالة تلقائيًا من دار ضيافة." },
 };
 
@@ -58,7 +58,7 @@ export function renderEmail(c: EmailContent): { html: string; text: string } {
       <tr><td style="padding:0 4px 16px;text-align:${align};">
         <table role="presentation" cellpadding="0" cellspacing="0" style="display:inline-table;"><tr>
           <td style="background:${BRAND};border-radius:12px;width:44px;height:44px;text-align:center;vertical-align:middle;color:#ffffff;font-size:26px;font-weight:700;line-height:44px;font-family:${font};">ض</td>
-          <td style="padding:0 10px;font-size:20px;font-weight:700;color:#171717;font-family:${font};">Dar Diyafa</td>
+          <td style="padding:0 10px;font-size:20px;font-weight:700;color:#171717;font-family:${font};">Dar Diyyafa</td>
         </tr></table>
       </td></tr>
       <!-- card -->
@@ -93,7 +93,7 @@ export function renderEmail(c: EmailContent): { html: string; text: string } {
       </td></tr>
       <!-- footer -->
       <tr><td style="padding:16px 8px;text-align:center;font-size:12px;color:#a3a3a3;line-height:1.6;">
-        ${esc(f.auto)}<br>© ${new Date().getFullYear()} Dar Diyafa · ${esc(f.rights)}<br>
+        ${esc(f.auto)}<br>© ${new Date().getFullYear()} Dar Diyyafa · ${esc(f.rights)}<br>
         <a href="${appUrl()}" style="color:#a3a3a3;">${appUrl().replace(/^https?:\/\//, "")}</a>
       </td></tr>
     </table>

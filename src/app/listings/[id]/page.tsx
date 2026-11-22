@@ -39,7 +39,7 @@ async function load(id: string, viewerId?: string, isAdmin?: boolean) {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
   const l = await db.listing.findFirst({ where: { id, ...PUBLIC_LISTING }, select: { title: true } });
-  return { title: l?.title ?? "Dar Diyafa" };
+  return { title: l?.title ?? "Dar Diyyafa" };
 }
 
 export default async function ListingPage({ params, searchParams }: Props) {

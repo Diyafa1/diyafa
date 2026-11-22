@@ -60,7 +60,7 @@ export async function hostApplicationAction(formData: FormData) {
   await db.hostProfile.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
   const updated = await db.user.update({ where: { id: user.id }, data: { role: "HOST" } });
   await startSession(updated); // refresh role in the session cookie
-  await notifyOwner("Dar Diyafa — nouvelle demande d'hôte", `${p.data.displayName} (${user.email})`);
+  await notifyOwner("Dar Diyyafa — nouvelle demande d'hôte", `${p.data.displayName} (${user.email})`);
   redirect("/host?applied=1");
 }
 
@@ -177,7 +177,7 @@ export async function updateListingAction(formData: FormData) {
   // Significant edits of a published listing go back to review
   const needsReview = l.status === "APPROVED" && (rest.title !== l.title || rest.address !== l.address);
   await db.listing.update({ where: { id: l.id }, data: { ...rest, ...(needsReview ? { status: "PENDING" } : {}) } });
-  if (needsReview) await notifyOwner("✏️ Dar Diyafa — annonce modifiée, à revalider", `${rest.title}\nHôte : ${user.name} (${user.email})\n${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
+  if (needsReview) await notifyOwner("✏️ Dar Diyyafa — annonce modifiée, à revalider", `${rest.title}\nHôte : ${user.name} (${user.email})\n${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
   revalidatePath(`/listings/${l.id}`);
   redirect(`/host/listings/${l.id}?saved=1`);
 }
@@ -255,7 +255,7 @@ export async function submitListingAction(formData: FormData) {
   }
   if (!["DRAFT", "REJECTED"].includes(l.status)) redirect(`/host/listings/${l.id}`);
   await db.listing.update({ where: { id: l.id }, data: { status: "PENDING", rejectionReason: null } });
-  await notifyOwner("🏠 Dar Diyafa — nouvelle annonce à valider", `${l.title}\n${t(l.type)} · ${l.city === "MAKKAH" ? "Makkah" : "Madinah"}\nHôte : ${user.name} (${user.email})\nÀ valider : ${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
+  await notifyOwner("🏠 Dar Diyyafa — nouvelle annonce à valider", `${l.title}\n${t(l.type)} · ${l.city === "MAKKAH" ? "Makkah" : "Madinah"}\nHôte : ${user.name} (${user.email})\nÀ valider : ${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
   redirect(`/host/listings/${l.id}?submitted=1`);
 }
 

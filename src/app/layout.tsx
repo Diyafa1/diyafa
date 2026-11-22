@@ -11,11 +11,11 @@ import { PwaRegister } from "@/components/PwaRegister";
 import { WhatsAppHelp } from "@/components/WhatsAppHelp";
 
 export const metadata: Metadata = {
-  title: { default: "Dar Diyafa دار ضيافة", template: "%s · Dar Diyafa" },
+  title: { default: "Dar Diyyafa دار ضيافة", template: "%s · Dar Diyyafa" },
   description: "Stays in Makkah & Madinah near the Haram",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "Dar Diyafa", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Dar Diyyafa", statusBarStyle: "default" },
 };
 export const viewport: Viewport = { themeColor: "#7A2E3A", width: "device-width", initialScale: 1 };
 

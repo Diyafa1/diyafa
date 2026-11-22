@@ -36,7 +36,7 @@ export async function sendMessageAction(formData: FormData) {
   await db.message.create({ data: { conversationId: id, senderId: user.id, body } });
   await db.conversation.update({ where: { id }, data: { updatedAt: new Date() } });
   const other = c.guestId === user.id ? c.host : c.guest;
-  await emailSimple(other, `Dar Diyafa — nouveau message de ${user.name}`, `Nouveau message de ${user.name}`, [c.listing.title, `« ${body.slice(0, 300)} »`], { label: "Répondre", url: `${process.env.APP_URL || ""}/messages/${id}` });
+  await emailSimple(other, `Dar Diyyafa — nouveau message de ${user.name}`, `Nouveau message de ${user.name}`, [c.listing.title, `« ${body.slice(0, 300)} »`], { label: "Répondre", url: `${process.env.APP_URL || ""}/messages/${id}` });
   revalidatePath(`/messages/${id}`);
 }
 
