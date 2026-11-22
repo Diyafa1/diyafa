@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { paymentProviderName } from "@/lib/payments/provider-name";
 import { Choice } from "@/components/Choice";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -8,8 +9,8 @@ import { testPayAction } from "@/app/actions/booking";
 import { LogoMark } from "@/components/Logo";
 
 export default async function TestPayPage({ params }: { params: Promise<{ pid: string }> }) {
-  if ((process.env.PAYMENT_PROVIDER ?? "test") !== "test") notFound();
   const { pid } = await params;
+  if (paymentProviderName() !== "test") redirect("/trips"); // real gateway active: no fake payment page
   const user = await requireUser();
   const { t, locale } = await getT();
   const p = await db.payment.findUnique({ where: { id: pid }, include: { booking: { include: { listing: true } } } });

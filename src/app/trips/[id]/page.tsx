@@ -6,6 +6,7 @@ import { getT } from "@/lib/i18n/server";
 import { computeCancellation } from "@/lib/cancellation";
 import { formatMoney } from "@/lib/money";
 import { checkInInstant, todayUTC } from "@/lib/dates";
+import { paymentProviderName } from "@/lib/payments/provider-name";
 import { CancelForm } from "@/components/CancelForm";
 import { PriceBreakdown } from "@/components/PriceBreakdown";
 import { Notice, StatusBadge } from "@/components/ui";
@@ -60,7 +61,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
         <PriceBreakdown b={b} t={t} locale={locale} />
       </div>
 
-      {b.status === "PENDING_PAYMENT" && b.payments[0] && (process.env.PAYMENT_PROVIDER ?? "test") === "test" && (
+      {b.status === "PENDING_PAYMENT" && b.payments[0] && paymentProviderName() === "test" && (
         <Link href={`/pay/test/${b.payments[0].id}`} className="btn-primary no-underline">{t("trips.payNow")}</Link>
       )}
 

@@ -1,5 +1,6 @@
 import "server-only";
 import { CURRENCY } from "../money";
+import { paymentProviderName } from "./provider-name";
 
 /**
  * Payment gateway abstraction: "test" (fake page), "stripe" (Stripe Checkout: cards, Apple Pay, Google Pay)
@@ -133,6 +134,6 @@ export const stripeProvider: PaymentProvider = {
 };
 
 export function getPaymentProvider(): PaymentProvider {
-  const p = process.env.PAYMENT_PROVIDER;
+  const p = paymentProviderName();
   return p === "stripe" ? stripeProvider : p === "moyasar" ? moyasarProvider : testProvider;
 }

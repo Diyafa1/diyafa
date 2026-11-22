@@ -6,6 +6,7 @@ import { BookingError, cancelBooking, createBooking, markPaymentFailed, markPaym
 import { parseBookingInput } from "@/lib/booking-input";
 import { db } from "@/lib/db";
 import { str } from "@/lib/forms";
+import { paymentProviderName } from "@/lib/payments/provider-name";
 
 export type ActionState = { error?: string; ok?: boolean } | null;
 
@@ -34,7 +35,7 @@ export async function bookAction(_: ActionState, formData: FormData): Promise<Ac
 
 /** Test gateway only: confirms or fails a payment. Disabled when a real provider is configured. */
 export async function testPayAction(formData: FormData) {
-  if ((process.env.PAYMENT_PROVIDER ?? "test") !== "test") throw new Error("disabled");
+  if (paymentProviderName() !== "test") throw new Error("disabled");
   const user = await requireUser();
   const pid = str(formData, "pid");
   const payment = await db.payment.findUnique({ where: { id: pid }, include: { booking: true } });
