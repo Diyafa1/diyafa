@@ -15,6 +15,7 @@ import { BookingError, respondToRequest } from "@/lib/bookings";
 import { isTime, parseDay } from "@/lib/dates";
 import { checkContact } from "@/lib/contact-filter";
 
+const t = (type: string) => (type === "LONG_TERM" ? "Location longue durée" : type === "SHARED_BED" ? "Lits" : "Séjour court");
 const hasContact = (...texts: (string | null | undefined)[]) => texts.some((x) => x && !checkContact(x).ok);
 
 const file = (fd: FormData, k: string) => {
@@ -165,6 +166,7 @@ export async function updateListingAction(formData: FormData) {
   // Significant edits of a published listing go back to review
   const needsReview = l.status === "APPROVED" && (rest.title !== l.title || rest.address !== l.address);
   await db.listing.update({ where: { id: l.id }, data: { ...rest, ...(needsReview ? { status: "PENDING" } : {}) } });
+  if (needsReview) await notifyOwner("✏️ Diyafa — annonce modifiée, à revalider", `${rest.title}\nHôte : ${user.name} (${user.email})\n${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
   revalidatePath(`/listings/${l.id}`);
   redirect(`/host/listings/${l.id}?saved=1`);
 }
@@ -240,7 +242,7 @@ export async function submitListingAction(formData: FormData) {
   }
   if (!["DRAFT", "REJECTED"].includes(l.status)) redirect(`/host/listings/${l.id}`);
   await db.listing.update({ where: { id: l.id }, data: { status: "PENDING", rejectionReason: null } });
-  await notifyOwner("Diyafa — annonce à valider", l.title);
+  await notifyOwner("🏠 Diyafa — nouvelle annonce à valider", `${l.title}\n${t(l.type)} · ${l.city === "MAKKAH" ? "Makkah" : "Madinah"}\nHôte : ${user.name} (${user.email})\nÀ valider : ${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
   redirect(`/host/listings/${l.id}?submitted=1`);
 }
 

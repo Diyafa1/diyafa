@@ -104,13 +104,10 @@ export async function prepareBooking(input: BookingInput, user: Pick<User, "id" 
   let guests = input.guests;
 
   if (listing.type === "LONG_TERM") {
-    months = input.months ?? 0;
-    if (!Number.isInteger(months) || months < Math.max(1, listing.minMonths) || months > 24) throw new BookingError("months");
-    if (!listing.pricePerMonth) throw new BookingError("unavailable");
-    checkOut = addMonths(input.checkIn, months);
-    subtotal = listing.pricePerMonth * months;
-    if (guests > listing.maxGuests) throw new BookingError("guests");
-  } else {
+    // Long-term rentals are not booked or paid online: visits are arranged with Diyafa on WhatsApp.
+    throw new BookingError("long_term_contact");
+  }
+  {
     if (!input.checkOut) throw new BookingError("dates");
     checkOut = input.checkOut;
     const n = nightsBetween(input.checkIn, checkOut);
@@ -136,10 +133,6 @@ export async function prepareBooking(input: BookingInput, user: Pick<User, "id" 
       if (days.some((d) => d.blocked)) throw new BookingError("blocked");
       subtotal = nightlySubtotal(nights, listing.pricePerNight, new Map(days.map((d) => [dayKey(d.date), d.price])), await seasonsFor(listing));
     }
-  }
-  if (listing.type === "LONG_TERM") {
-    const blocked = await db.calendarDay.count({ where: { listingId: listing.id, blocked: true, date: { gte: input.checkIn, lt: checkOut } } });
-    if (blocked) throw new BookingError("blocked");
   }
 
   const rates = await getRates(listing.type);

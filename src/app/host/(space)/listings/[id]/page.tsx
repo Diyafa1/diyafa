@@ -35,10 +35,14 @@ export default async function EditListing({ params, searchParams }: { params: Pr
       {l.status === "REJECTED" && l.rejectionReason && <Notice kind="brand">{t("lstatus.REJECTED")}: {l.rejectionReason}</Notice>}
       {profile?.status !== "APPROVED" && <Notice>{t("host.needApproval")}</Notice>}
 
+      {["DRAFT", "REJECTED"].includes(l.status) && (
+        <form action={submitListingAction} className="card flex flex-wrap items-center justify-between gap-3 border-brand bg-brand-50 p-4">
+          <input type="hidden" name="id" value={l.id} />
+          <p className="text-sm font-medium text-brand-dark">{t("host.draftReminder")}</p>
+          <button className="btn-primary">{t("host.submitReview")}</button>
+        </form>
+      )}
       <div className="flex flex-wrap gap-2">
-        {["DRAFT", "REJECTED"].includes(l.status) && (
-          <form action={submitListingAction}><input type="hidden" name="id" value={l.id} /><button className="btn-primary">{t("host.submitReview")}</button></form>
-        )}
         <Link href={`/host/listings/${l.id}/calendar`} className="btn-secondary no-underline">{t("host.calendar")}</Link>
         <Link href={`/listings/${l.id}`} className="btn-ghost no-underline">{t("host.view")}</Link>
       </div>

@@ -13,6 +13,8 @@ import { startConversationAction } from "@/app/actions/messages";
 import { AMENITIES } from "@/lib/amenities";
 import { MapView } from "@/components/MapView";
 import { HARAM_COORDS } from "@/lib/haram";
+import { LongTermContact } from "@/components/LongTermContact";
+import { listingRef, longTermMessage, longTermWhatsApp } from "@/lib/listing-ref";
 import type { TKey } from "@/lib/i18n";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> };
@@ -64,6 +66,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
             <span className="badge-brand">{t(`type.${l.type}`)}</span>
             <span>{t(`city.${l.city}`)}{l.neighborhood ? ` · ${l.neighborhood}` : ""}</span>
             {avg !== null && <span>★ {avg.toFixed(1)} ({l.reviews.length})</span>}
+            <span className="text-neutral-400" dir="ltr">{listingRef(l.id)}</span>
           </div>
         </div>
         <form action={toggleFavoriteAction}>
@@ -187,7 +190,16 @@ export default async function ListingPage({ params, searchParams }: Props) {
         </div>
 
         <aside className="lg:sticky lg:top-20 lg:self-start">
-          {l.isPublic ? (
+          {l.isPublic && l.type === "LONG_TERM" ? (
+            <LongTermContact
+              t={t}
+              priceLabel={priceLabel}
+              minMonths={l.minMonths}
+              refCode={listingRef(l.id)}
+              waNumber={longTermWhatsApp()}
+              message={longTermMessage({ ref: listingRef(l.id), title: l.title, url: `${process.env.APP_URL || ""}/listings/${l.id}` })}
+            />
+          ) : l.isPublic ? (
             <BookingWidget
               listingId={l.id}
               type={l.type}

@@ -101,6 +101,13 @@ describe("no double booking", () => {
   });
 });
 
+describe("long-term rentals", () => {
+  it("cannot be booked or paid online (visit arranged on WhatsApp)", async () => {
+    const lt = await db.listing.create({ data: { hostId: host.id, city: "MAKKAH", title: "LT", description: "D", address: "A", distanceToHaramM: 900, status: "APPROVED", type: "LONG_TERM", pricePerMonth: 100000 } });
+    expect(await code(createBooking(guest, { listingId: lt.id, checkIn: d(10), months: 3, guests: 1 }))).toBe("long_term_contact");
+  });
+});
+
 describe("booking rules", () => {
   it("rejects past dates, own listing, too many guests", async () => {
     expect(await code(createBooking(guest, { listingId: flatId, checkIn: d(-1), checkOut: d(2), guests: 1 }))).toBe("past_date");
