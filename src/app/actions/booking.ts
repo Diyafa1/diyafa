@@ -57,7 +57,10 @@ export async function cancelBookingAction(_: ActionState, formData: FormData): P
   const id = str(formData, "bookingId");
   try {
     const share = formData.get("refundPercent");
-    await cancelBooking(id, user, str(formData, "reason"), user.role === "ADMIN" && share !== null && share !== "" ? Number(share) / 100 : undefined);
+    const reason = str(formData, "reason");
+    const isStaff = user.role === "ADMIN" || user.role === "STAFF";
+    if (!isStaff && reason.length < 3) return { error: "reason" };
+    await cancelBooking(id, user, reason, isStaff && share !== null && share !== "" ? Number(share) / 100 : undefined);
   } catch (e) {
     if (e instanceof BookingError) return { error: e.code };
     throw e;

@@ -21,8 +21,8 @@ export function CancelForm({ bookingId, preview, label, admin }: { bookingId: st
         </label>
       )}
       <label className="block">
-        <span className="label">{t("trips.cancelReason")}</span>
-        <textarea name="reason" rows={2} maxLength={500} className="input" />
+        <span className="label">{admin ? t("trips.cancelReason") : t("trips.cancelReasonRequired")}</span>
+        <textarea name="reason" rows={2} maxLength={500} required={!admin} minLength={admin ? 0 : 3} className="input" />
       </label>
       {state?.error && <p className="alert-brand">{t(`trips.err.${state.error}` as TKey)}</p>}
       <div className="flex gap-2">

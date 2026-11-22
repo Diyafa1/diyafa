@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { promoAction } from "@/app/actions/admin";
@@ -6,6 +7,7 @@ import { Empty, Notice } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
 
 export default async function AdminPromos() {
+  await requireSection("promos");
   const { t, locale } = await getT();
   const codes = await db.promoCode.findMany({ orderBy: { createdAt: "desc" }, take: 300 });
   return (

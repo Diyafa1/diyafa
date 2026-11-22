@@ -2,7 +2,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ListingType, Role } from "@prisma/client";
-import { requireRole } from "@/lib/auth";
+import { requireSection } from "@/lib/auth";
+import { PERMISSIONS, type Section } from "@/lib/permissions";
+import { setNumberSetting } from "@/lib/settings";
 import { db } from "@/lib/db";
 import { num, str } from "@/lib/forms";
 import { sendEmail } from "@/lib/email";
@@ -11,11 +13,11 @@ import { parseDay } from "@/lib/dates";
 import { normalizeCode } from "@/lib/bookings";
 import { moneyText } from "@/lib/money";
 
-const admin = () => requireRole("ADMIN");
+const allow = (section: Section) => requireSection(section);
 const refresh = () => revalidatePath("/", "layout");
 
 export async function reviewHostAction(fd: FormData) {
-  await admin();
+  await allow("hosts");
   const p = await db.hostProfile.findUnique({ where: { id: str(fd, "id") }, include: { user: true } });
   if (!p) return;
   const approve = str(fd, "decision") === "approve";
@@ -29,7 +31,7 @@ export async function reviewHostAction(fd: FormData) {
 }
 
 export async function reviewListingAction(fd: FormData) {
-  await admin();
+  await allow("listings");
   const l = await db.listing.findUnique({ where: { id: str(fd, "id") }, include: { host: true } });
   if (!l) return;
   const d = str(fd, "decision");
@@ -47,10 +49,14 @@ export async function reviewListingAction(fd: FormData) {
 }
 
 export async function userAction(fd: FormData) {
-  const me = await admin();
+  const me = await allow("users");
   const id = str(fd, "id");
   if (id === me.id) return; // no self-lockout
   const op = str(fd, "op");
+  const target = await db.user.findUnique({ where: { id }, select: { role: true } });
+  if (!target) return;
+  if (me.role !== "ADMIN" && (target.role === "ADMIN" || target.role === "STAFF" || op === "role" || op === "delete")) return;
+  if (op === "role" && str(fd, "role") === "STAFF") return; // employees are managed on the Staff page
   if (op === "suspend") await db.user.update({ where: { id }, data: { status: "SUSPENDED" } });
   if (op === "activate") await db.user.update({ where: { id }, data: { status: "ACTIVE" } });
   if (op === "role") {
@@ -69,7 +75,7 @@ export async function userAction(fd: FormData) {
 }
 
 export async function saveRatesAction(fd: FormData) {
-  await admin();
+  await allow("settings");
   for (const type of ["SHORT_STAY", "SHARED_BED", "LONG_TERM"] as ListingType[]) {
     const clamp = (v: number | null, max: number) => (v === null || v < 0 ? 0 : Math.min(v, max));
     const data = {
@@ -83,13 +89,13 @@ export async function saveRatesAction(fd: FormData) {
 }
 
 export async function createPayoutAction(fd: FormData) {
-  await admin();
+  await allow("payments");
   await createPayout(str(fd, "hostId"));
   refresh();
 }
 
 export async function markPayoutPaidAction(fd: FormData) {
-  await admin();
+  await allow("payments");
   const p = await db.payout.findUnique({ where: { id: str(fd, "id") }, include: { host: true } });
   if (!p || p.status === "PAID") return;
   await db.payout.update({ where: { id: p.id }, data: { status: "PAID", paidAt: new Date(), reference: str(fd, "reference").slice(0, 100) || null } });
@@ -98,7 +104,7 @@ export async function markPayoutPaidAction(fd: FormData) {
 }
 
 export async function disputeAction(fd: FormData) {
-  await admin();
+  await allow("disputes");
   const status = str(fd, "status");
   if (!["RESOLVED", "CLOSED", "OPEN"].includes(status)) return;
   const d = await db.dispute.update({
@@ -111,7 +117,7 @@ export async function disputeAction(fd: FormData) {
 }
 
 export async function moderateAction(fd: FormData) {
-  await admin();
+  await allow("moderation");
   const kind = str(fd, "kind");
   const id = str(fd, "id");
   const hidden = str(fd, "op") === "hide";
@@ -121,14 +127,14 @@ export async function moderateAction(fd: FormData) {
 }
 
 export async function contactHandledAction(fd: FormData) {
-  await admin();
+  await allow("contact");
   await db.contactMessage.update({ where: { id: str(fd, "id") }, data: { handled: true } });
   refresh();
 }
 
 /** Creates a ready-to-book test listing in Madinah (approved demo host), to try bookings and payments. */
 export async function createDemoListingAction() {
-  await admin();
+  await allow("settings");
   const email = "demo-host@diyafa.test";
   let host = await db.user.findUnique({ where: { email } });
   if (!host) {
@@ -156,7 +162,7 @@ export async function createDemoListingAction() {
 
 // ---------- Seasons (automatic price increases) ----------
 export async function seasonAction(fd: FormData) {
-  await admin();
+  await allow("seasons");
   if (str(fd, "op") === "delete") {
     await db.season.delete({ where: { id: str(fd, "id") } }).catch(() => {});
   } else {
@@ -176,7 +182,7 @@ export async function seasonAction(fd: FormData) {
 
 // ---------- Promo codes ----------
 export async function promoAction(fd: FormData) {
-  await admin();
+  await allow("promos");
   const op = str(fd, "op");
   if (op === "toggle") {
     const p = await db.promoCode.findUnique({ where: { id: str(fd, "id") } });
@@ -192,5 +198,39 @@ export async function promoAction(fd: FormData) {
         .catch(() => {});
     }
   }
+  refresh();
+}
+
+// ---------- Staff (owner only) ----------
+export async function staffAction(fd: FormData) {
+  const me = await allow("staff");
+  const op = str(fd, "op");
+  if (op === "add") {
+    const email = str(fd, "email").toLowerCase();
+    const u = await db.user.findUnique({ where: { email } });
+    if (!u) redirect("/admin/staff?error=notfound");
+    if (u.id === me.id || u.role === "ADMIN") redirect("/admin/staff");
+    await db.user.update({ where: { id: u.id }, data: { role: "STAFF", permissions: [] } });
+  } else {
+    const u = await db.user.findUnique({ where: { id: str(fd, "id") } });
+    if (!u || u.role !== "STAFF") return;
+    if (op === "save") {
+      const perms = fd.getAll("perm").map(String).filter((p) => (PERMISSIONS as readonly string[]).includes(p));
+      await db.user.update({ where: { id: u.id }, data: { permissions: perms } });
+    } else if (op === "remove") {
+      const isHost = await db.hostProfile.count({ where: { userId: u.id } });
+      await db.user.update({ where: { id: u.id }, data: { role: isHost ? "HOST" : "GUEST", permissions: [] } });
+    }
+  }
+  refresh();
+}
+
+// ---------- Automation settings (owner only) ----------
+export async function automationSettingsAction(fd: FormData) {
+  await allow("settings");
+  const s = num(fd, "autoSuspendHostCancellations");
+  const h = num(fd, "requestAutoDeclineHours");
+  if (s !== null && s >= 0 && s <= 50) await setNumberSetting("autoSuspendHostCancellations", Math.round(s));
+  if (h !== null && h >= 0 && h <= 240) await setNumberSetting("requestAutoDeclineHours", Math.round(h));
   refresh();
 }

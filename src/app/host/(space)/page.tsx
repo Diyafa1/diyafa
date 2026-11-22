@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { completeFinishedStays, expireStaleHolds } from "@/lib/bookings";
+import { autoDeclineStaleRequests } from "@/lib/automations";
 import { formatMoney } from "@/lib/money";
 import { todayUTC } from "@/lib/dates";
 import { Empty, Notice, Stat } from "@/components/ui";
@@ -15,6 +16,7 @@ export default async function HostDashboard({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   await expireStaleHolds();
   await completeFinishedStays();
+  await autoDeclineStaleRequests();
   const [requests, upcoming, owed, listings] = await Promise.all([
     db.booking.findMany({ where: { listing: { hostId: user.id }, status: "REQUESTED" }, include: { listing: true, guest: true, bed: true }, orderBy: { checkIn: "asc" } }),
     db.booking.findMany({ where: { listing: { hostId: user.id }, status: "CONFIRMED", checkOut: { gt: todayUTC() } }, include: { listing: true, guest: true }, orderBy: { checkIn: "asc" }, take: 10 }),

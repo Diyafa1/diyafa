@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import Link from "next/link";
 import { Choice } from "@/components/Choice";
 import type { ListingStatus } from "@prisma/client";
@@ -9,6 +10,7 @@ import { formatMoney } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
 
 export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+  await requireSection("listings");
   const { t, locale } = await getT();
   const sp = await searchParams;
   const statuses = ["PENDING", "APPROVED", "DRAFT", "REJECTED", "SUSPENDED"];

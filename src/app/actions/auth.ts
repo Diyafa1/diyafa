@@ -44,7 +44,7 @@ export async function loginAction(formData: FormData) {
   if (!user || !ok) redirect(`/login?error=invalid${next ? `&next=${encodeURIComponent(next)}` : ""}`);
   if (user.status === "SUSPENDED") redirect("/login?error=suspended");
   await startSession(user);
-  redirect(next || (user.role === "ADMIN" ? "/admin" : user.role === "HOST" ? "/host" : "/"));
+  redirect(next || (user.role === "ADMIN" || user.role === "STAFF" ? "/admin" : user.role === "HOST" ? "/host" : "/"));
 }
 
 export async function logoutAction() {

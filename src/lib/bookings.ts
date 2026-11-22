@@ -4,7 +4,8 @@ import crypto from "node:crypto";
 import { db } from "./db";
 import { addDays, addMonths, checkInInstant, dayKey, eachNight, nightsBetween, todayUTC } from "./dates";
 import { computeQuote, nightlySubtotal, type Quote } from "./pricing";
-import { getRates } from "./settings";
+import { getNumberSetting, getRates } from "./settings";
+import { can } from "./permissions";
 import { computeCancellation } from "./cancellation";
 import { getPaymentProvider } from "./payments";
 import { sendEmail } from "./email";
@@ -263,7 +264,7 @@ export async function markPaymentPaid(paymentId: string) {
   const status = b.listing.instantBook ? "CONFIRMED" : "REQUESTED";
   await db.$transaction([
     db.payment.update({ where: { id: payment.id }, data: { status: "PAID" } }),
-    db.booking.update({ where: { id: b.id }, data: { status, expiresAt: null } }),
+    db.booking.update({ where: { id: b.id }, data: { status, expiresAt: null, requestedAt: status === "REQUESTED" ? new Date() : null } }),
     ...(b.promoCode && b.promoCode !== "PARRAINAGE" ? [db.promoCode.updateMany({ where: { code: b.promoCode }, data: { uses: { increment: 1 } } })] : []),
   ]);
   if (b.promoCode === "PARRAINAGE" && b.guest.referredById) await rewardReferrer(b.guest.referredById, b.guest.name);
@@ -306,7 +307,7 @@ async function refundBooking(bookingId: string, amount: number) {
 }
 
 /** Host accepts or declines a request. */
-export async function respondToRequest(bookingId: string, hostId: string, accept: boolean) {
+export async function respondToRequest(bookingId: string, hostId: string, accept: boolean, reason?: string, auto = false) {
   const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: true, guest: true } });
   if (!b || b.listing.hostId !== hostId) throw new BookingError("not_found");
   if (b.status !== "REQUESTED") throw new BookingError("state");
@@ -317,9 +318,9 @@ export async function respondToRequest(bookingId: string, hostId: string, accept
     await refundBooking(b.id, b.onlineAmount);
     await db.booking.update({
       where: { id: b.id },
-      data: { status: "DECLINED", refundedAmount: b.onlineAmount, hostPayout: 0 },
+      data: { status: "DECLINED", refundedAmount: b.onlineAmount, hostPayout: 0, cancelledBy: auto ? "auto" : "decline", cancelledAt: new Date(), cancelReason: reason ?? null },
     });
-    await notifyOwner(`🔴 Diyafa — demande refusée par l'hôte ${b.code}`, `${b.listing.title}\nAcompte remboursé : ${moneyText(b.onlineAmount)}`);
+    await notifyOwner(auto ? `⏱️ Diyafa — demande refusée automatiquement (pas de réponse de l'hôte) ${b.code}` : `🔴 Diyafa — demande refusée par l'hôte ${b.code}`, `${b.listing.title}\nAcompte remboursé : ${moneyText(b.onlineAmount)}`);
     await sendEmail(b.guest.email, `Diyafa — demande refusée ${b.code}`, `${b.listing.title}\nVotre acompte vous est remboursé intégralement.`);
   }
 }
@@ -328,7 +329,7 @@ export async function respondToRequest(bookingId: string, hostId: string, accept
 export async function cancelBooking(bookingId: string, actor: User, reason: string, adminShare?: number) {
   const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: { include: { host: true } }, guest: true } });
   if (!b) throw new BookingError("not_found");
-  const by = actor.role === "ADMIN" ? "admin" : b.guestId === actor.id ? "guest" : b.listing.hostId === actor.id ? "host" : null;
+  const by = b.guestId === actor.id ? "guest" : b.listing.hostId === actor.id ? "host" : can(actor, "refunds") ? "admin" : null;
   if (!by) throw new BookingError("not_found");
   if (!["REQUESTED", "CONFIRMED"].includes(b.status)) throw new BookingError("state");
   if (b.payoutId) throw new BookingError("paid_out");
@@ -344,12 +345,14 @@ export async function cancelBooking(bookingId: string, actor: User, reason: stri
       refundedAmount: out.refundAmount,
       hostPayout: 0,
       cancelledBy: by,
-      cancelReason: reason.slice(0, 500),
+      cancelledAt: new Date(),
+      cancelReason: reason.slice(0, 500) || null,
     },
   });
   const msg = `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nRemboursement : ${moneyText(out.refundAmount)}`;
   await sendEmail(b.guest.email, `Diyafa — réservation annulée ${b.code}`, msg);
-  await notifyOwner(`🟠 Diyafa — réservation annulée ${b.code} (par ${by === "guest" ? "le voyageur" : by === "host" ? "l'hôte" : "l'admin"})`, msg);
+  await notifyOwner(`🟠 Diyafa — réservation annulée ${b.code} (par ${by === "guest" ? "le voyageur" : by === "host" ? "l'hôte" : "l'admin"})`, `${msg}\nRaison : ${reason || "—"}`);
+  if (by === "host") await autoSuspendIfTooManyCancellations(b.listing.hostId);
   await sendEmail(b.listing.host.email, `Diyafa — réservation annulée ${b.code}`, msg);
   return out;
 }
@@ -364,4 +367,28 @@ export async function takenNights(unitKey: string, from: Date, to: Date): Promis
   const s = new Set<string>();
   for (const r of rows) for (let d = r.checkIn; d < r.checkOut; d = addDays(d, 1)) s.add(dayKey(d));
   return s;
+}
+
+/** Host cancellations (confirmed bookings cancelled by the host) over the last 12 months. */
+export async function hostCancellationCount(hostId: string) {
+  return db.booking.count({
+    where: { listing: { hostId }, cancelledBy: "host", status: "CANCELLED", cancelledAt: { gte: new Date(Date.now() - 365 * 86400000) } },
+  });
+}
+
+export const AUTO_SUSPEND_REASON = "Suspendu automatiquement : trop d'annulations par l'hôte";
+
+/** Hides all listings of a host who cancels too often, until the owner re-approves them. */
+export async function autoSuspendIfTooManyCancellations(hostId: string) {
+  const limit = await getNumberSetting("autoSuspendHostCancellations");
+  if (limit <= 0) return false;
+  const n = await hostCancellationCount(hostId);
+  if (n < limit) return false;
+  const changed = await db.listing.updateMany({ where: { hostId, status: { in: ["APPROVED", "PENDING"] } }, data: { status: "SUSPENDED", rejectionReason: AUTO_SUSPEND_REASON } });
+  if (changed.count > 0) {
+    const host = await db.user.findUnique({ where: { id: hostId } });
+    await notifyOwner(`⛔ Diyafa — hôte suspendu automatiquement`, `${host?.name} (${host?.email}) : ${n} annulations en 12 mois.\n${changed.count} annonce(s) masquée(s). Pour les remettre en ligne : Admin → Annonces → Valider.`);
+    if (host) await sendEmail(host.email, "Diyafa — vos annonces sont suspendues", `Suite à ${n} annulations en 12 mois, vos annonces ne sont plus visibles. Contactez Diyafa pour en discuter.`);
+  }
+  return true;
 }

@@ -1,15 +1,20 @@
+import { requireSection } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
 import { getAllRates } from "@/lib/settings";
-import { saveRatesAction } from "@/app/actions/admin";
+import { automationSettingsAction, saveRatesAction } from "@/app/actions/admin";
+import { getNumberSetting } from "@/lib/settings";
 import { computeQuote } from "@/lib/pricing";
 import { formatMoney } from "@/lib/money";
 import { Notice } from "@/components/ui";
 
 export default async function AdminSettings() {
+  await requireSection("settings");
   const { t, locale } = await getT();
   const rates = await getAllRates();
+  const [suspendAfter, declineAfter] = await Promise.all([getNumberSetting("autoSuspendHostCancellations"), getNumberSetting("requestAutoDeclineHours")]);
   return (
-    <form action={saveRatesAction} className="max-w-3xl space-y-4">
+    <div className="max-w-3xl space-y-8">
+    <form action={saveRatesAction} className="space-y-4">
       <Notice>{t("admin.ratesNote")}</Notice>
       {(["SHORT_STAY", "SHARED_BED", "LONG_TERM"] as const).map((type) => {
         const r = rates[type];
@@ -29,5 +34,13 @@ export default async function AdminSettings() {
       })}
       <button className="btn-primary">{t("common.save")}</button>
     </form>
+      <form action={automationSettingsAction} className="card space-y-4 p-4">
+        <h2 className="text-lg">{t("auto.title")}</h2>
+        <label className="block"><span className="label">{t("auto.suspend")}</span><input name="autoSuspendHostCancellations" type="number" min={0} max={50} defaultValue={suspendAfter} className="input max-w-[140px]" /></label>
+        <label className="block"><span className="label">{t("auto.decline")}</span><input name="requestAutoDeclineHours" type="number" min={0} max={240} defaultValue={declineAfter} className="input max-w-[140px]" /></label>
+        <p className="text-xs text-neutral-500">{t("auto.list")}</p>
+        <button className="btn-primary">{t("common.save")}</button>
+      </form>
+    </div>
   );
 }

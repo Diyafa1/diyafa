@@ -18,7 +18,7 @@ export function Header({ user, t, locale }: { user: User | null; t: T; locale: L
           {user && <Link href="/favorites" className="btn-ghost no-underline">{t("nav.favorites")}</Link>}
           {user && <Link href="/messages" className="btn-ghost no-underline">{t("nav.messages")}</Link>}
           {user?.role === "HOST" && <Link href="/host" className="btn-ghost no-underline">{t("nav.host")}</Link>}
-          {user?.role === "ADMIN" && <Link href="/admin" className="btn-ghost no-underline">{t("nav.admin")}</Link>}
+          {(user?.role === "ADMIN" || user?.role === "STAFF") && <Link href="/admin" className="btn-ghost no-underline">{t("nav.admin")}</Link>}
           {user?.role === "GUEST" && <Link href="/host/onboarding" className="btn-ghost no-underline">{t("nav.becomeHost")}</Link>}
         </nav>
         <div className="flex items-center gap-2">
@@ -52,7 +52,7 @@ export function MobileNav({ user, t }: { user: User | null; t: T }) {
     { href: "/messages", label: t("nav.messages"), icon: "M4 5h16v11H8l-4 4z" },
     user.role === "HOST"
       ? { href: "/host", label: t("nav.host"), icon: "M3 11l9-7 9 7v9H3zM9 20v-6h6v6" }
-      : user.role === "ADMIN"
+      : user.role === "ADMIN" || user.role === "STAFF"
         ? { href: "/admin", label: t("nav.admin"), icon: "M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" }
         : { href: "/account", label: t("nav.account"), icon: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM4 21c0-4 4-6 8-6s8 2 8 6" },
   ];

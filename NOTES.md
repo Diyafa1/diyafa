@@ -179,7 +179,13 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - E-mails réels : compte Resend + domaine → `EMAIL_PROVIDER=resend`, `RESEND_API_KEY`, `EMAIL_FROM`
 - WhatsApp alertes : `OWNER_WHATSAPP`, `CALLMEBOT_API_KEY` · Aide visiteurs : `SUPPORT_WHATSAPP`
 - Google : `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`
-- Bancontact : à activer dans Stripe (Settings → Payment methods), aucun code nécessaire si le compte le permet
-- SMS (vérification du téléphone) : pas encore fait — nécessite un service payant (Twilio…), à décider
+- Bancontact et SMS : abandonnés (décision du propriétaire).
 - **Règles de la messagerie et de remboursement** : à rédiger ensemble.
+
+## Séance 3 (suite 2) — annulations, employés, automatisations
+- **Admin → Annulations** : qui a annulé (voyageur / hôte / Diyafa / demande refusée / refus automatique), quand, et pourquoi. La raison est **obligatoire** pour le voyageur et l'hôte. Classement des hôtes qui annulent le plus (12 mois).
+- **Suspension automatique** : après N annulations par l'hôte en 12 mois (réglable, défaut 3), toutes ses annonces passent en « Suspendue » et disparaissent du site ; alerte e-mail/WhatsApp pour le propriétaire et e-mail à l'hôte. Pour les remettre : Admin → Annonces → Valider.
+- **Employés (rôle STAFF)** : Admin → Employés. La personne crée d'abord un compte, puis le propriétaire l'ajoute par e-mail et coche ses droits : valider hôtes, annonces, voir réservations (sans les montants Diyafa), annuler/rembourser, annulations, suspendre utilisateurs, modération, litiges, contact, codes promo, saisons. **Jamais** pour un employé : chiffre d'affaires, commissions, paiements, réglages, gestion des employés. Les employés ne peuvent pas agir sur les comptes admin/employés ni changer les rôles. Compte démo local : staff@diyafa.test / Staff12345!
+- **Automatisations** (cron quotidien Vercel + au chargement des tableaux de bord) : refus + remboursement automatique des demandes sans réponse après X heures (réglable, défaut 24 h), rappel la veille de l'arrivée (voyageur + hôte), demande d'avis après le départ, libération des dates non payées, fin des séjours. Réglages dans Admin → Commissions → Automatisations.
+- 58 tests automatiques OK.
 

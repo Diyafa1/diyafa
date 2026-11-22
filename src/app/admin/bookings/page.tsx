@@ -1,3 +1,5 @@
+import { requireSection } from "@/lib/auth";
+import { can } from "@/lib/permissions";
 import type { BookingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
@@ -8,6 +10,9 @@ import { fmtDay } from "@/components/TripCard";
 import { CancelForm } from "@/components/CancelForm";
 
 export default async function AdminBookings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string }> }) {
+  const me = await requireSection("bookings");
+  const showMoney = can(me, "finances");
+  const canRefund = can(me, "refunds");
   const { t, locale } = await getT();
   const sp = await searchParams;
   const statuses = ["PENDING_PAYMENT", "REQUESTED", "CONFIRMED", "COMPLETED", "CANCELLED", "DECLINED", "EXPIRED"];
@@ -40,13 +45,13 @@ export default async function AdminBookings({ searchParams }: { searchParams: Pr
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-neutral-700">
               <span>{t("book.total")}: {formatMoney(b.total, locale)}</span>
-              <span>{t("admin.onlineReceived")}: {formatMoney(b.onlineAmount, locale)}</span>
+              {showMoney && <span>{t("admin.onlineReceived")}: {formatMoney(b.onlineAmount, locale)}</span>}
               <span>{t("book.onSite")}: {formatMoney(b.payOnSite, locale)}</span>
-              <span>{t("admin.commissions")}: {formatMoney(platformRevenue(b), locale)}</span>
+              {showMoney && <span>{t("admin.commissions")}: {formatMoney(platformRevenue(b), locale)}</span>}
               {b.refundedAmount > 0 && <span className="text-brand">{t("admin.refundsTotal")}: {formatMoney(b.refundedAmount, locale)}</span>}
               {b.cancelledBy && <span>({b.cancelledBy}{b.cancelReason ? `: ${b.cancelReason}` : ""})</span>}
             </div>
-            {["REQUESTED", "CONFIRMED"].includes(b.status) && !b.payoutId && <CancelForm bookingId={b.id} label={t("admin.cancelRefund")} admin />}
+            {canRefund && ["REQUESTED", "CONFIRMED"].includes(b.status) && !b.payoutId && <CancelForm bookingId={b.id} label={t("admin.cancelRefund")} admin />}
           </div>
         ))}
       </div>

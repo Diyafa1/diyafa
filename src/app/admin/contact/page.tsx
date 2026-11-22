@@ -1,9 +1,11 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { contactHandledAction } from "@/app/actions/admin";
 import { Empty } from "@/components/ui";
 
 export default async function AdminContact() {
+  await requireSection("contact");
   const { t } = await getT();
   const rows = await db.contactMessage.findMany({ orderBy: [{ handled: "asc" }, { createdAt: "desc" }], take: 200 });
   if (!rows.length) return <Empty>{t("admin.none")}</Empty>;

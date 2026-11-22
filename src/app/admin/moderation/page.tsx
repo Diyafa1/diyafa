@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Choice } from "@/components/Choice";
 import { getT } from "@/lib/i18n/server";
@@ -5,6 +6,7 @@ import { moderateAction } from "@/app/actions/admin";
 import { Empty } from "@/components/ui";
 
 export default async function AdminModeration() {
+  await requireSection("moderation");
   const { t } = await getT();
   const [messages, reviews] = await Promise.all([
     db.message.findMany({ where: { reported: true }, include: { sender: true, conversation: { include: { listing: { select: { title: true } } } } }, orderBy: { createdAt: "desc" } }),

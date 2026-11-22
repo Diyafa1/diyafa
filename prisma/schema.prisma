@@ -11,6 +11,7 @@ datasource db {
 enum Role {
   GUEST
   HOST
+  STAFF
   ADMIN
 }
 
@@ -99,6 +100,7 @@ model User {
   gender       Gender?
   locale       String     @default("ar")
   referralCode String?    @unique
+  permissions  String[]   // for STAFF accounts: which parts of the admin space they can use
   referredById String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -263,6 +265,10 @@ model Booking {
   promoCode       String?
   discount        Int           @default(0) // paid by Diyafa: reduces the online part
   cancelledBy     String?
+  cancelledAt     DateTime?
+  requestedAt     DateTime?
+  reminderSentAt  DateTime?
+  reviewAskedAt   DateTime?
   cancelReason    String?
   expiresAt       DateTime?
   payoutId        String?
@@ -419,4 +425,11 @@ model PromoCode {
   active      Boolean   @default(true)
   note        String?
   createdAt   DateTime  @default(now())
+}
+
+/// Simple key/value settings editable by the owner (automation thresholds…).
+model AppSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

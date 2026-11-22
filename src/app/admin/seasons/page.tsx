@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { seasonAction } from "@/app/actions/admin";
@@ -6,6 +7,7 @@ import { Empty, Notice } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
 
 export default async function AdminSeasons() {
+  await requireSection("seasons");
   const { t, locale } = await getT();
   const seasons = await db.season.findMany({ orderBy: { startDate: "asc" } });
   const optedIn = await db.listing.count({ where: { seasonalPricing: true, status: "APPROVED" } });

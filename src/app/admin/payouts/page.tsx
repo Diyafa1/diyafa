@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
@@ -7,6 +8,7 @@ import { Empty, StatusBadge } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
 
 export default async function AdminPayouts() {
+  await requireSection("payments");
   const { t, locale } = await getT();
   const owed = await owedByHost();
   const hosts = await db.user.findMany({ where: { id: { in: [...owed.keys()] } }, include: { hostProfile: true } });

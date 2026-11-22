@@ -4,7 +4,7 @@ import type { Role } from "@prisma/client";
 export type Rule = { prefix: string; roles: Role[] | "any-user" };
 
 export const ACCESS_RULES: Rule[] = [
-  { prefix: "/admin", roles: ["ADMIN"] },
+  { prefix: "/admin", roles: ["ADMIN", "STAFF"] },
   { prefix: "/host/onboarding", roles: "any-user" },
   { prefix: "/host", roles: ["HOST"] },
   { prefix: "/account", roles: "any-user" },

@@ -1,9 +1,11 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
 import { StatusBadge } from "@/components/ui";
 
 export default async function AdminPayments() {
+  await requireSection("payments");
   const { t, locale } = await getT();
   const rows = await db.payment.findMany({ include: { booking: { select: { code: true } } }, orderBy: { createdAt: "desc" }, take: 300 });
   const fmt = new Intl.DateTimeFormat(locale === "ar" ? "ar-SA-u-ca-gregory-nu-latn" : locale, { dateStyle: "short", timeStyle: "short" });

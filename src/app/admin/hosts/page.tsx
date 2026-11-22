@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { Choice } from "@/components/Choice";
 import { getT } from "@/lib/i18n/server";
@@ -5,6 +6,7 @@ import { reviewHostAction } from "@/app/actions/admin";
 import { Empty, StatusBadge } from "@/components/ui";
 
 export default async function AdminHosts({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  await requireSection("hosts");
   const { t } = await getT();
   const sp = await searchParams;
   const status = ["PENDING", "APPROVED", "REJECTED"].includes(sp.status ?? "") ? (sp.status as "PENDING") : undefined;

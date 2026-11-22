@@ -1,3 +1,4 @@
+import { requireSection } from "@/lib/auth";
 import Link from "next/link";
 import { Choice } from "@/components/Choice";
 import { db } from "@/lib/db";
@@ -7,6 +8,7 @@ import { disputeAction } from "@/app/actions/admin";
 import { Empty, StatusBadge } from "@/components/ui";
 
 export default async function AdminDisputes() {
+  await requireSection("disputes");
   const { t, locale } = await getT();
   const rows = await db.dispute.findMany({ include: { openedBy: true, booking: { include: { listing: true } } }, orderBy: [{ status: "asc" }, { createdAt: "desc" }] });
   if (!rows.length) return <Empty>{t("admin.none")}</Empty>;

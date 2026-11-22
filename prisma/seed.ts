@@ -42,6 +42,7 @@ async function main() {
       hostProfile: { create: { displayName: "خالد", whatsapp: "+966500000003", licenseNumber: "MT-00000000", idNumber: "1000000000", status: "PENDING" } },
     },
   });
+  await db.user.create({ data: { email: "staff@diyafa.test", name: "Employé démo", passwordHash: pw("Staff12345!"), role: "STAFF", permissions: ["hosts", "listings", "moderation", "bookings"] } });
   const guest = await db.user.create({ data: { email: "guest@diyafa.test", name: "Youssef Benali", passwordHash: pw("Guest12345!"), gender: "MALE", locale: "fr" } });
   const guest2 = await db.user.create({ data: { email: "guest2@diyafa.test", name: "Aisha Rahman", passwordHash: pw("Guest12345!"), gender: "FEMALE", locale: "en" } });
 

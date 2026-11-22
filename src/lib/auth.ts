@@ -6,6 +6,7 @@ import bcrypt from "bcryptjs";
 import type { Role, User } from "@prisma/client";
 import { db } from "./db";
 import { SESSION_COOKIE, signSession, verifySession } from "./session";
+import { can, type Section } from "./permissions";
 
 export const hashPassword = (p: string) => bcrypt.hash(p, 10);
 export const verifyPassword = (p: string, h: string) => bcrypt.compare(p, h);
@@ -43,5 +44,12 @@ export async function requireUser(): Promise<User> {
 export async function requireRole(...roles: Role[]): Promise<User> {
   const u = await requireUser();
   if (!roles.includes(u.role)) redirect("/forbidden");
+  return u;
+}
+
+/** Admin space: the owner can do everything; an employee only what the owner allowed. */
+export async function requireSection(section: Section): Promise<User> {
+  const u = await requireUser();
+  if (!can(u, section)) redirect("/forbidden");
   return u;
 }

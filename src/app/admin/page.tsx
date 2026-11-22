@@ -6,12 +6,44 @@ import { dashboardStats, occupancy30 } from "@/lib/stats";
 import { completeFinishedStays, expireStaleHolds } from "@/lib/bookings";
 import { Stat } from "@/components/ui";
 import { createDemoListingAction } from "@/app/actions/admin";
+import { requireRole } from "@/lib/auth";
+import { can } from "@/lib/permissions";
+import { autoDeclineStaleRequests } from "@/lib/automations";
 
 export default async function AdminDashboard({ searchParams }: { searchParams: Promise<{ p?: string }> }) {
+  const user = await requireRole("ADMIN", "STAFF");
   const { t, locale } = await getT();
   const sp = await searchParams;
   await expireStaleHolds();
   await completeFinishedStays();
+  await autoDeclineStaleRequests();
+  if (!can(user, "finances")) {
+    const [hosts, listings, disputes, reported] = await Promise.all([
+      db.hostProfile.count({ where: { status: "PENDING" } }),
+      db.listing.count({ where: { status: "PENDING" } }),
+      db.dispute.count({ where: { status: "OPEN" } }),
+      db.message.count({ where: { reported: true, hidden: false } }),
+    ]);
+    const items = [
+      { ok: can(user, "hosts"), href: "/admin/hosts?status=PENDING", label: t("admin.hosts"), n: hosts },
+      { ok: can(user, "listings"), href: "/admin/listings?status=PENDING", label: t("admin.listings"), n: listings },
+      { ok: can(user, "disputes"), href: "/admin/disputes", label: t("admin.disputes"), n: disputes },
+      { ok: can(user, "moderation"), href: "/admin/moderation", label: t("admin.reportedMessages"), n: reported },
+    ].filter((i) => i.ok);
+    return (
+      <div className="space-y-4">
+        <p className="text-neutral-700">{t("admin.dashboardStaff")}</p>
+        <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          {items.map((i) => (
+            <Link key={i.href} href={i.href} className="card block p-4 text-neutral-900 no-underline hover:border-brand">
+              <div className="text-xs text-neutral-500">{i.label}</div>
+              <div className="mt-1 text-2xl font-semibold">{i.n}</div>
+            </Link>
+          ))}
+        </div>
+      </div>
+    );
+  }
   const days = sp.p === "all" ? null : sp.p === "365" ? 365 : 30;
   const [stats, occ, pending] = await Promise.all([
     dashboardStats(days),
