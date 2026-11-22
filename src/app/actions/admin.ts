@@ -73,7 +73,7 @@ export async function saveRatesAction(fd: FormData) {
     const data = {
       hostPercent: clamp(num(fd, `${type}.host`), 50),
       guestFeePercent: clamp(num(fd, `${type}.guest`), 50),
-      vatPercent: clamp(num(fd, `${type}.vat`), 30),
+      vatPercent: 0, // no VAT on the site (owner's decision)
     };
     await db.commissionSetting.upsert({ where: { listingType: type }, create: { listingType: type, ...data }, update: data });
   }

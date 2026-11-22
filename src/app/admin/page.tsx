@@ -33,11 +33,10 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
           <Link key={p} href={`/admin?p=${p}`} className={`${(sp.p ?? "30") === p ? "btn-primary" : "btn-secondary"} btn-sm no-underline`}>{t(k)}</Link>
         ))}
       </div>
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         <Stat label={t("admin.bookingsCount")} value={stats.totals.bookings} />
         <Stat label={t("admin.revenue")} value={formatMoney(stats.totals.volume, locale)} />
         <Stat label={t("admin.commissions")} value={formatMoney(stats.totals.commissions, locale)} />
-        <Stat label={t("admin.vatCollected")} value={formatMoney(stats.totals.vat, locale)} />
         <Stat label={t("admin.onlineReceived")} value={formatMoney(stats.totals.online, locale)} />
         <Stat label={t("admin.occupancy")} value={pct(occ.overall)} />
       </div>

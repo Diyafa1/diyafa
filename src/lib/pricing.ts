@@ -3,9 +3,9 @@ import type { ListingType } from "@prisma/client";
 export type Rates = { hostPercent: number; guestFeePercent: number; vatPercent: number };
 
 export const DEFAULT_RATES: Record<ListingType, Rates> = {
-  SHORT_STAY: { hostPercent: 20, guestFeePercent: 10, vatPercent: 15 },
-  SHARED_BED: { hostPercent: 20, guestFeePercent: 10, vatPercent: 15 },
-  LONG_TERM: { hostPercent: 20, guestFeePercent: 10, vatPercent: 15 },
+  SHORT_STAY: { hostPercent: 20, guestFeePercent: 10, vatPercent: 0 },
+  SHARED_BED: { hostPercent: 20, guestFeePercent: 10, vatPercent: 0 },
+  LONG_TERM: { hostPercent: 20, guestFeePercent: 10, vatPercent: 0 },
 };
 
 /**

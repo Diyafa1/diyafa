@@ -133,7 +133,6 @@ export function BookingWidget(props: {
         <dl className="space-y-1 border-t border-neutral-100 pt-3 text-sm">
           <div className="flex justify-between"><dt>{t("book.subtotal", { n: quote.months ? t("book.months", { n: quote.months }) : t("book.nights", { n: quote.nights }) })}</dt><dd>{formatMoney(quote.q.subtotal, locale)}</dd></div>
           <div className="flex justify-between"><dt>{t("book.serviceFee")}</dt><dd>{formatMoney(quote.q.serviceFee, locale)}</dd></div>
-          {quote.q.vat > 0 && <div className="flex justify-between"><dt>{t("book.vat", { p: quote.vatPercent })}</dt><dd>{formatMoney(quote.q.vat, locale)}</dd></div>}
           <div className="flex justify-between border-t border-neutral-100 pt-2 font-semibold"><dt>{t("book.totalStay")}</dt><dd>{formatMoney(quote.q.total, locale)}</dd></div>
           <div className="mt-2 space-y-1 rounded-[12px] bg-brand-50 p-3">
             <div className="flex justify-between font-semibold text-brand-dark"><dt>{t("book.online")}</dt><dd>{formatMoney(quote.q.onlineAmount, locale)}</dd></div>

@@ -17,10 +17,9 @@ export default async function AdminSettings() {
         return (
           <section key={type} className="card space-y-3 p-4">
             <h2 className="text-lg">{t(`type.${type}`)}</h2>
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <label className="block"><span className="label">{t("admin.hostPercent")}</span><input name={`${type}.host`} type="number" step="0.1" min={0} max={50} defaultValue={r.hostPercent} className="input" /></label>
               <label className="block"><span className="label">{t("admin.guestFee")}</span><input name={`${type}.guest`} type="number" step="0.1" min={0} max={50} defaultValue={r.guestFeePercent} className="input" /></label>
-              <label className="block"><span className="label">{t("admin.vatPercent")}</span><input name={`${type}.vat`} type="number" step="0.1" min={0} max={30} defaultValue={r.vatPercent} className="input" /></label>
             </div>
             <p className="text-xs text-neutral-500">
               {formatMoney(100000, locale)} → {t("book.online")} {formatMoney(ex.onlineAmount, locale)} · {t("book.onSite")} {formatMoney(ex.payOnSite, locale)} · {t("admin.commissions")} {formatMoney(ex.platformRevenue, locale)}
