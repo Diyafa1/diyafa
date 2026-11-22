@@ -39,7 +39,7 @@ export function SearchForm({ t, sp = {}, full = false }: { t: T; sp?: SearchPara
           <label className="block">
             <span className="label">{t("search.bedsFor")}</span>
             <select name="gender" className="input" defaultValue={sp.gender ?? ""}>
-              <option value="">{t("search.anyGender")}</option>
+              <option value="">—</option>
               <option value="MALE">{t("gender.MALE")}</option>
               <option value="FEMALE">{t("gender.FEMALE")}</option>
             </select>

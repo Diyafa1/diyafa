@@ -7,7 +7,7 @@ import { searchListings } from "@/lib/listings";
 import { addDays, todayUTC } from "@/lib/dates";
 
 let host: User, guest: User, guest2: User, woman: User, admin: User;
-let flatId: string, bedsId: string, maleBed: string, maleBed2: string, femaleBed: string;
+let flatId: string, bedsId: string, bedsWomenId: string, maleBed: string, maleBed2: string, femaleBed: string;
 const d = (n: number) => addDays(todayUTC(), n);
 
 async function code(p: Promise<unknown>) {
@@ -35,15 +35,19 @@ beforeAll(async () => {
   const common = { hostId: host.id, city: "MAKKAH" as const, title: "T", description: "D", address: "A", distanceToHaramM: 500, licenseNumber: "L", status: "APPROVED" as const };
   flatId = (await db.listing.create({ data: { ...common, type: "SHORT_STAY", pricePerNight: 10000, maxGuests: 4, instantBook: true } })).id;
   const beds = await db.listing.create({
-    data: { ...common, type: "SHARED_BED", instantBook: true, rooms: { create: [
+    data: { ...common, type: "SHARED_BED", instantBook: true, bedGender: "MALE", rooms: { create: [
       { name: "M", gender: "MALE", beds: { create: [{ label: "1", pricePerNight: 5000 }, { label: "2", pricePerNight: 5000 }] } },
-      { name: "F", gender: "FEMALE", beds: { create: [{ label: "1", pricePerNight: 6000 }] } },
     ] } },
     include: { rooms: { include: { beds: true } } },
   });
   bedsId = beds.id;
-  [maleBed, maleBed2] = beds.rooms.find((r) => r.gender === "MALE")!.beds.map((b) => b.id);
-  femaleBed = beds.rooms.find((r) => r.gender === "FEMALE")!.beds[0].id;
+  [maleBed, maleBed2] = beds.rooms[0].beds.map((b) => b.id);
+  const women = await db.listing.create({
+    data: { ...common, type: "SHARED_BED", instantBook: true, bedGender: "FEMALE", rooms: { create: [{ name: "F", gender: "FEMALE", beds: { create: [{ label: "1", pricePerNight: 6000 }] } }] } },
+    include: { rooms: { include: { beds: true } } },
+  });
+  bedsWomenId = women.id;
+  femaleBed = women.rooms[0].beds[0].id;
 });
 
 beforeEach(async () => {
@@ -83,8 +87,8 @@ describe("no double booking", () => {
   });
   it("beds: men and women rooms are enforced", async () => {
     expect(await code(createBooking(woman, { listingId: bedsId, bedId: maleBed, checkIn: d(5), checkOut: d(6), guests: 1 }))).toBe("gender");
-    expect(await code(createBooking(guest, { listingId: bedsId, bedId: femaleBed, checkIn: d(5), checkOut: d(6), guests: 1 }))).toBe("gender");
-    expect(await code(createBooking(woman, { listingId: bedsId, bedId: femaleBed, checkIn: d(5), checkOut: d(6), guests: 1 }))).toBe("ok");
+    expect(await code(createBooking(guest, { listingId: bedsWomenId, bedId: femaleBed, checkIn: d(5), checkOut: d(6), guests: 1 }))).toBe("gender");
+    expect(await code(createBooking(woman, { listingId: bedsWomenId, bedId: femaleBed, checkIn: d(5), checkOut: d(6), guests: 1 }))).toBe("ok");
   });
   it("cancelled or expired bookings free the dates again", async () => {
     const { booking } = await createBooking(guest, { listingId: flatId, checkIn: d(10), checkOut: d(12), guests: 1 });
@@ -204,13 +208,13 @@ describe("search", () => {
     expect((await searchListings({ type: "SHARED_BED", checkIn: d(10), checkOut: d(12) })).map((l) => l.id)).toContain(bedsId);
   });
   it("men / women filter: shows bed apartments only if a bed of that gender is free", async () => {
-    expect((await searchListings({ gender: "FEMALE" })).map((l) => l.id)).toEqual([bedsId]);
-    await createBooking(woman, { listingId: bedsId, bedId: femaleBed, checkIn: d(70), checkOut: d(72), guests: 1 });
+    expect((await searchListings({ gender: "FEMALE" })).map((l) => l.id)).toEqual([bedsWomenId]);
+    await createBooking(woman, { listingId: bedsWomenId, bedId: femaleBed, checkIn: d(70), checkOut: d(72), guests: 1 });
     expect((await searchListings({ gender: "FEMALE", checkIn: d(70), checkOut: d(72) })).map((l) => l.id)).toEqual([]);
     expect((await searchListings({ gender: "MALE", checkIn: d(70), checkOut: d(72) })).map((l) => l.id)).toEqual([bedsId]);
   });
   it("filters by distance and price", async () => {
     expect((await searchListings({ maxDistance: 400 })).length).toBe(0);
-    expect((await searchListings({ maxPrice: 9000 })).map((l) => l.id)).toEqual([bedsId]);
+    expect((await searchListings({ maxPrice: 9000 })).map((l) => l.id).sort()).toEqual([bedsId, bedsWomenId].sort());
   });
 });

@@ -20,6 +20,7 @@ export function BookingWidget(props: {
   beds: Bed[];
   loggedIn: boolean;
   userGender: "MALE" | "FEMALE" | null;
+  bedGender: "MALE" | "FEMALE" | null;
   initial: { checkIn?: string; checkOut?: string; guests?: string; months?: string };
 }) {
   const { t, locale } = useI18n();
@@ -31,7 +32,6 @@ export function BookingWidget(props: {
   const [bedId, setBedId] = useState("");
   const [promo, setPromo] = useState("");
   const [promoApplied, setPromoApplied] = useState("");
-  const [gender, setGender] = useState<"MALE" | "FEMALE" | "">(props.userGender ?? "");
   const [quote, setQuote] = useState<{ q: Quote; nights: number; months: number | null; vatPercent: number } | null>(null);
   const [qError, setQError] = useState<string | null>(null);
   const [takenBeds, setTakenBeds] = useState<string[]>([]);
@@ -39,7 +39,8 @@ export function BookingWidget(props: {
 
   const isLong = props.type === "LONG_TERM";
   const isBed = props.type === "SHARED_BED";
-  const ready = checkIn && (isLong ? months : checkOut) && (!isBed || (bedId && gender));
+  const wrongGender = isBed && !!props.userGender && !!props.bedGender && props.userGender !== props.bedGender;
+  const ready = checkIn && (isLong ? months : checkOut) && (!isBed || bedId) && !wrongGender;
 
   useEffect(() => {
     setQuote(null);
@@ -95,32 +96,22 @@ export function BookingWidget(props: {
       {isBed && (
         <fieldset>
           <input type="hidden" name="guests" value="1" />
-          <input type="hidden" name="gender" value={gender} />
-          <div className="label">{t("book.chooseGender")}</div>
-          <div className="mb-3 grid grid-cols-2 gap-2">
-            {(["MALE", "FEMALE"] as const).map((g) => {
-              const has = props.beds.some((b) => b.gender === g);
-              const locked = !!props.userGender && props.userGender !== g;
-              return (
-                <button
-                  key={g} type="button" disabled={!has || locked}
-                  onClick={() => { setGender(g); if (bedId && props.beds.find((b) => b.id === bedId)?.gender !== g) setBedId(""); }}
-                  className={`${gender === g ? "btn-primary" : "btn-secondary"} w-full`}
-                >
-                  {t(`gender.${g}`)}
-                </button>
-              );
-            })}
-          </div>
+          {props.bedGender && <input type="hidden" name="gender" value={props.bedGender} />}
+          {props.bedGender && (
+            <p className="mb-3 rounded-[12px] bg-brand-50 p-3 text-sm font-medium text-brand-dark">
+              {t(`beds.for.${props.bedGender}`)}
+              {!props.userGender && <span className="mt-1 block text-xs font-normal">{t(`beds.confirm.${props.bedGender}`)}</span>}
+            </p>
+          )}
           <div className="label">{t("listing.chooseBed")}</div>
           <div className="max-h-64 space-y-1 overflow-y-auto">
-            {props.beds.filter((b) => !gender || b.gender === gender).map((b) => {
+            {props.beds.map((b) => {
               const taken = takenBeds.includes(b.id);
               return (
                 <label key={b.id} className={`flex items-center justify-between gap-2 rounded-[12px] border px-3 py-2 text-sm ${bedId === b.id ? "border-brand bg-brand-50" : "border-neutral-200"} ${taken ? "opacity-50" : "cursor-pointer"}`}>
                   <span className="flex items-center gap-2">
                     <input type="radio" name="bedId" value={b.id} disabled={taken} checked={bedId === b.id} onChange={() => setBedId(b.id)} className="accent-[#7A2E3A]" />
-                    <span>{b.roomName} · {b.label} <span className="text-neutral-500">({t(`gender.${b.gender}`)})</span></span>
+                    <span>{b.roomName} · {b.label}</span>
                   </span>
                   <span className="text-neutral-700">{taken ? t("listing.bedTaken") : formatMoney(b.pricePerNight, locale)}</span>
                 </label>
@@ -149,6 +140,7 @@ export function BookingWidget(props: {
         </dl>
       )}
       {!quote && !err && <p className="text-sm text-neutral-500">{t("book.selectDates")}</p>}
+      {wrongGender && <p className="alert-brand">{t("book.err.gender")}</p>}
       {err && <p className="alert-brand">{t(`book.err.${err}` as TKey) === `book.err.${err}` ? t("book.err.generic") : t(`book.err.${err}` as TKey)}</p>}
 
       {props.loggedIn ? (

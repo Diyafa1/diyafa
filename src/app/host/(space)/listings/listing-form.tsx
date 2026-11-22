@@ -17,6 +17,15 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
             </select>
             {l && <input type="hidden" name="type" value={l.type} />}
           </Field>
+          {(!l || l.type === "SHARED_BED") && (
+            <Field label={t("lf.bedGender")} hint={!l ? t("lf.bedGenderHint") : undefined}>
+              <select name="bedGender" className="input" defaultValue={l?.bedGender ?? ""}>
+                <option value="">—</option>
+                <option value="MALE">{t("gender.MALE")}</option>
+                <option value="FEMALE">{t("gender.FEMALE")}</option>
+              </select>
+            </Field>
+          )}
           <Field label={t("search.city")}>
             <select name="city" className="input" defaultValue={l?.city ?? "MAKKAH"}>
               <option value="MAKKAH">{t("city.MAKKAH")}</option>

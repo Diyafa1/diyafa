@@ -21,7 +21,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
   });
   if (!l || l.hostId !== user.id) notFound();
   const profile = await db.hostProfile.findUnique({ where: { userId: user.id } });
-  const errKey: Record<string, TKey> = { contact: "lf.err.contact", photos: "lf.err.photos", beds: "lf.err.beds", price: "lf.err.price", upload: "lf.err.upload", form: "auth.err.form" };
+  const errKey: Record<string, TKey> = { genderLocked: "lf.err.genderLocked", contact: "lf.err.contact", photos: "lf.err.photos", beds: "lf.err.beds", price: "lf.err.price", upload: "lf.err.upload", form: "auth.err.form" };
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -69,7 +69,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
 
       {l.type === "SHARED_BED" && (
         <section className="card space-y-4 p-4">
-          <h2 className="text-lg">{t("lf.rooms")}</h2>
+          <h2 className="text-lg">{t("lf.rooms")} {l.bedGender && <span className="badge-brand ms-2">{t(`beds.for.${l.bedGender}`)}</span>}</h2>
           {l.rooms.map((r) => (
             <div key={r.id} className="rounded-[12px] border border-neutral-200 p-3">
               <div className="mb-2 flex items-center justify-between">
@@ -96,7 +96,6 @@ export default async function EditListing({ params, searchParams }: { params: Pr
           <form action={roomAction} className="flex flex-wrap gap-2">
             <input type="hidden" name="id" value={l.id} />
             <input name="name" required placeholder={t("lf.roomName")} className="input w-40" />
-            <select name="gender" className="input w-32"><option value="MALE">{t("gender.MALE")}</option><option value="FEMALE">{t("gender.FEMALE")}</option></select>
             <Choice name="op" value="addRoom" className="btn-secondary">+ {t("lf.addRoom")}</Choice>
           </form>
         </section>

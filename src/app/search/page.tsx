@@ -1,5 +1,7 @@
 import { getT } from "@/lib/i18n/server";
 import { searchListings } from "@/lib/listings";
+import { db } from "@/lib/db";
+import { getUser } from "@/lib/auth";
 import { parseSearch } from "@/lib/search-params";
 import { SearchForm } from "@/components/SearchForm";
 import { ListingCard } from "@/components/ListingCard";
@@ -14,7 +16,15 @@ export const metadata = { title: "Search" };
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const { t, locale } = await getT();
   const sp = await searchParams;
-  const results = await searchListings(parseSearch(sp));
+  const filters = parseSearch(sp);
+  const results = await searchListings(filters);
+  if (results.length === 0 && (filters.city || filters.checkIn || filters.type)) {
+    // Unmet demand: kept for the owner (Admin → Bookings → Not found)
+    const user = await getUser();
+    await db.searchLog
+      .create({ data: { city: filters.city, type: filters.type, gender: filters.gender, checkIn: filters.checkIn, checkOut: filters.checkOut, months: filters.months, guests: filters.guests, maxPrice: filters.maxPrice, userId: user?.id } })
+      .catch(() => {});
+  }
   const keep = new URLSearchParams();
   for (const k of ["checkIn", "checkOut", "guests", "months"]) if (sp[k]) keep.set(k, sp[k]!);
   const q = keep.toString() ? `?${keep}` : "";

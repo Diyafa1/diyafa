@@ -53,10 +53,11 @@ async function main() {
   const l2 = await db.listing.create({ data: { ...base, hostId: host.id, type: "SHORT_STAY", city: "MAKKAH", title: "جناح عائلي في العزيزية مع نقل للحرم", description: "جناح واسع للعائلات مع خدمة نقل مجانية إلى الحرم كل ساعة.", address: "Al Aziziyah, Makkah", neighborhood: "العزيزية", distanceToHaramM: 2600, latitude: 21.4060, longitude: 39.8790, maxGuests: 6, bedrooms: 3, bathrooms: 2, licenseNumber: "MT-73100245-02", pricePerNight: 7500, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "shuttle", "parking", "kitchen", "washer"], photos: photos([2, 1, 5]) } });
   const l3 = await db.listing.create({
     data: {
-      ...base, hostId: host.id, type: "SHARED_BED", city: "MAKKAH", title: "سكن مشترك للحجاج والمعتمرين – المسفلة", description: "أسرّة في غرف منفصلة للرجال والنساء، خزائن خاصة، تنظيف يومي.", address: "Misfalah, Makkah", neighborhood: "المسفلة", distanceToHaramM: 700, latitude: 21.4160, longitude: 39.8228, maxGuests: 7, bedrooms: 2, bathrooms: 3, licenseNumber: "MT-73100245-03", instantBook: true, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "lockers", "cleaning", "zamzam"], photos: photos([4, 3]),
+      ...base, hostId: host.id, type: "SHARED_BED", city: "MAKKAH", title: "سكن مشترك للرجال – المسفلة", description: "أسرّة في غرف منفصلة للرجال والنساء، خزائن خاصة، تنظيف يومي.", address: "Misfalah, Makkah", neighborhood: "المسفلة", distanceToHaramM: 700, latitude: 21.4160, longitude: 39.8228, maxGuests: 7, bedrooms: 2, bathrooms: 3, licenseNumber: "MT-73100245-03", instantBook: true, cancellationPolicy: "FLEXIBLE", amenities: [...base.amenities, "lockers", "cleaning", "zamzam"], photos: photos([4, 3]),
+      bedGender: "MALE",
       rooms: { create: [
-        { name: "غرفة الرجال", gender: "MALE", beds: { create: [1, 2, 3, 4].map((n) => ({ label: `سرير ${n}`, pricePerNight: 2000 })) } },
-        { name: "غرفة النساء", gender: "FEMALE", beds: { create: [1, 2, 3].map((n) => ({ label: `سرير ${n}`, pricePerNight: 2200 })) } },
+        { name: "الغرفة 1", gender: "MALE", beds: { create: [1, 2, 3, 4].map((n) => ({ label: `سرير ${n}`, pricePerNight: 2000 })) } },
+        { name: "الغرفة 2", gender: "MALE", beds: { create: [1, 2, 3].map((n) => ({ label: `سرير ${n}`, pricePerNight: 2200 })) } },
       ] },
     },
   });
@@ -64,10 +65,12 @@ async function main() {
   const l5 = await db.listing.create({ data: { ...base, hostId: host2.id, type: "SHORT_STAY", city: "MADINAH", title: "شقة قرب المسجد النبوي – المنطقة المركزية", description: "على بعد 250 مترًا من المسجد النبوي، مناسبة للعائلات.", address: "Central Area, Madinah", neighborhood: "المنطقة المركزية", distanceToHaramM: 250, latitude: 24.4685, longitude: 39.6098, maxGuests: 4, bedrooms: 2, bathrooms: 1, licenseNumber: "MT-73200981-02", pricePerNight: 12500, instantBook: false, cancellationPolicy: "STRICT", amenities: [...base.amenities, "haramView", "familyFriendly", "wheelchair"], photos: photos([6, 2, 1]) } });
   await db.listing.create({
     data: {
-      ...base, hostId: host2.id, type: "SHARED_BED", city: "MADINAH", title: "أسرّة في شقة مشتركة – طريق قباء", description: "غرف منفصلة للرجال والنساء على طريق قباء.", address: "Quba Rd, Madinah", neighborhood: "قباء", distanceToHaramM: 1800, latitude: 24.4550, longitude: 39.6140, maxGuests: 6, bedrooms: 2, bathrooms: 2, licenseNumber: "MT-73200981-03", instantBook: true, amenities: ["wifi", "ac", "lockers", "shuttle"], photos: photos([3, 4]),
+      ...base, hostId: host2.id, type: "SHARED_BED", city: "MADINAH", description: "غرف منفصلة للرجال والنساء على طريق قباء.", address: "Quba Rd, Madinah", neighborhood: "قباء", distanceToHaramM: 1800, latitude: 24.4550, longitude: 39.6140, maxGuests: 6, bedrooms: 2, bathrooms: 2, licenseNumber: "MT-73200981-03", instantBook: true, amenities: ["wifi", "ac", "lockers", "shuttle"], photos: photos([3, 4]),
+      bedGender: "FEMALE",
+      title: "أسرّة للنساء في شقة مشتركة – طريق قباء",
       rooms: { create: [
-        { name: "Men room", gender: "MALE", beds: { create: [1, 2, 3].map((n) => ({ label: `Bed ${n}`, pricePerNight: 1500 })) } },
-        { name: "Women room", gender: "FEMALE", beds: { create: [1, 2, 3].map((n) => ({ label: `Bed ${n}`, pricePerNight: 1500 })) } },
+        { name: "Room 1", gender: "FEMALE", beds: { create: [1, 2, 3].map((n) => ({ label: `Bed ${n}`, pricePerNight: 1500 })) } },
+        { name: "Room 2", gender: "FEMALE", beds: { create: [1, 2, 3].map((n) => ({ label: `Bed ${n}`, pricePerNight: 1500 })) } },
       ] },
     },
   });

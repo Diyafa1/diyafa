@@ -189,3 +189,7 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - **Automatisations** (cron quotidien Vercel + au chargement des tableaux de bord) : refus + remboursement automatique des demandes sans réponse après X heures (réglable, défaut 24 h), rappel la veille de l'arrivée (voyageur + hôte), demande d'avis après le départ, libération des dates non payées, fin des séjours. Réglages dans Admin → Commissions → Automatisations.
 - 58 tests automatiques OK.
 
+## Séance 3 (suite 3)
+- **Lits : un appartement = hommes OU femmes**, jamais mélangé. L'hôte choisit « Appartement de lits pour : Hommes / Femmes » ; toutes les chambres suivent. Changement impossible tant qu'il y a des réservations actives. Fiche, carte et réservation affichent « Appartement réservé aux hommes / aux femmes ». Plus aucun « Hommes et femmes » sur le site. Migration : les anciens appartements prennent le genre de leur première chambre.
+- **Admin → Réservations** : onglets avec compteurs (en attente de l'hôte, confirmées, en attente de paiement, terminées, annulées, refusées) + **« Pas trouvées »** = recherches sans résultat sur 90 jours (table `SearchLog`), avec le « plus demandé sans résultat ».
+

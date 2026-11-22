@@ -99,11 +99,11 @@ export default async function ListingPage({ params, searchParams }: Props) {
 
           {l.type === "SHARED_BED" && (
             <section>
-              <h2 className="mb-2 text-lg">{t("listing.rooms")}</h2>
+              <h2 className="mb-2 text-lg">{t("listing.rooms")} {l.bedGender && <span className="badge-brand ms-2">{t(`beds.for.${l.bedGender}`)}</span>}</h2>
               <div className="grid gap-3 sm:grid-cols-2">
                 {l.rooms.map((r) => (
                   <div key={r.id} className="card p-3 text-sm">
-                    <div className="flex items-center justify-between font-medium">{r.name}<span className="badge-brand">{t(`gender.${r.gender}`)}</span></div>
+                    <div className="font-medium">{r.name}</div>
                     <ul className="mt-2 space-y-1 text-neutral-600">
                       {r.beds.map((b) => <li key={b.id} className="flex justify-between"><span>{b.label}</span><span>{formatMoney(b.pricePerNight, locale)}</span></li>)}
                     </ul>
@@ -199,6 +199,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
               beds={l.rooms.flatMap((r) => r.beds.map((b) => ({ id: b.id, label: b.label, pricePerNight: b.pricePerNight, roomName: r.name, gender: r.gender })))}
               loggedIn={!!user}
               userGender={user?.gender ?? null}
+              bedGender={l.bedGender}
               initial={{ checkIn: sp.checkIn, checkOut: sp.checkOut, guests: sp.guests, months: sp.months }}
             />
           ) : (

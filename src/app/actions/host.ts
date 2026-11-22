@@ -107,6 +107,7 @@ function parseListingForm(fd: FormData) {
     checkInTime: z.string().refine(isTime),
     checkOutTime: z.string().refine(isTime),
     seasonalPricing: z.boolean(),
+    bedGender: z.enum(["MALE", "FEMALE"]).nullable(),
     cancellationPolicy: z.enum(["FLEXIBLE", "MODERATE", "STRICT"]),
   });
   return schema.safeParse({
@@ -132,6 +133,7 @@ function parseListingForm(fd: FormData) {
     checkInTime: str(fd, "checkInTime") || "15:00",
     checkOutTime: str(fd, "checkOutTime") || "12:00",
     seasonalPricing: fd.get("seasonalPricing") === "on" && type !== "LONG_TERM",
+    bedGender: type === "SHARED_BED" && (str(fd, "bedGender") === "MALE" || str(fd, "bedGender") === "FEMALE") ? (str(fd, "bedGender") as Gender) : null,
     cancellationPolicy: (str(fd, "cancellationPolicy") || "MODERATE") as CancellationPolicy,
   });
 }
@@ -139,7 +141,7 @@ function parseListingForm(fd: FormData) {
 export async function createListingAction(formData: FormData) {
   const user = await requireRole("HOST");
   const p = parseListingForm(formData);
-  if (!p.success) redirect("/host/listings/new?error=form");
+  if (!p.success || (p.data.type === "SHARED_BED" && !p.data.bedGender)) redirect("/host/listings/new?error=form");
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect("/host/listings/new?error=contact");
   const l = await db.listing.create({ data: { ...p.data, hostId: user.id, status: "DRAFT" } });
   redirect(`/host/listings/${l.id}?saved=1`);
@@ -149,7 +151,13 @@ export async function updateListingAction(formData: FormData) {
   const user = await requireRole("HOST");
   const l = await ownListing(str(formData, "id"), user.id);
   const p = parseListingForm(formData);
-  if (!p.success) redirect(`/host/listings/${l.id}?error=form`);
+  if (!p.success || (l.type === "SHARED_BED" && !p.data.bedGender)) redirect(`/host/listings/${l.id}?error=form`);
+  if (l.type === "SHARED_BED" && p.data.bedGender !== l.bedGender) {
+    // Switching men ↔ women is only possible when no traveller is booked
+    const active = await db.booking.count({ where: { listingId: l.id, status: { in: ["PENDING_PAYMENT", "REQUESTED", "CONFIRMED"] } } });
+    if (active) redirect(`/host/listings/${l.id}?error=genderLocked`);
+    await db.room.updateMany({ where: { listingId: l.id }, data: { gender: p.data.bedGender! } });
+  }
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect(`/host/listings/${l.id}?error=contact`);
   // Type cannot change once created (rooms/beds and bookings depend on it)
   const { type: _type, ...rest } = p.data;
@@ -199,8 +207,8 @@ export async function roomAction(formData: FormData) {
   const op = str(formData, "op");
   if (op === "addRoom") {
     const name = str(formData, "name").slice(0, 60);
-    const gender = str(formData, "gender") as Gender;
-    if (name && ["MALE", "FEMALE"].includes(gender)) await db.room.create({ data: { listingId: l.id, name, gender } });
+    // every room follows the apartment: men only or women only
+    if (name && l.bedGender && !hasContact(name)) await db.room.create({ data: { listingId: l.id, name, gender: l.bedGender } });
   } else if (op === "deleteRoom") {
     const room = await db.room.findFirst({ where: { id: str(formData, "roomId"), listingId: l.id }, include: { beds: { include: { _count: { select: { bookings: true } } } } } });
     if (room && room.beds.every((b) => b._count.bookings === 0)) await db.room.delete({ where: { id: room.id } });

@@ -65,7 +65,7 @@ export async function searchListings(f: SearchFilters): Promise<ListingCardData[
   }
   if (f.gender) {
     where.type = "SHARED_BED";
-    where.rooms = { some: { gender: f.gender, beds: { some: { active: true } } } };
+    where.bedGender = f.gender;
   }
   let rows = (await db.listing.findMany({ where, include: listingInclude, take: 300 })).map(decorate);
 
@@ -99,7 +99,7 @@ export async function searchListings(f: SearchFilters): Promise<ListingCardData[
         if (blocked.some((b) => b.listingId === r.id && b.date >= checkIn && b.date < end)) return false;
         const overlapping = bookings.filter((b) => b.listingId === r.id && b.checkIn < end && b.checkOut > checkIn);
         if (r.type === "SHARED_BED") {
-          const beds = r.rooms.filter((room) => !f.gender || room.gender === f.gender).flatMap((room) => room.beds.map((b) => b.id));
+          const beds = r.rooms.flatMap((room) => room.beds.map((b) => b.id));
           return beds.some((bedId) => !overlapping.some((b) => b.unitKey === bedId));
         }
         return overlapping.length === 0;

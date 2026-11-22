@@ -166,6 +166,7 @@ model Listing {
   checkInTime        String             @default("15:00")
   checkOutTime       String             @default("12:00")
   seasonalPricing    Boolean            @default(false)
+  bedGender          Gender? // shared apartments: the whole apartment is for men OR for women
   cancellationPolicy CancellationPolicy @default(MODERATE)
   status             ListingStatus      @default(DRAFT)
   rejectionReason    String?
@@ -432,4 +433,21 @@ model AppSetting {
   key       String   @id
   value     String
   updatedAt DateTime @updatedAt
+}
+
+/// Searches that found nothing: shows the owner what travellers want and Diyafa does not have yet.
+model SearchLog {
+  id        String       @id @default(cuid())
+  city      City?
+  type      ListingType?
+  gender    Gender?
+  checkIn   DateTime?    @db.Date
+  checkOut  DateTime?    @db.Date
+  months    Int?
+  guests    Int?
+  maxPrice  Int?
+  userId    String?
+  createdAt DateTime     @default(now())
+
+  @@index([createdAt])
 }
