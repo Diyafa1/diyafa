@@ -23,7 +23,7 @@ export default async function AdminSettings() {
               <label className="block"><span className="label">{t("admin.vatPercent")}</span><input name={`${type}.vat`} type="number" step="0.1" min={0} max={30} defaultValue={r.vatPercent} className="input" /></label>
             </div>
             <p className="text-xs text-neutral-500">
-              {formatMoney(100000, locale)} → {t("book.total")} {formatMoney(ex.total, locale)} · {t("earn.net")} {formatMoney(ex.hostPayout, locale)} · {t("admin.commissions")} {formatMoney(ex.platformRevenue, locale)}
+              {formatMoney(100000, locale)} → {t("book.online")} {formatMoney(ex.onlineAmount, locale)} · {t("book.onSite")} {formatMoney(ex.payOnSite, locale)} · {t("admin.commissions")} {formatMoney(ex.platformRevenue, locale)}
             </p>
           </section>
         );

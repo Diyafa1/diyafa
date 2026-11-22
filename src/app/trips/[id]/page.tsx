@@ -56,7 +56,6 @@ export default async function TripPage({ params, searchParams }: { params: Promi
           <div><span className="text-neutral-500">{t("search.guests")}:</span> {b.guests}</div>
           {b.bed && <div>{b.bed.room.name} · {b.bed.label} ({t(`gender.${b.bed.room.gender}`)})</div>}
           <div><span className="text-neutral-500">{t("listing.cancellation")}:</span> {t(`policy.${b.cancellationPolicy}`)}</div>
-          <div><span className="text-neutral-500">{t("listing.license")}:</span> <span dir="ltr">{b.listing.licenseNumber}</span></div>
         </div>
         <PriceBreakdown b={b} t={t} locale={locale} />
       </div>

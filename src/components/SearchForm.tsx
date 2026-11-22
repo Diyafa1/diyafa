@@ -37,6 +37,14 @@ export function SearchForm({ t, sp = {}, full = false }: { t: T; sp?: SearchPara
       {full && (
         <>
           <label className="block">
+            <span className="label">{t("search.bedsFor")}</span>
+            <select name="gender" className="input" defaultValue={sp.gender ?? ""}>
+              <option value="">{t("search.anyGender")}</option>
+              <option value="MALE">{t("gender.MALE")}</option>
+              <option value="FEMALE">{t("gender.FEMALE")}</option>
+            </select>
+          </label>
+          <label className="block">
             <span className="label">{t("search.minPrice")}</span>
             <input type="number" name="minPrice" min={0} className="input" defaultValue={sp.minPrice} />
           </label>

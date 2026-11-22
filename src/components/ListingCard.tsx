@@ -23,6 +23,13 @@ export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; 
       </div>
       <div className="text-xs text-neutral-500">{t(`city.${l.city}`)}{l.neighborhood ? ` · ${l.neighborhood}` : ""}</div>
       <DistanceBadge meters={l.distanceToHaramM} t={t} compact />
+      {l.type === "SHARED_BED" && (
+        <div className="mt-1 flex gap-1">
+          {(["MALE", "FEMALE"] as const).filter((g) => l.rooms.some((r) => r.gender === g && r.beds.length > 0)).map((g) => (
+            <span key={g} className="badge-brand">{t(`gender.${g}`)}</span>
+          ))}
+        </div>
+      )}
       <div className="mt-1 text-sm">
         {l.type === "SHARED_BED" && <span className="text-neutral-500">{t("listing.from")} </span>}
         <span className="font-semibold">{formatMoney(l.displayPrice, locale)}</span>

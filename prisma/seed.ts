@@ -81,11 +81,11 @@ async function main() {
       data: {
         code: `DY-DEMO${Math.random().toString(16).slice(2, 6).toUpperCase()}`, guestId, listingId, bedId, unitKey: bedId ?? listingId,
         checkIn: day(offIn), checkOut: day(offIn + nights), nights, guests: 2, status,
-        subtotal: q.subtotal, serviceFee: q.serviceFee, vat: q.vat, total: q.total, hostCommission: q.hostCommission, hostPayout: q.hostPayout,
+        subtotal: q.subtotal, serviceFee: q.serviceFee, vat: q.vat, total: q.total, onlineAmount: q.onlineAmount, payOnSite: q.payOnSite, hostCommission: q.hostCommission, hostPayout: q.hostPayout,
         hostPercent: r.hostPercent, guestFeePercent: r.guestFeePercent, vatPercent: r.vatPercent, cancellationPolicy: "MODERATE",
       },
     });
-    await db.payment.create({ data: { bookingId: b.id, provider: "test", providerRef: `test_seed_${b.id}`, amount: b.total, status: "PAID" } });
+    await db.payment.create({ data: { bookingId: b.id, provider: "test", providerRef: `test_seed_${b.id}`, amount: b.onlineAmount, status: "PAID" } });
     return b;
   };
   const past = await book(l1.id, guest.id, -20, 4, "COMPLETED", 11000, "SHORT_STAY");

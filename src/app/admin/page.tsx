@@ -3,7 +3,6 @@ import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
 import { dashboardStats, occupancy30 } from "@/lib/stats";
-import { owedByHost } from "@/lib/payouts";
 import { completeFinishedStays, expireStaleHolds } from "@/lib/bookings";
 import { Stat } from "@/components/ui";
 import { createDemoListingAction } from "@/app/actions/admin";
@@ -14,11 +13,9 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
   await expireStaleHolds();
   await completeFinishedStays();
   const days = sp.p === "all" ? null : sp.p === "365" ? 365 : 30;
-  const [stats, occ, owed, pendingPayouts, pending] = await Promise.all([
+  const [stats, occ, pending] = await Promise.all([
     dashboardStats(days),
     occupancy30(),
-    owedByHost(),
-    db.payout.aggregate({ where: { status: "PENDING" }, _sum: { amount: true } }),
     Promise.all([
       db.hostProfile.count({ where: { status: "PENDING" } }),
       db.listing.count({ where: { status: "PENDING" } }),
@@ -26,7 +23,6 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
       db.message.count({ where: { reported: true, hidden: false } }),
     ]),
   ]);
-  const owedTotal = [...owed.values()].reduce((s, o) => s + o.amount, 0) + (pendingPayouts._sum.amount ?? 0);
   const pct = (x: number) => `${Math.round(x * 100)} %`;
   const periods = [["30", "admin.period.30"], ["365", "admin.period.365"], ["all", "admin.period.all"]] as const;
 
@@ -42,7 +38,7 @@ export default async function AdminDashboard({ searchParams }: { searchParams: P
         <Stat label={t("admin.revenue")} value={formatMoney(stats.totals.volume, locale)} />
         <Stat label={t("admin.commissions")} value={formatMoney(stats.totals.commissions, locale)} />
         <Stat label={t("admin.vatCollected")} value={formatMoney(stats.totals.vat, locale)} />
-        <Stat label={t("admin.owedHosts")} value={formatMoney(owedTotal, locale)} />
+        <Stat label={t("admin.onlineReceived")} value={formatMoney(stats.totals.online, locale)} />
         <Stat label={t("admin.occupancy")} value={pct(occ.overall)} />
       </div>
 

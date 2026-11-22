@@ -120,7 +120,7 @@ model HostProfile {
   displayName     String
   whatsapp        String
   bio             String?
-  licenseNumber   String
+  licenseNumber   String?
   licenseDocPath  String?
   idNumber        String
   idDocPath       String?
@@ -151,7 +151,7 @@ model Listing {
   bathrooms          Int                @default(1)
   amenities          String[]
   rules              String?
-  licenseNumber      String
+  licenseNumber      String?
   // Prices in cents (1 € = 100 cents)
   pricePerNight      Int?
   pricePerMonth      Int?
@@ -245,6 +245,8 @@ model Booking {
   serviceFee      Int
   vat             Int
   total           Int
+  onlineAmount    Int           @default(0) // paid online (Diyafa's share)
+  payOnSite       Int           @default(0) // paid to the host on arrival
   hostCommission  Int
   hostPayout      Int
   hostPercent     Float

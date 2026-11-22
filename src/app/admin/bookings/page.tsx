@@ -40,9 +40,9 @@ export default async function AdminBookings({ searchParams }: { searchParams: Pr
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-neutral-700">
               <span>{t("book.total")}: {formatMoney(b.total, locale)}</span>
-              <span>{t("book.vat", { p: b.vatPercent })}: {formatMoney(b.vat, locale)}</span>
+              <span>{t("admin.onlineReceived")}: {formatMoney(b.onlineAmount, locale)}</span>
+              <span>{t("book.onSite")}: {formatMoney(b.payOnSite, locale)}</span>
               <span>{t("admin.commissions")}: {formatMoney(platformRevenue(b), locale)}</span>
-              <span>{t("earn.net")}: {formatMoney(b.hostPayout, locale)}</span>
               {b.refundedAmount > 0 && <span className="text-brand">{t("admin.refundsTotal")}: {formatMoney(b.refundedAmount, locale)}</span>}
               {b.cancelledBy && <span>({b.cancelledBy}{b.cancelReason ? `: ${b.cancelReason}` : ""})</span>}
             </div>

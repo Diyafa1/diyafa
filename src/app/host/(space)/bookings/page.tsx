@@ -33,7 +33,7 @@ export default async function HostBookings() {
           <div className="flex flex-wrap gap-4 text-neutral-700">
             <span>{t("earn.gross")}: {formatMoney(b.subtotal, locale)}</span>
             <span>{t("earn.commission")}: −{formatMoney(b.hostCommission, locale)}</span>
-            <span className="font-medium">{t("earn.net")}: {formatMoney(b.hostPayout, locale)}</span>
+            <span className="font-medium">{t("earn.onSite")}: {formatMoney(["CANCELLED", "DECLINED"].includes(b.status) ? 0 : b.payOnSite, locale)}</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {b.status === "REQUESTED" && <RequestActions bookingId={b.id} />}

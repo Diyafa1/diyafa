@@ -3,16 +3,24 @@ import type { Booking, City, ListingType } from "@prisma/client";
 import { db } from "./db";
 import { addDays, todayUTC } from "./dates";
 
-/** Diyafa's net revenue on a booking (service fee + host commission), net of refunds and VAT. */
-export function platformRevenue(b: Pick<Booking, "total" | "refundedAmount" | "vat" | "hostPayout">) {
-  const received = b.total - b.refundedAmount;
-  if (received <= 0) return 0;
-  const vatKept = Math.round((b.vat * received) / b.total);
-  return received - vatKept - b.hostPayout;
+/** Amount actually received online by Diyafa (after refunds). */
+const receivedOnline = (b: Pick<Booking, "onlineAmount" | "refundedAmount">) => Math.max(0, b.onlineAmount - b.refundedAmount);
+
+/** VAT included in what Diyafa kept. */
+export function vatKept(b: Pick<Booking, "onlineAmount" | "refundedAmount" | "vat">) {
+  const r = receivedOnline(b);
+  return r <= 0 || b.onlineAmount <= 0 ? 0 : Math.round((b.vat * r) / b.onlineAmount);
 }
-export function vatKept(b: Pick<Booking, "total" | "refundedAmount" | "vat">) {
-  const received = b.total - b.refundedAmount;
-  return received <= 0 ? 0 : Math.round((b.vat * received) / b.total);
+
+/** Diyafa's net revenue on a booking (guest fee + host commission), net of refunds and VAT. */
+export function platformRevenue(b: Pick<Booking, "onlineAmount" | "refundedAmount" | "vat" | "hostPayout">) {
+  const r = receivedOnline(b);
+  return r <= 0 ? 0 : Math.max(0, r - vatKept(b) - b.hostPayout);
+}
+
+/** Value of the stay: what was paid online + what is paid to the host on site (nothing on site if cancelled). */
+export function bookingVolume(b: Pick<Booking, "onlineAmount" | "refundedAmount" | "payOnSite" | "status">) {
+  return receivedOnline(b) + (b.status === "CANCELLED" || b.status === "DECLINED" ? 0 : b.payOnSite);
 }
 
 type Agg = { bookings: number; volume: number; commissions: number };
@@ -24,15 +32,16 @@ export async function dashboardStats(days: number | null) {
     include: { listing: { select: { city: true, type: true } } },
   });
   const paid = bookings.filter((b) => b.status !== "DECLINED");
-  const totals = { bookings: paid.length, volume: 0, commissions: 0, vat: 0, refunds: 0 };
+  const totals = { bookings: paid.length, volume: 0, commissions: 0, vat: 0, refunds: 0, online: 0 };
   const byCity = new Map<City, Agg>();
   const byType = new Map<ListingType, Agg>();
   for (const b of bookings) {
     totals.refunds += b.refundedAmount;
     if (b.status === "DECLINED") continue;
-    const vol = b.total - b.refundedAmount;
+    const vol = bookingVolume(b);
     const com = platformRevenue(b);
     totals.volume += vol;
+    totals.online += receivedOnline(b);
     totals.commissions += com;
     totals.vat += vatKept(b);
     for (const [map, key] of [[byCity, b.listing.city], [byType, b.listing.type]] as const) {

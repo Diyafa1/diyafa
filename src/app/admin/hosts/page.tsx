@@ -26,9 +26,7 @@ export default async function AdminHosts({ searchParams }: { searchParams: Promi
             <StatusBadge status={p.status} label={t(`rstatus.${p.status}`)} />
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
-            <div>{t("host.licenseNumber")}: <strong dir="ltr">{p.licenseNumber}</strong> {p.licenseDocPath && <a className="link ms-2" href={`/api/files/${p.licenseDocPath}`} target="_blank">{t("admin.viewDoc")}</a>}</div>
             <div>{t("host.idNumber")}: <strong dir="ltr">{p.idNumber}</strong> {p.idDocPath && <a className="link ms-2" href={`/api/files/${p.idDocPath}`} target="_blank">{t("admin.viewDoc")}</a>}</div>
-            <div>{t("host.iban")}: <span dir="ltr">{p.iban ?? "—"}</span> {p.bankName && `(${p.bankName})`}</div>
             {p.rejectionReason && <div className="text-brand">{p.rejectionReason}</div>}
           </div>
           <form action={reviewHostAction} className="flex flex-wrap gap-2">

@@ -13,6 +13,12 @@ export async function bookAction(_: ActionState, formData: FormData): Promise<Ac
   const user = await getUser();
   if (!user) redirect(`/login?next=/listings/${str(formData, "listingId")}`);
   let url: string;
+  const g = str(formData, "gender");
+  if (!user.gender && (g === "MALE" || g === "FEMALE")) {
+    // First bed booking: remember the traveller's gender (separate men / women rooms)
+    await db.user.update({ where: { id: user.id }, data: { gender: g } });
+    user.gender = g;
+  }
   try {
     const input = parseBookingInput(Object.fromEntries(formData));
     const r = await createBooking(user, input);

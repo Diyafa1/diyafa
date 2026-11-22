@@ -31,10 +31,18 @@ export default async function Home() {
       <section className="container-page py-10">
         <div className="mb-6 grid gap-3 sm:grid-cols-3">
           {(["SHORT_STAY", "SHARED_BED", "LONG_TERM"] as const).map((ty) => (
-            <Link key={ty} href={`/search?type=${ty}`} className="card block p-4 text-neutral-900 no-underline hover:border-brand">
-              <div className="font-medium">{t(`type.${ty}`)}</div>
-              <div className="text-sm text-neutral-500">{t(`type.${ty}.desc`)}</div>
-            </Link>
+            <div key={ty} className="card p-4 hover:border-brand">
+              <Link href={`/search?type=${ty}`} className="block text-neutral-900 no-underline">
+                <div className="font-medium">{t(`type.${ty}`)}</div>
+                <div className="text-sm text-neutral-500">{t(`type.${ty}.desc`)}</div>
+              </Link>
+              {ty === "SHARED_BED" && (
+                <div className="mt-3 flex gap-2">
+                  <Link href="/search?type=SHARED_BED&gender=MALE" className="btn-secondary btn-sm no-underline">{t("gender.MALE")}</Link>
+                  <Link href="/search?type=SHARED_BED&gender=FEMALE" className="btn-secondary btn-sm no-underline">{t("gender.FEMALE")}</Link>
+                </div>
+              )}
+            </div>
           ))}
         </div>
 

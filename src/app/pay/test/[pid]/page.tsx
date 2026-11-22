@@ -22,6 +22,7 @@ export default async function TestPayPage({ params }: { params: Promise<{ pid: s
         <p className="alert">{t("pay.testNote")}</p>
         <div className="text-sm text-neutral-600">{p.booking.listing.title} · {p.booking.code}</div>
         <div className="flex justify-between text-lg"><span>{t("pay.amount")}</span><strong>{formatMoney(p.amount, locale)}</strong></div>
+        {p.booking.payOnSite > 0 && <p className="text-sm text-neutral-700">{t("pay.onSiteNote", { amount: formatMoney(p.booking.payOnSite, locale) })}</p>}
         <p className="text-xs text-neutral-500">{t("pay.timer")}</p>
         <form action={testPayAction} className="grid gap-2">
           <input type="hidden" name="pid" value={p.id} />

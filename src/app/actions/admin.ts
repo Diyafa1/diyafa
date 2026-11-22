@@ -133,7 +133,7 @@ export async function createDemoListingAction() {
     host = await db.user.create({
       data: {
         email, name: "Hôte de test", role: "HOST", passwordHash: "!disabled",
-        hostProfile: { create: { displayName: "Hôte de test", whatsapp: "+966500000000", licenseNumber: "TEST-0000", idNumber: "TEST", status: "APPROVED", verifiedAt: new Date() } },
+        hostProfile: { create: { displayName: "Hôte de test", whatsapp: "+966500000000", idNumber: "TEST", status: "APPROVED", verifiedAt: new Date() } },
       },
     });
   }
@@ -144,7 +144,7 @@ export async function createDemoListingAction() {
       description: "Annonce de test créée depuis l'espace admin pour essayer les réservations et le paiement. À supprimer avant le lancement.",
       address: "Central Area, Madinah", neighborhood: "المنطقة المركزية", distanceToHaramM: 400,
       latitude: 24.4690, longitude: 39.6130, maxGuests: 4, bedrooms: 2, bathrooms: 1,
-      amenities: ["wifi", "ac", "elevator", "kitchen", "familyFriendly"], licenseNumber: "TEST-0000",
+      amenities: ["wifi", "ac", "elevator", "kitchen", "familyFriendly"],
       pricePerNight: 5000, minNights: 1, instantBook: true, cancellationPolicy: "FLEXIBLE",
       photos: { create: [{ url: "/seed/6.jpg", position: 0 }, { url: "/seed/1.jpg", position: 1 }, { url: "/seed/2.jpg", position: 2 }] },
     },

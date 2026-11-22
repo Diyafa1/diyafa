@@ -6,21 +6,28 @@ import { checkAccess } from "@/lib/access";
 import { distanceMeters, HARAM_COORDS, walkMinutes } from "@/lib/haram";
 
 describe("prices, commissions and VAT", () => {
-  it("splits 1,000 € correctly (10% host, 5% guest fee, 15% VAT)", () => {
-    const q = computeQuote(100000, { hostPercent: 10, guestFeePercent: 5, vatPercent: 15 });
-    expect(q.serviceFee).toBe(5000); // 50 €
-    expect(q.vat).toBe(15750); // 15% of 1,050 €
-    expect(q.total).toBe(120750); // 1,207.50 €
-    expect(q.hostCommission).toBe(10000);
-    expect(q.hostPayout).toBe(90000);
-    expect(q.platformRevenue).toBe(15000);
-    // guest pays = host gets + Diyafa keeps + VAT
-    expect(q.total).toBe(q.hostPayout + q.platformRevenue + q.vat);
+  it("1,000 € stay with 20% host + 10% guest: Diyafa's share online, the rest on site", () => {
+    const q = computeQuote(100000, { hostPercent: 20, guestFeePercent: 10, vatPercent: 0 });
+    expect(q.serviceFee).toBe(10000); // 100 € paid by the guest
+    expect(q.hostCommission).toBe(20000); // 200 € taken from the host's price
+    expect(q.onlineAmount).toBe(30000); // 300 € paid online by card
+    expect(q.payOnSite).toBe(80000); // 800 € paid to the host on arrival
+    expect(q.total).toBe(110000); // the guest pays 1,100 € in total
+    expect(q.platformRevenue).toBe(30000); // Diyafa keeps 300 €
+    expect(q.hostPayout).toBe(0); // Diyafa owes nothing to the host
+  });
+  it("VAT applies only to Diyafa's share", () => {
+    const q = computeQuote(100000, { hostPercent: 20, guestFeePercent: 10, vatPercent: 15 });
+    expect(q.vat).toBe(4500); // 15% of 300 €
+    expect(q.onlineAmount).toBe(34500);
+    expect(q.payOnSite).toBe(80000);
+    expect(q.total).toBe(q.onlineAmount + q.payOnSite);
   });
   it("handles zero rates", () => {
     const q = computeQuote(5000, { hostPercent: 0, guestFeePercent: 0, vatPercent: 0 });
     expect(q.total).toBe(5000);
-    expect(q.hostPayout).toBe(5000);
+    expect(q.onlineAmount).toBe(0);
+    expect(q.payOnSite).toBe(5000);
   });
   it("rejects invalid amounts", () => {
     expect(() => computeQuote(-1, { hostPercent: 0, guestFeePercent: 0, vatPercent: 0 })).toThrow();
@@ -48,20 +55,17 @@ describe("cancellation policies", () => {
     expect(guestRefundShare("STRICT", inDays(8), now)).toBe(0.5);
     expect(guestRefundShare("STRICT", inDays(3), now)).toBe(0);
   });
-  const b = { total: 120750, subtotal: 100000, hostPercent: 10, status: "CONFIRMED", checkIn: inDays(3), cancellationPolicy: "MODERATE" as const };
-  it("partial refund keeps the host's share of the kept part", () => {
-    const o = computeCancellation(b, "guest", now);
-    expect(o.refundAmount).toBe(60375);
-    expect(o.newHostPayout).toBe(45000);
-    expect(o.newHostCommission).toBe(5000);
+  const b = { onlineAmount: 30000, status: "CONFIRMED", checkIn: inDays(3), cancellationPolicy: "MODERATE" as const };
+  it("only the online part can be refunded, following the policy", () => {
+    expect(computeCancellation(b, "guest", now).refundAmount).toBe(15000);
   });
-  it("host or admin cancellation refunds everything", () => {
-    expect(computeCancellation(b, "host", now)).toEqual({ refundAmount: 120750, newHostPayout: 0, newHostCommission: 0 });
-    expect(computeCancellation(b, "admin", now).refundAmount).toBe(120750);
-    expect(computeCancellation(b, "admin", now, 0.3).refundAmount).toBe(36225);
+  it("host or admin cancellation refunds the whole online part", () => {
+    expect(computeCancellation(b, "host", now).refundAmount).toBe(30000);
+    expect(computeCancellation(b, "admin", now).refundAmount).toBe(30000);
+    expect(computeCancellation(b, "admin", now, 0.3).refundAmount).toBe(9000);
   });
   it("a request not yet accepted is fully refunded", () => {
-    expect(computeCancellation({ ...b, status: "REQUESTED" }, "guest", now).refundAmount).toBe(120750);
+    expect(computeCancellation({ ...b, status: "REQUESTED" }, "guest", now).refundAmount).toBe(30000);
   });
 });
 

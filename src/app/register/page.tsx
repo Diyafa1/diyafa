@@ -3,6 +3,8 @@ import { getT } from "@/lib/i18n/server";
 import { registerAction } from "@/app/actions/auth";
 import { Field, Notice } from "@/components/ui";
 import type { TKey } from "@/lib/i18n";
+import { GoogleButton } from "@/components/GoogleButton";
+import { googleEnabled } from "@/lib/google";
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; as?: string }> }) {
   const { t } = await getT();
@@ -11,6 +13,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
     <div className="container-page max-w-md py-10">
       <h1 className="mb-6 text-2xl">{t("auth.registerTitle")}</h1>
       {sp.error && <div className="mb-4"><Notice kind="brand">{t(`auth.err.${sp.error}` as TKey)}</Notice></div>}
+      {googleEnabled() && <GoogleButton t={t} next={sp.next} intent={sp.as === "host" ? "host" : "guest"} />}
       <form action={registerAction} className="space-y-4">
         <input type="hidden" name="next" value={sp.next ?? ""} />
         <fieldset>

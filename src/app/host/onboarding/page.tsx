@@ -22,12 +22,8 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
         <Field label={t("host.whatsapp")}><input className="input" name="whatsapp" required dir="ltr" placeholder="+9665xxxxxxxx" defaultValue={p?.whatsapp ?? user.phone ?? ""} /></Field>
         <Field label={`${t("host.bio")} (${t("common.optional")})`}><textarea className="input" name="bio" rows={3} defaultValue={p?.bio ?? ""} /></Field>
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t("host.licenseNumber")}><input className="input" name="licenseNumber" required dir="ltr" defaultValue={p?.licenseNumber ?? ""} /></Field>
-          <Field label={t("host.licenseDoc")} hint={p?.licenseDocPath ? "✓" : undefined}><input className="input" name="licenseDoc" type="file" accept="image/*,application/pdf" required={!p?.licenseDocPath} /></Field>
           <Field label={t("host.idNumber")}><input className="input" name="idNumber" required dir="ltr" defaultValue={p?.idNumber ?? ""} /></Field>
           <Field label={t("host.idDoc")} hint={p?.idDocPath ? "✓" : undefined}><input className="input" name="idDoc" type="file" accept="image/*,application/pdf" required={!p?.idDocPath} /></Field>
-          <Field label={`${t("host.iban")} (${t("common.optional")})`}><input className="input" name="iban" dir="ltr" placeholder="SA.." defaultValue={p?.iban ?? ""} /></Field>
-          <Field label={`${t("host.bankName")} (${t("common.optional")})`}><input className="input" name="bankName" defaultValue={p?.bankName ?? ""} /></Field>
         </div>
         <button className="btn-primary w-full">{t("host.submit")}</button>
       </form>

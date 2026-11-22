@@ -27,7 +27,6 @@ export async function hostApplicationAction(formData: FormData) {
     displayName: z.string().min(2).max(100),
     whatsapp: z.string().min(8).max(30),
     bio: z.string().max(1000),
-    licenseNumber: z.string().min(3).max(60),
     idNumber: z.string().min(5).max(30),
     iban: z.string().max(40),
     bankName: z.string().max(60),
@@ -36,25 +35,21 @@ export async function hostApplicationAction(formData: FormData) {
     displayName: str(formData, "displayName"),
     whatsapp: str(formData, "whatsapp"),
     bio: str(formData, "bio"),
-    licenseNumber: str(formData, "licenseNumber"),
     idNumber: str(formData, "idNumber"),
     iban: str(formData, "iban").replace(/\s/g, "").toUpperCase(),
     bankName: str(formData, "bankName"),
   });
   if (!p.success) redirect("/host/onboarding?error=form");
-  let licenseDocPath = existing?.licenseDocPath ?? null;
   let idDocPath = existing?.idDocPath ?? null;
   try {
-    const lf = file(formData, "licenseDoc");
     const idf = file(formData, "idDoc");
-    if (lf) licenseDocPath = await savePrivateDoc(lf);
     if (idf) idDocPath = await savePrivateDoc(idf);
   } catch (e) {
     if (e instanceof UploadError) redirect("/host/onboarding?error=upload");
     throw e;
   }
-  if (!licenseDocPath || !idDocPath) redirect("/host/onboarding?error=form");
-  const data = { ...p.data, bio: p.data.bio || null, iban: p.data.iban || null, bankName: p.data.bankName || null, licenseDocPath, idDocPath, status: "PENDING" as const, rejectionReason: null };
+  if (!idDocPath) redirect("/host/onboarding?error=form");
+  const data = { ...p.data, bio: p.data.bio || null, iban: p.data.iban || null, bankName: p.data.bankName || null, idDocPath, status: "PENDING" as const, rejectionReason: null };
   await db.hostProfile.upsert({ where: { userId: user.id }, create: { userId: user.id, ...data }, update: data });
   const updated = await db.user.update({ where: { id: user.id }, data: { role: "HOST" } });
   await startSession(updated); // refresh role in the session cookie
@@ -100,7 +95,6 @@ function parseListingForm(fd: FormData) {
     bathrooms: z.number().int().min(0).max(50),
     amenities: z.array(z.enum(AMENITIES)),
     rules: z.string().max(3000).nullable(),
-    licenseNumber: z.string().min(3).max(60),
     pricePerNight: z.number().int().nullable(),
     pricePerMonth: z.number().int().nullable(),
     minNights: z.number().int().min(1).max(90),
@@ -123,7 +117,6 @@ function parseListingForm(fd: FormData) {
     bathrooms: int(fd, "bathrooms") ?? 1,
     amenities: fd.getAll("amenities").map(String).filter((a) => (AMENITIES as readonly string[]).includes(a)),
     rules: str(fd, "rules") || null,
-    licenseNumber: str(fd, "licenseNumber"),
     pricePerNight: sar("pricePerNight"),
     pricePerMonth: sar("pricePerMonth"),
     minNights: int(fd, "minNights") ?? 1,
@@ -150,7 +143,7 @@ export async function updateListingAction(formData: FormData) {
   const { type: _type, ...rest } = p.data;
   void _type;
   // Significant edits of a published listing go back to review
-  const needsReview = l.status === "APPROVED" && (rest.title !== l.title || rest.licenseNumber !== l.licenseNumber || rest.address !== l.address);
+  const needsReview = l.status === "APPROVED" && (rest.title !== l.title || rest.address !== l.address);
   await db.listing.update({ where: { id: l.id }, data: { ...rest, ...(needsReview ? { status: "PENDING" } : {}) } });
   revalidatePath(`/listings/${l.id}`);
   redirect(`/host/listings/${l.id}?saved=1`);

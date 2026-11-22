@@ -111,11 +111,16 @@ describe("booking rules", () => {
   it("uses calendar special prices and the commission rates, and saves them on the booking", async () => {
     await db.calendarDay.create({ data: { listingId: flatId, date: d(51), price: 30000 } });
     const { booking } = await createBooking(guest, { listingId: flatId, checkIn: d(50), checkOut: d(53), guests: 1 });
-    expect(booking.subtotal).toBe(10000 + 30000 + 10000);
-    expect(booking.serviceFee).toBe(2500);
-    expect(booking.vat).toBe(7875);
-    expect(booking.total).toBe(60375);
-    expect(booking.hostPayout).toBe(45000);
+    expect(booking.subtotal).toBe(10000 + 30000 + 10000); // 500 €
+    expect(booking.serviceFee).toBe(2500); // 5% guest
+    expect(booking.hostCommission).toBe(5000); // 10% host
+    expect(booking.vat).toBe(1125); // 15% of Diyafa's 75 €
+    expect(booking.onlineAmount).toBe(8625);
+    expect(booking.payOnSite).toBe(45000);
+    expect(booking.total).toBe(53625);
+    expect(booking.hostPayout).toBe(0);
+    // only the online part is sent to the payment page
+    expect((await db.payment.findFirstOrThrow({ where: { bookingId: booking.id } })).amount).toBe(8625);
     // changing the rates later does not change existing bookings
     await db.commissionSetting.update({ where: { listingType: "SHORT_STAY" }, data: { hostPercent: 20 } });
     const again = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
@@ -144,7 +149,7 @@ describe("payment, requests, cancellation, payouts", () => {
     await respondToRequest(booking.id, host.id, false);
     const b = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
     expect(b.status).toBe("DECLINED");
-    expect(b.refundedAmount).toBe(b.total);
+    expect(b.refundedAmount).toBe(b.onlineAmount);
     await db.listing.update({ where: { id: flatId }, data: { instantBook: true } });
   });
   it("guest cancels a moderate booking 3 days before → 50% back; someone else cannot cancel it", async () => {
@@ -155,8 +160,8 @@ describe("payment, requests, cancellation, payouts", () => {
     await cancelBooking(booking.id, guest, "change of plans");
     const b = await db.booking.findUniqueOrThrow({ where: { id: booking.id } });
     expect(b.status).toBe("CANCELLED");
-    expect(b.refundedAmount).toBe(Math.round(b.total * 0.5));
-    expect(b.hostPayout).toBe(9000); // half of 200 € minus 10%
+    expect(b.refundedAmount).toBe(Math.round(b.onlineAmount * 0.5));
+    expect(b.hostPayout).toBe(0);
     expect(await db.payment.count({ where: { bookingId: b.id, kind: "REFUND" } })).toBe(1);
   });
   it("payouts group what is owed to the host and never pay twice", async () => {
@@ -184,6 +189,12 @@ describe("search", () => {
   it("shared apartment stays visible while at least one bed is free", async () => {
     await createBooking(guest, { listingId: bedsId, bedId: maleBed, checkIn: d(10), checkOut: d(12), guests: 1 });
     expect((await searchListings({ type: "SHARED_BED", checkIn: d(10), checkOut: d(12) })).map((l) => l.id)).toContain(bedsId);
+  });
+  it("men / women filter: shows bed apartments only if a bed of that gender is free", async () => {
+    expect((await searchListings({ gender: "FEMALE" })).map((l) => l.id)).toEqual([bedsId]);
+    await createBooking(woman, { listingId: bedsId, bedId: femaleBed, checkIn: d(70), checkOut: d(72), guests: 1 });
+    expect((await searchListings({ gender: "FEMALE", checkIn: d(70), checkOut: d(72) })).map((l) => l.id)).toEqual([]);
+    expect((await searchListings({ gender: "MALE", checkIn: d(70), checkOut: d(72) })).map((l) => l.id)).toEqual([bedsId]);
   });
   it("filters by distance and price", async () => {
     expect((await searchListings({ maxDistance: 400 })).length).toBe(0);

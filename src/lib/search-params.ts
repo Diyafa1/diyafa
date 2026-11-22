@@ -33,5 +33,6 @@ export function parseSearch(sp: Record<string, string | undefined>): SearchFilte
     maxPrice: posInt(sp.maxPrice) ? posInt(sp.maxPrice)! * 100 : undefined,
     maxDistance: posInt(sp.maxDistance),
     sort: SORTS.includes(sp.sort ?? "") ? (sp.sort as SearchFilters["sort"]) : undefined,
+    gender: sp.gender === "MALE" || sp.gender === "FEMALE" ? sp.gender : undefined,
   };
 }

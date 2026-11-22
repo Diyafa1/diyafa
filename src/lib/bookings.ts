@@ -159,6 +159,8 @@ export async function createBooking(user: User, input: BookingInput) {
           serviceFee: p.quote.serviceFee,
           vat: p.quote.vat,
           total: p.quote.total,
+          onlineAmount: p.quote.onlineAmount,
+          payOnSite: p.quote.payOnSite,
           hostCommission: p.quote.hostCommission,
           hostPayout: p.quote.hostPayout,
           hostPercent: p.rates.hostPercent,
@@ -175,14 +177,14 @@ export async function createBooking(user: User, input: BookingInput) {
   }
 
   const provider = getPaymentProvider();
-  const payment = await db.payment.create({ data: { bookingId: booking.id, provider: provider.name, amount: booking.total } });
+  const payment = await db.payment.create({ data: { bookingId: booking.id, provider: provider.name, amount: booking.onlineAmount } });
   const appUrl = process.env.APP_URL || "http://localhost:3000";
   let r;
   try {
     r = await provider.createPayment({
       paymentId: payment.id,
-      amount: booking.total,
-      description: `Diyafa ${booking.code}`,
+      amount: booking.onlineAmount,
+      description: `Diyafa ${booking.code} — acompte / deposit`,
       callbackUrl: `${appUrl}/pay/callback?pid=${payment.id}`,
     });
   } catch (e) {
@@ -210,7 +212,7 @@ export async function markPaymentPaid(paymentId: string) {
       } catch (e) {
         if (isOverlapError(e)) {
           await db.payment.update({ where: { id: payment.id }, data: { status: "PAID" } });
-          await refundBooking(b.id, b.total);
+          await refundBooking(b.id, b.onlineAmount);
           throw new BookingError("not_available");
         }
         throw e;
@@ -225,12 +227,12 @@ export async function markPaymentPaid(paymentId: string) {
   await sendEmail(
     b.guest.email,
     status === "CONFIRMED" ? `Diyafa — réservation confirmée ${b.code}` : `Diyafa — demande envoyée ${b.code}`,
-    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}`,
+    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nPayé en ligne : ${moneyText(b.onlineAmount)}\nÀ payer à l'hôte sur place : ${moneyText(b.payOnSite)}`,
   );
   await sendEmail(
     b.listing.host.email,
     status === "CONFIRMED" ? `Diyafa — nouvelle réservation ${b.code}` : `Diyafa — nouvelle demande à accepter ${b.code}`,
-    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}`,
+    `${b.listing.title}\n${dayKey(b.checkIn)} → ${dayKey(b.checkOut)}\nLe voyageur vous paiera sur place : ${moneyText(b.payOnSite)}`,
   );
   return { ...b, status };
 }
@@ -265,12 +267,12 @@ export async function respondToRequest(bookingId: string, hostId: string, accept
     await db.booking.update({ where: { id: b.id }, data: { status: "CONFIRMED" } });
     await sendEmail(b.guest.email, `Diyafa — réservation acceptée ${b.code}`, b.listing.title);
   } else {
-    await refundBooking(b.id, b.total);
+    await refundBooking(b.id, b.onlineAmount);
     await db.booking.update({
       where: { id: b.id },
-      data: { status: "DECLINED", refundedAmount: b.total, hostPayout: 0, hostCommission: 0 },
+      data: { status: "DECLINED", refundedAmount: b.onlineAmount, hostPayout: 0 },
     });
-    await sendEmail(b.guest.email, `Diyafa — demande refusée ${b.code}`, `${b.listing.title}\nVous êtes remboursé intégralement.`);
+    await sendEmail(b.guest.email, `Diyafa — demande refusée ${b.code}`, `${b.listing.title}\nVotre acompte vous est remboursé intégralement.`);
   }
 }
 
@@ -291,8 +293,7 @@ export async function cancelBooking(bookingId: string, actor: User, reason: stri
     data: {
       status: "CANCELLED",
       refundedAmount: out.refundAmount,
-      hostPayout: out.newHostPayout,
-      hostCommission: out.newHostCommission,
+      hostPayout: 0,
       cancelledBy: by,
       cancelReason: reason.slice(0, 500),
     },

@@ -141,7 +141,6 @@ export default async function ListingPage({ params, searchParams }: Props) {
               <span className="flex h-12 w-12 items-center justify-center rounded-full bg-brand-50 text-lg font-semibold text-brand">{hostName.slice(0, 1)}</span>
               <div>
                 <div className="font-medium">{hostName} {l.host.hostProfile?.status === "APPROVED" && <span className="badge-brand ms-1">✓ {t("rstatus.APPROVED")}</span>}</div>
-                <div className="text-xs text-neutral-500">{t("listing.license")}: <span dir="ltr">{l.licenseNumber}</span></div>
               </div>
             </div>
             {l.host.hostProfile?.bio && <p className="mt-3 text-sm text-neutral-700">{l.host.hostProfile.bio}</p>}
@@ -187,6 +186,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
               maxGuests={l.maxGuests}
               beds={l.rooms.flatMap((r) => r.beds.map((b) => ({ id: b.id, label: b.label, pricePerNight: b.pricePerNight, roomName: r.name, gender: r.gender })))}
               loggedIn={!!user}
+              userGender={user?.gender ?? null}
               initial={{ checkIn: sp.checkIn, checkOut: sp.checkOut, guests: sp.guests, months: sp.months }}
             />
           ) : (

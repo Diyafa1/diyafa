@@ -3,7 +3,7 @@ import type { T, TKey } from "@/lib/i18n";
 import { AMENITIES } from "@/lib/amenities";
 import { Field } from "@/components/ui";
 
-export function ListingForm({ t, l, action, defaultLicense }: { t: T; l?: Listing; action: (fd: FormData) => Promise<void>; defaultLicense?: string }) {
+export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: FormData) => Promise<void> }) {
   const sar = (v: number | null | undefined) => (v ? String(v / 100) : "");
   return (
     <form action={action} className="space-y-6">
@@ -30,7 +30,6 @@ export function ListingForm({ t, l, action, defaultLicense }: { t: T; l?: Listin
           <Field label={t("lf.address")}><input name="address" className="input" required defaultValue={l?.address} /></Field>
           <Field label={`${t("lf.neighborhood")} (${t("common.optional")})`}><input name="neighborhood" className="input" defaultValue={l?.neighborhood ?? ""} /></Field>
           <Field label={t("lf.distance")}><input name="distanceToHaramM" type="number" min={0} className="input" required defaultValue={l?.distanceToHaramM} /></Field>
-          <Field label={t("lf.license")}><input name="licenseNumber" className="input" dir="ltr" required defaultValue={l?.licenseNumber ?? defaultLicense} /></Field>
         </div>
         <fieldset>
           <legend className="label">{t("lf.coords")}</legend>

@@ -2,66 +2,45 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
-import { Empty, Stat, StatusBadge } from "@/components/ui";
+import { todayUTC } from "@/lib/dates";
+import { Empty, Notice, Stat } from "@/components/ui";
 import { fmtDay } from "@/components/TripCard";
 
 export default async function HostEarnings() {
   const user = await requireRole("HOST");
   const { t, locale } = await getT();
-  const earning = { listing: { hostId: user.id }, status: { in: ["CONFIRMED", "COMPLETED", "CANCELLED"] as ("CONFIRMED" | "COMPLETED" | "CANCELLED")[] }, hostPayout: { gt: 0 } };
-  const [rows, payouts] = await Promise.all([
-    db.booking.findMany({ where: earning, include: { listing: { select: { title: true } } }, orderBy: { checkIn: "desc" } }),
-    db.payout.findMany({ where: { hostId: user.id }, include: { _count: { select: { bookings: true } } }, orderBy: { createdAt: "desc" } }),
-  ]);
-  const grossKept = rows.reduce((s, b) => s + b.hostPayout + b.hostCommission, 0);
+  const rows = await db.booking.findMany({
+    where: { listing: { hostId: user.id }, status: { in: ["CONFIRMED", "COMPLETED"] } },
+    include: { listing: { select: { title: true } } },
+    orderBy: { checkIn: "desc" },
+  });
+  const gross = rows.reduce((s, b) => s + b.subtotal, 0);
   const commission = rows.reduce((s, b) => s + b.hostCommission, 0);
-  const net = rows.reduce((s, b) => s + b.hostPayout, 0);
-  const paid = payouts.filter((p) => p.status === "PAID").reduce((s, p) => s + p.amount, 0);
+  const net = rows.reduce((s, b) => s + b.payOnSite, 0);
+  const upcoming = rows.filter((b) => b.checkIn >= todayUTC()).reduce((s, b) => s + b.payOnSite, 0);
   return (
     <div className="space-y-8">
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-        <Stat label={t("earn.gross")} value={formatMoney(grossKept, locale)} />
+      <Notice>{t("earn.commissionNote")}</Notice>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <Stat label={t("earn.gross")} value={formatMoney(gross, locale)} />
         <Stat label={t("earn.commission")} value={formatMoney(commission, locale)} />
-        <Stat label={t("earn.net")} value={formatMoney(net, locale)} />
-        <Stat label={t("earn.paid")} value={formatMoney(paid, locale)} />
-        <Stat label={t("earn.pending")} value={formatMoney(net - paid, locale)} />
+        <Stat label={t("earn.onSite")} value={formatMoney(net, locale)} />
+        <Stat label={t("earn.toCollect")} value={formatMoney(upcoming, locale)} />
       </div>
-      <section>
-        <h2 className="mb-3 text-lg">{t("earn.history")}</h2>
-        {payouts.length === 0 ? <Empty>{t("earn.noPayouts")}</Empty> : (
-          <div className="card overflow-x-auto">
-            <table className="table">
-              <thead><tr><th>{t("common.date")}</th><th>{t("common.amount")}</th><th>{t("admin.bookings")}</th><th>{t("earn.reference")}</th><th>{t("common.status")}</th></tr></thead>
-              <tbody>
-                {payouts.map((p) => (
-                  <tr key={p.id}>
-                    <td>{fmtDay(p.paidAt ?? p.createdAt, locale)}</td>
-                    <td>{formatMoney(p.amount, locale)}</td>
-                    <td>{p._count.bookings}</td>
-                    <td dir="ltr">{p.reference ?? "—"}</td>
-                    <td><StatusBadge status={p.status} label={p.status === "PAID" ? t("earn.paid") : t("earn.pending")} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </section>
       <section>
         <h2 className="mb-3 text-lg">{t("earn.perBooking")}</h2>
         {rows.length === 0 ? <Empty>—</Empty> : (
           <div className="card overflow-x-auto">
             <table className="table">
-              <thead><tr><th>{t("trips.code")}</th><th>{t("search.checkIn")}</th><th>{t("earn.gross")}</th><th>{t("earn.commission")}</th><th>{t("earn.net")}</th><th>{t("admin.payouts")}</th></tr></thead>
+              <thead><tr><th>{t("trips.code")}</th><th>{t("search.checkIn")}</th><th>{t("earn.gross")}</th><th>{t("earn.commission")}</th><th>{t("earn.onSite")}</th></tr></thead>
               <tbody>
                 {rows.map((b) => (
                   <tr key={b.id}>
                     <td><div dir="ltr">{b.code}</div><div className="text-xs text-neutral-500">{b.listing.title}</div></td>
                     <td>{fmtDay(b.checkIn, locale)}</td>
-                    <td>{formatMoney(b.hostPayout + b.hostCommission, locale)}</td>
+                    <td>{formatMoney(b.subtotal, locale)}</td>
                     <td>−{formatMoney(b.hostCommission, locale)}</td>
-                    <td className="font-medium">{formatMoney(b.hostPayout, locale)}</td>
-                    <td>{b.payoutId ? "✓" : "—"}</td>
+                    <td className="font-medium">{formatMoney(b.payOnSite, locale)}</td>
                   </tr>
                 ))}
               </tbody>

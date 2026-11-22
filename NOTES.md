@@ -153,3 +153,11 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - [ ] Conditions d'utilisation / confidentialité relues par un juriste ; TVA vérifiée par un comptable
 - [ ] Test complet sur téléphone : inscription, réservation, paiement, annulation, remboursement
 
+## Séance 3 (22 nov.) — changements demandés
+- **Licences retirées** partout (inscription hôte, annonces, fiches, admin, textes). Les hôtes envoient seulement leur pièce d'identité. Les conditions d'utilisation disent que l'hôte reste responsable des autorisations éventuelles.
+- **Nouveau modèle de paiement** : le voyageur paie **en ligne uniquement la part Diyafa** (frais voyageur 10 % + commission hôte 20 % + TVA éventuelle sur cette part) ; **le reste est payé à l'hôte sur place**. Exemple 1 000 € (TVA 0 %) : 300 € en ligne, 800 € à l'hôte, le voyageur paie 1 100 € au total. Plus de versements aux hôtes (onglet supprimé). Les remboursements ne portent que sur la part en ligne. Champs `onlineAmount` et `payOnSite` sur chaque réservation.
+- **Commissions** : 20 % hôte, 10 % voyageur (valeurs par défaut + migration qui met à jour les réglages existants). La TVA reste à 15 % sur la part Diyafa → à confirmer avec un comptable (mettre 0 % si non applicable).
+- **Lits hommes / femmes** : filtre « Lits pour » dans la recherche, liens Hommes / Femmes sur l'accueil, badges sur les cartes, choix Hommes / Femmes dans la réservation (enregistré sur le compte à la première réservation).
+- **Connexion avec Google (Gmail)** : bouton sur Connexion et Inscription, actif dès que `GOOGLE_CLIENT_ID` et `GOOGLE_CLIENT_SECRET` sont dans Vercel. URI de redirection à déclarer chez Google : `https://diyafa-omega.vercel.app/api/auth/google/callback` (à refaire avec le nom de domaine définitif).
+- 42 tests automatiques OK.
+

@@ -15,17 +15,17 @@ export function guestRefundShare(policy: CancellationPolicy, checkIn: Date, now:
 }
 
 export type CancelOutcome = {
-  refundAmount: number;
-  newHostPayout: number;
-  newHostCommission: number;
+  refundAmount: number; // refunded online (only the online part was ever paid)
 };
 
 /**
+ * Only the online part (Diyafa's commission) is paid in advance, so only that part can be refunded.
  * by = "guest" applies the listing policy (full refund if the host had not yet accepted);
- * by = "host" | "admin" always refunds in full and the host gets nothing.
+ * by = "host" | "admin" refunds in full (admin may choose a share).
+ * The part payable on site is simply never paid.
  */
 export function computeCancellation(
-  b: { total: number; subtotal: number; hostPercent: number; status: string; checkIn: Date; cancellationPolicy: CancellationPolicy },
+  b: { onlineAmount: number; status: string; checkIn: Date; cancellationPolicy: CancellationPolicy },
   by: "guest" | "host" | "admin",
   now: Date,
   adminShare?: number,
@@ -34,9 +34,5 @@ export function computeCancellation(
   if (by === "admin" && adminShare !== undefined) share = Math.min(1, Math.max(0, adminShare));
   else if (by !== "guest" || b.status === "REQUESTED") share = 1;
   else share = guestRefundShare(b.cancellationPolicy, b.checkIn, now);
-
-  const refundAmount = Math.round(b.total * share);
-  const keptSubtotal = Math.round(b.subtotal * (1 - share));
-  const newHostCommission = Math.round((keptSubtotal * b.hostPercent) / 100);
-  return { refundAmount, newHostPayout: keptSubtotal - newHostCommission, newHostCommission };
+  return { refundAmount: Math.round(b.onlineAmount * share) };
 }
