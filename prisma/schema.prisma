@@ -161,6 +161,8 @@ model Listing {
   pricePerNight      Int?
   pricePerMonth      Int?
   pricePerYear       Int? // long-term rentals: yearly rent in SAR (halalas), no online payment
+  allowTwoPayments   Boolean            @default(false) // long-term: rent can be paid in 2 instalments (every 6 months)
+  ownerPhone         String? // long-term: property owner's phone, visible to Diyafa only
   minNights          Int                @default(1)
   minMonths          Int                @default(1)
   instantBook        Boolean            @default(false)

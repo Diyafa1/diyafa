@@ -71,6 +71,7 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
         <h2 className="text-lg">{t("lf.pricing")}</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           {(!l || l.type === "SHORT_STAY") && <Field label={t("lf.pricePerNight")} hint={!l ? t("type.SHORT_STAY") : undefined}><input name="pricePerNight" type="number" min={0} step="0.01" className="input" defaultValue={sar(l?.pricePerNight)} /></Field>}
+          {(!l || l.type === "LONG_TERM") && <Field label={t("lf.ownerPhone")} hint={t("lf.ownerPhoneHint")}><input name="ownerPhone" type="tel" dir="ltr" placeholder="+966 5x xxx xxxx" className="input" defaultValue={l?.ownerPhone ?? ""} /></Field>}
           {(!l || l.type === "LONG_TERM") && <Field label={t("lf.pricePerYear")} hint={!l ? t("type.LONG_TERM") : undefined}><input name="pricePerYear" type="number" min={0} step="1" className="input" defaultValue={sar(l?.pricePerYear)} /></Field>}
           {(!l || l.type !== "LONG_TERM") && <Field label={t("lf.minNights")}><input name="minNights" type="number" min={1} className="input" defaultValue={l?.minNights ?? 1} /></Field>}
         </div>
@@ -78,6 +79,12 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
           <Field label={t("lf.checkInTime")}><input name="checkInTime" type="time" className="input" defaultValue={l?.checkInTime ?? "15:00"} required /></Field>
           <Field label={t("lf.checkOutTime")}><input name="checkOutTime" type="time" className="input" defaultValue={l?.checkOutTime ?? "12:00"} required /></Field>
         </div>
+        {(!l || l.type === "LONG_TERM") && (
+          <label className="flex items-start gap-2 text-sm">
+            <input type="checkbox" name="allowTwoPayments" defaultChecked={l?.allowTwoPayments} className="mt-1 accent-[#7A2E3A]" />
+            <span>{t("lf.twoPayments")}{!l && <span className="block text-xs text-neutral-500">{t("type.LONG_TERM")}</span>}</span>
+          </label>
+        )}
         {(!l || l.type !== "LONG_TERM") && (
           <label className="flex items-start gap-2 text-sm">
             <input type="checkbox" name="seasonalPricing" defaultChecked={l?.seasonalPricing} className="mt-1 accent-[#7A2E3A]" />

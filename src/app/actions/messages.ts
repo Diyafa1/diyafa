@@ -12,7 +12,7 @@ export async function startConversationAction(formData: FormData) {
   const user = await requireUser();
   const listingId = str(formData, "listingId");
   const listing = await db.listing.findFirst({ where: { id: listingId, ...PUBLIC_LISTING } });
-  if (!listing || listing.hostId === user.id) redirect("/messages");
+  if (!listing || listing.hostId === user.id || listing.type === "LONG_TERM") redirect(listing ? `/listings/${listing.id}` : "/messages");
   const c = await db.conversation.upsert({
     where: { listingId_guestId: { listingId, guestId: user.id } },
     create: { listingId, guestId: user.id, hostId: listing.hostId },

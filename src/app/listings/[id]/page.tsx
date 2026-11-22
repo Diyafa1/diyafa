@@ -151,6 +151,12 @@ export default async function ListingPage({ params, searchParams }: Props) {
             <p className="text-sm text-neutral-700"><strong>{t(`policy.${l.cancellationPolicy}`)}</strong> — {t(`policy.${l.cancellationPolicy}.desc`)}</p>
           </section>
 
+          {l.type === "LONG_TERM" ? (
+            <section className="card p-4">
+              <h2 className="mb-2 text-lg">{t("lt.managed")}</h2>
+              <p className="text-sm text-neutral-700">{t("lt.explain")}</p>
+            </section>
+          ) : (
           <section className="card p-4">
             <h2 className="mb-3 text-lg">{t("listing.host")}</h2>
             <div className="flex items-center gap-3">
@@ -169,6 +175,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
               )}
             </div>
           </section>
+          )}
 
           <section>
             <h2 className="mb-3 text-lg">{t("listing.reviews")} {avg !== null && <span className="text-neutral-500">★ {avg.toFixed(1)}</span>}</h2>
@@ -195,8 +202,9 @@ export default async function ListingPage({ params, searchParams }: Props) {
               t={t}
               priceLabel={priceLabel}
               refCode={listingRef(l.id)}
+              twoPayments={l.allowTwoPayments && l.pricePerYear ? formatListingPrice(l, Math.round(l.pricePerYear / 2), locale) : null}
               waNumber={longTermWhatsApp()}
-              message={longTermMessage({ ref: listingRef(l.id), title: l.title, url: `${process.env.APP_URL || ""}/listings/${l.id}` })}
+              message={longTermMessage({ ref: listingRef(l.id), title: l.title, url: `${process.env.APP_URL || ""}/listings/${l.id}`, twoPayments: l.allowTwoPayments })}
             />
           ) : l.isPublic ? (
             <BookingWidget

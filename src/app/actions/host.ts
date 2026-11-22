@@ -16,6 +16,7 @@ import { isTime, parseDay } from "@/lib/dates";
 import { checkContact } from "@/lib/contact-filter";
 
 const t = (type: string) => (type === "LONG_TERM" ? "Location longue durée" : type === "SHARED_BED" ? "Lits" : "Séjour court");
+const phoneOk = (p: string | null) => !!p && p.replace(/\D/g, "").length >= 8;
 const hasContact = (...texts: (string | null | undefined)[]) => texts.some((x) => x && !checkContact(x).ok);
 
 const file = (fd: FormData, k: string) => {
@@ -103,6 +104,8 @@ function parseListingForm(fd: FormData) {
     pricePerNight: z.number().int().nullable(),
     pricePerMonth: z.number().int().nullable(),
     pricePerYear: z.number().int().nullable(),
+    allowTwoPayments: z.boolean(),
+    ownerPhone: z.string().max(30).nullable(),
     minNights: z.number().int().min(1).max(90),
     minMonths: z.number().int().min(1).max(24),
     instantBook: z.boolean(),
@@ -130,6 +133,8 @@ function parseListingForm(fd: FormData) {
     pricePerNight: sar("pricePerNight"),
     pricePerMonth: null,
     pricePerYear: type === "LONG_TERM" ? sar("pricePerYear") : null,
+    allowTwoPayments: type === "LONG_TERM" && fd.get("allowTwoPayments") === "on",
+    ownerPhone: type === "LONG_TERM" ? str(fd, "ownerPhone") || null : null,
     minNights: int(fd, "minNights") ?? 1,
     minMonths: int(fd, "minMonths") ?? 1,
     instantBook: fd.get("instantBook") === "on",
@@ -146,6 +151,7 @@ export async function createListingAction(formData: FormData) {
   const p = parseListingForm(formData);
   if (!p.success || (p.data.type === "SHARED_BED" && !p.data.bedGender)) redirect("/host/listings/new?error=form");
   if ((p.data.type === "SHORT_STAY" && !p.data.pricePerNight) || (p.data.type === "LONG_TERM" && !p.data.pricePerYear)) redirect("/host/listings/new?error=price");
+  if (p.data.type === "LONG_TERM" && !phoneOk(p.data.ownerPhone)) redirect("/host/listings/new?error=ownerPhone");
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect("/host/listings/new?error=contact");
   const l = await db.listing.create({ data: { ...p.data, hostId: user.id, status: "DRAFT" } });
   redirect(`/host/listings/${l.id}?saved=1`);
@@ -157,6 +163,7 @@ export async function updateListingAction(formData: FormData) {
   const p = parseListingForm(formData);
   if (!p.success || (l.type === "SHARED_BED" && !p.data.bedGender)) redirect(`/host/listings/${l.id}?error=form`);
   if ((l.type === "SHORT_STAY" && !p.data.pricePerNight) || (l.type === "LONG_TERM" && !p.data.pricePerYear)) redirect(`/host/listings/${l.id}?error=price`);
+  if (l.type === "LONG_TERM" && !phoneOk(p.data.ownerPhone)) redirect(`/host/listings/${l.id}?error=ownerPhone`);
   if (l.type === "SHARED_BED" && p.data.bedGender !== l.bedGender) {
     // Switching men ↔ women is only possible when no traveller is booked
     const active = await db.booking.count({ where: { listingId: l.id, status: { in: ["PENDING_PAYMENT", "REQUESTED", "CONFIRMED"] } } });
@@ -241,6 +248,8 @@ export async function submitListingAction(formData: FormData) {
   if (l.type === "SHARED_BED") {
     const beds = await db.bed.count({ where: { room: { listingId: l.id }, active: true } });
     if (!beds) redirect(`/host/listings/${l.id}?error=beds`);
+  } else if (l.type === "LONG_TERM" && !phoneOk(l.ownerPhone)) {
+    redirect(`/host/listings/${l.id}?error=ownerPhone`);
   } else if ((l.type === "LONG_TERM" && !l.pricePerYear) || (l.type === "SHORT_STAY" && !l.pricePerNight)) {
     redirect(`/host/listings/${l.id}?error=price`);
   }
