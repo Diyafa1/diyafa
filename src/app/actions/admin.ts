@@ -26,7 +26,7 @@ export async function reviewHostAction(fd: FormData) {
     where: { id: p.id },
     data: approve ? { status: "APPROVED", verifiedAt: new Date(), rejectionReason: null } : { status: "REJECTED", rejectionReason: reason },
   });
-  await emailSimple(p.user, approve ? "Diyafa — compte hôte validé ✅" : "Diyafa — demande d'hôte refusée", approve ? "Votre compte hôte est validé ✅" : "Votre demande d'hôte n'a pas été acceptée", approve ? ["Bienvenue parmi les hôtes Diyafa ! Vous pouvez maintenant publier vos annonces."] : [`Raison : ${reason ?? "—"}`, "Vous pouvez corriger votre demande et la renvoyer."], { label: approve ? "Publier une annonce" : "Corriger ma demande", url: `${process.env.APP_URL || ""}${approve ? "/host/listings/new" : "/host/onboarding"}` });
+  await emailSimple(p.user, approve ? "Dar Diyafa — compte hôte validé ✅" : "Dar Diyafa — demande d'hôte refusée", approve ? "Votre compte hôte est validé ✅" : "Votre demande d'hôte n'a pas été acceptée", approve ? ["Bienvenue parmi les hôtes Dar Diyafa ! Vous pouvez maintenant publier vos annonces."] : [`Raison : ${reason ?? "—"}`, "Vous pouvez corriger votre demande et la renvoyer."], { label: approve ? "Publier une annonce" : "Corriger ma demande", url: `${process.env.APP_URL || ""}${approve ? "/host/listings/new" : "/host/onboarding"}` });
   refresh();
 }
 
@@ -49,7 +49,7 @@ export async function reviewListingAction(fd: FormData) {
     }
     const status = d === "approve" ? "APPROVED" : d === "suspend" ? "SUSPENDED" : "REJECTED";
     await db.listing.update({ where: { id: l.id }, data: { status, rejectionReason: status === "APPROVED" ? null : reason } });
-    await emailSimple(l.host, `Diyafa — annonce ${status === "APPROVED" ? "publiée ✅" : status === "SUSPENDED" ? "suspendue" : "refusée"}`, status === "APPROVED" ? "Votre annonce est en ligne ✅" : status === "SUSPENDED" ? "Votre annonce est suspendue" : "Votre annonce n'a pas été acceptée", [l.title, ...(reason ? [`Raison : ${reason}`] : [])], { label: status === "APPROVED" ? "Voir mon annonce" : "Modifier mon annonce", url: `${process.env.APP_URL || ""}${status === "APPROVED" ? `/listings/${l.id}` : `/host/listings/${l.id}`}` });
+    await emailSimple(l.host, `Dar Diyafa — annonce ${status === "APPROVED" ? "publiée ✅" : status === "SUSPENDED" ? "suspendue" : "refusée"}`, status === "APPROVED" ? "Votre annonce est en ligne ✅" : status === "SUSPENDED" ? "Votre annonce est suspendue" : "Votre annonce n'a pas été acceptée", [l.title, ...(reason ? [`Raison : ${reason}`] : [])], { label: status === "APPROVED" ? "Voir mon annonce" : "Modifier mon annonce", url: `${process.env.APP_URL || ""}${status === "APPROVED" ? `/listings/${l.id}` : `/host/listings/${l.id}`}` });
   }
   refresh();
 }
@@ -105,7 +105,7 @@ export async function markPayoutPaidAction(fd: FormData) {
   const p = await db.payout.findUnique({ where: { id: str(fd, "id") }, include: { host: true } });
   if (!p || p.status === "PAID") return;
   await db.payout.update({ where: { id: p.id }, data: { status: "PAID", paidAt: new Date(), reference: str(fd, "reference").slice(0, 100) || null } });
-  await emailSimple(p.host, "Diyafa — versement effectué", "Versement effectué", [moneyText(p.amount)]);
+  await emailSimple(p.host, "Dar Diyafa — versement effectué", "Versement effectué", [moneyText(p.amount)]);
   refresh();
 }
 
@@ -118,7 +118,7 @@ export async function disputeAction(fd: FormData) {
     data: { status: status as "RESOLVED" | "CLOSED" | "OPEN", resolution: str(fd, "resolution").slice(0, 2000) || null },
     include: { openedBy: true },
   });
-  await emailSimple(d.openedBy, "Diyafa — mise à jour de votre signalement", "Mise à jour de votre signalement", [d.resolution ?? status]);
+  await emailSimple(d.openedBy, "Dar Diyafa — mise à jour de votre signalement", "Mise à jour de votre signalement", [d.resolution ?? status]);
   refresh();
 }
 

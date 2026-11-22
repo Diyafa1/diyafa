@@ -39,7 +39,7 @@ export async function openDisputeAction(formData: FormData) {
   const b = await db.booking.findUnique({ where: { id: bookingId }, include: { listing: true } });
   if (!b || (b.guestId !== user.id && b.listing.hostId !== user.id) || reason.length < 5) return;
   await db.dispute.create({ data: { bookingId, openedById: user.id, reason } });
-  await notifyOwner(`Diyafa — nouveau litige ${b.code}`, reason.slice(0, 500));
+  await notifyOwner(`Dar Diyafa — nouveau litige ${b.code}`, reason.slice(0, 500));
   revalidatePath(`/trips/${bookingId}`);
   revalidatePath("/host/bookings");
 }

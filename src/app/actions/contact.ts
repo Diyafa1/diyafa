@@ -16,6 +16,6 @@ export async function contactAction(fd: FormData) {
   }).safeParse({ name: str(fd, "name"), email: str(fd, "email"), subject: str(fd, "subject"), body: str(fd, "body") });
   if (!p.success) redirect("/contact?error=1");
   await db.contactMessage.create({ data: p.data });
-  await notifyOwner(`Diyafa — contact : ${p.data.subject}`, `${p.data.name} <${p.data.email}>\n\n${p.data.body}`);
+  await notifyOwner(`Dar Diyafa — contact : ${p.data.subject}`, `${p.data.name} <${p.data.email}>\n\n${p.data.body}`);
   redirect("/contact?sent=1");
 }
