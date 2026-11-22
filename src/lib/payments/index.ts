@@ -89,7 +89,7 @@ const stripeApi = async (path: string, body?: Record<string, string>) => {
   const res = await fetch(`https://api.stripe.com/v1/${path}`, {
     method: body ? "POST" : "GET",
     headers: {
-      Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      Authorization: `Bearer ${(process.env.STRIPE_SECRET_KEY ?? "").trim()}`,
       ...(body ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
     },
     body: body ? new URLSearchParams(body).toString() : undefined,
@@ -101,7 +101,8 @@ const stripeApi = async (path: string, body?: Record<string, string>) => {
 export const stripeProvider: PaymentProvider = {
   name: "stripe",
   async createPayment(o) {
-    if (!process.env.STRIPE_SECRET_KEY?.startsWith("sk_")) throw new Error("STRIPE_SECRET_KEY missing or not a secret key (must start with sk_)");
+    const k = (process.env.STRIPE_SECRET_KEY ?? "").trim();
+    if (!k.startsWith("sk_")) throw new Error(`STRIPE_SECRET_KEY missing or not a secret key (must start with sk_, found "${k.slice(0, 3)}…")`);
     const { ok, json } = await stripeApi("checkout/sessions", {
       mode: "payment",
       "line_items[0][quantity]": "1",
