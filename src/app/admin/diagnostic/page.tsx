@@ -21,6 +21,7 @@ export default async function Diagnostic() {
     ["APP_URL", raw(env.APP_URL), "Doit être l'adresse exacte du site, sans / à la fin"],
     ["PAYMENT_PROVIDER", raw(env.PAYMENT_PROVIDER), `Le site utilise : ${provider === "stripe" ? "✅ Stripe" : provider === "moyasar" ? "Moyasar" : "⚠️ page de TEST (pas de vrai paiement)"}`],
     ["STRIPE_SECRET_KEY", secret(env.STRIPE_SECRET_KEY), stripeKey.startsWith("sk_test_") ? "✅ clé de test" : stripeKey.startsWith("sk_live_") ? "✅ clé réelle (vrais paiements)" : stripeKey ? "❌ doit commencer par sk_test_ ou sk_live_" : ""],
+    ["STRIPE_WEBHOOK_SECRET", secret(env.STRIPE_WEBHOOK_SECRET), (env.STRIPE_WEBHOOK_SECRET ?? "").trim().startsWith("whsec_") ? "✅ Stripe prévient le site de chaque paiement" : "⚠️ recommandé (voir NOTES)"],
     ["EMAIL_PROVIDER", raw(env.EMAIL_PROVIDER), env.EMAIL_PROVIDER?.trim() === "resend" ? "✅ e-mails réels" : "⚠️ e-mails non envoyés"],
     ["RESEND_API_KEY", secret(env.RESEND_API_KEY), ""],
     ["EMAIL_FROM", raw(env.EMAIL_FROM), "Vide = Diyafa <onboarding@resend.dev>"],
