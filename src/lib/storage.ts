@@ -30,21 +30,30 @@ async function check(file: File, allowPdf: boolean) {
 
 /** Works with both the new "sb_secret_…" keys and the legacy service_role JWT. */
 function supabaseHeaders(): Record<string, string> {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY ?? "";
+  const key = (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "").trim();
   return key.startsWith("eyJ") ? { apikey: key, Authorization: `Bearer ${key}` } : { apikey: key };
 }
 
 async function supabaseUpload(bucket: string, key: string, file: File) {
-  const url = `${process.env.SUPABASE_URL}/storage/v1/object/${bucket}/${key}`;
+  const url = `${(process.env.SUPABASE_URL ?? "").trim().replace(/\/+$/, "")}/storage/v1/object/${bucket}/${key}`;
   const res = await fetch(url, {
     method: "POST",
     headers: { ...supabaseHeaders(), "Content-Type": file.type },
     body: Buffer.from(await file.arrayBuffer()),
   });
-  if (!res.ok) throw new UploadError("upload");
+  if (!res.ok) {
+    const detail = (await res.text().catch(() => "")).slice(0, 300);
+    console.error(`[storage] Supabase refused upload to ${bucket} (${res.status}): ${detail}`);
+    throw new UploadError("upload");
+  }
 }
 
-const useSupabase = () => process.env.STORAGE_PROVIDER === "supabase";
+const useSupabase = () => {
+  const on = process.env.STORAGE_PROVIDER?.trim() === "supabase";
+  if (!on && process.env.VERCEL) console.error(`[storage] STORAGE_PROVIDER is "${process.env.STORAGE_PROVIDER ?? ""}" — must be "supabase" online (Vercel cannot keep files)`);
+  if (on && (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY)) console.error("[storage] SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is missing");
+  return on;
+};
 
 /** Public photo (listing photos). Returns a URL. */
 export async function savePublicImage(file: File): Promise<string> {
@@ -52,7 +61,7 @@ export async function savePublicImage(file: File): Promise<string> {
   const key = `${crypto.randomUUID()}.${ext}`;
   if (useSupabase()) {
     await supabaseUpload("photos", key, file);
-    return `${process.env.SUPABASE_URL}/storage/v1/object/public/photos/${key}`;
+    return `${(process.env.SUPABASE_URL ?? "").trim().replace(/\/+$/, "")}/storage/v1/object/public/photos/${key}`;
   }
   const dir = path.join(process.cwd(), "uploads", "public");
   await mkdir(dir, { recursive: true });

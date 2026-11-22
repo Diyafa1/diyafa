@@ -181,7 +181,8 @@ export async function uploadPhotosAction(formData: FormData) {
     }
   } catch (e) {
     if (e instanceof UploadError) redirect(`/host/listings/${l.id}?error=upload`);
-    throw e;
+    console.error("[storage] photo upload failed:", e instanceof Error ? e.message : e);
+    redirect(`/host/listings/${l.id}?error=upload`);
   }
   revalidatePath(`/host/listings/${l.id}`);
 }
