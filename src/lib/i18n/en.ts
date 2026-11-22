@@ -507,6 +507,7 @@ export const en = {
   "lt.twoPaymentsShort": "2 payments",
   "lt.managed": "Visits arranged by Diyafa",
   "lt.ownerLabel": "Owner",
+  "admin.diagnostic": "Diagnostics",
   "common.save": "Save",
   "common.cancel": "Cancel",
   "common.back": "Back",

@@ -508,6 +508,7 @@ export const ar: Dict = {
   "lt.twoPaymentsShort": "دفعتان",
   "lt.managed": "الزيارات تنظمها ضيافة",
   "lt.ownerLabel": "المالك",
+  "admin.diagnostic": "التشخيص",
   "common.save": "حفظ",
   "common.cancel": "إلغاء",
   "common.back": "رجوع",

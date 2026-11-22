@@ -508,6 +508,7 @@ export const fr: Dict = {
   "lt.twoPaymentsShort": "2 paiements",
   "lt.managed": "Visites organisées par Diyafa",
   "lt.ownerLabel": "Propriétaire",
+  "admin.diagnostic": "Diagnostic",
   "common.save": "Enregistrer",
   "common.cancel": "Annuler",
   "common.back": "Retour",
