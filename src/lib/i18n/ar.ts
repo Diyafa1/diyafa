@@ -512,6 +512,7 @@ export const ar: Dict = {
   "earn.youReceive": "تستلم",
   "earn.received": "تم استلامه",
   "earn.netNote": "المبالغ الصافية التي تستلمها بعد خصم عمولة ضيافة. يدفعها لك الضيف مباشرة عند وصوله.",
+  "admin.reset": "إعادة التعيين",
   "common.save": "حفظ",
   "common.cancel": "إلغاء",
   "common.back": "رجوع",

@@ -19,6 +19,7 @@ const TABS: { key: string; section: Section }[] = [
   { key: "contact", section: "contact" },
   { key: "staff", section: "staff" },
   { key: "diagnostic", section: "settings" },
+  { key: "reset", section: "settings" },
 ];
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {

@@ -240,3 +240,43 @@ export async function automationSettingsAction(fd: FormData) {
   if (h !== null && h >= 0 && h <= 240) await setNumberSetting("requestAutoDeclineHours", Math.round(h));
   refresh();
 }
+
+// ---------- Reset test data (owner only) ----------
+/** Deletes every booking, payment, review, dispute, payout and unmet search: counters and earnings back to zero. */
+export async function resetBookingsAction(fd: FormData) {
+  await allow("settings");
+  if (str(fd, "confirm").toUpperCase() !== "SUPPRIMER") redirect("/admin/reset?error=confirm");
+  await db.$transaction([
+    db.payment.deleteMany(),
+    db.review.deleteMany(),
+    db.dispute.deleteMany(),
+    db.booking.deleteMany(),
+    db.payout.deleteMany(),
+    db.searchLog.deleteMany(),
+    db.promoCode.updateMany({ data: { uses: 0 } }),
+  ]);
+  refresh();
+  redirect("/admin/reset?done=bookings");
+}
+
+/** Deletes the selected listings (or all of them) with their photos, beds, calendar, conversations and bookings. */
+export async function deleteListingsAction(fd: FormData) {
+  await allow("settings");
+  if (str(fd, "confirm").toUpperCase() !== "SUPPRIMER") redirect("/admin/reset?error=confirm");
+  const all = fd.get("all") === "on";
+  const ids = all ? (await db.listing.findMany({ select: { id: true } })).map((l) => l.id) : fd.getAll("ids").map(String);
+  if (!ids.length) redirect("/admin/reset?error=none");
+  const bookings = (await db.booking.findMany({ where: { listingId: { in: ids } }, select: { id: true } })).map((b) => b.id);
+  await db.$transaction([
+    db.payment.deleteMany({ where: { bookingId: { in: bookings } } }),
+    db.review.deleteMany({ where: { OR: [{ bookingId: { in: bookings } }, { listingId: { in: ids } }] } }),
+    db.dispute.deleteMany({ where: { bookingId: { in: bookings } } }),
+    db.booking.deleteMany({ where: { id: { in: bookings } } }),
+    db.conversation.deleteMany({ where: { listingId: { in: ids } } }),
+    db.listing.deleteMany({ where: { id: { in: ids } } }),
+  ]);
+  // the built-in demo host is no longer needed once its listings are gone
+  await db.user.deleteMany({ where: { email: "demo-host@diyafa.test", listings: { none: {} } } }).catch(() => {});
+  refresh();
+  redirect(`/admin/reset?done=listings&n=${ids.length}`);
+}

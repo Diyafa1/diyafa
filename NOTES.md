@@ -217,4 +217,6 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Domaine à acheter chez **o2switch** (offre avec boîtes mail pro) ; le site reste sur **Vercel**. Ensuite : DNS vers Vercel (A @ → valeur donnée par Vercel, CNAME www → cname.vercel-dns.com), boîte contact@, domaine dans Resend + EMAIL_FROM, Google (origines/redirect/branding), webhook Stripe (URL), APP_URL.
 - **Stripe : problème de vérification de la société (LLC)** signalé par le propriétaire → à voir à la prochaine séance (nécessaire pour passer en mode réel sk_live_).
 - Projet futur : ouverture internationale (villes/pays gérés depuis l'admin, point d'intérêt par ville, devises).
+- **Admin → Remise à zéro** (propriétaire uniquement, mot SUPPRIMER requis) : 1) supprime réservations, paiements, avis, litiges, versements, recherches non trouvées (comptes et annonces conservés) ; 2) supprime les annonces cochées (ou toutes) avec photos, lits, calendrier, conversations. Utilisée au lancement (23 nov.) pour effacer les données de test.
+- Annonce de lancement envoyée aux hôtes le 23 nov. (FR/EN/AR) avec le lien `…/register?as=host`.
 

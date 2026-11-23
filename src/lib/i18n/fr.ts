@@ -512,6 +512,7 @@ export const fr: Dict = {
   "earn.youReceive": "Vous recevez",
   "earn.received": "Déjà reçu",
   "earn.netNote": "Montants nets que vous recevez, commission Diyafa déjà déduite. Le voyageur vous les règle directement à son arrivée.",
+  "admin.reset": "Remise à zéro",
   "common.save": "Enregistrer",
   "common.cancel": "Annuler",
   "common.back": "Retour",

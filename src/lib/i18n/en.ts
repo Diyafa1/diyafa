@@ -511,6 +511,7 @@ export const en = {
   "earn.youReceive": "You receive",
   "earn.received": "Already received",
   "earn.netNote": "Net amounts you receive, Diyafa's commission already deducted. The traveller pays you directly on arrival.",
+  "admin.reset": "Reset",
   "common.save": "Save",
   "common.cancel": "Cancel",
   "common.back": "Back",
