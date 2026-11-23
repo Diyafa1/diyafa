@@ -26,7 +26,7 @@ async function tg(method: string, body?: unknown): Promise<Response | null> {
         method: body ? "POST" : "GET",
         headers: body ? { "Content-Type": "application/json" } : undefined,
         body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(20000),
+        signal: AbortSignal.timeout(12000),
       });
       if (res.status === 429 && attempt === 0) {
         const wait = Number((await res.clone().json().catch(() => ({})))?.parameters?.retry_after ?? 3);

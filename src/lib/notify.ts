@@ -1,4 +1,5 @@
 import "server-only";
+import { after } from "next/server";
 import { db } from "./db";
 import { sendBrandEmail } from "./email";
 import { sendTelegram } from "./telegram";
@@ -24,7 +25,13 @@ export async function notifyOwner(subject: string, body: string) {
     ),
   );
   await sendOwnerWhatsApp(`${subject}\n${body}`);
-  await sendTelegram(`${subject}\n\n${body}`);
+  // Telegram can be slow: never make a booking or an admin action wait for it
+  const tgText = `${subject}\n\n${body}`;
+  try {
+    after(() => sendTelegram(tgText));
+  } catch {
+    void sendTelegram(tgText); // outside a web request (tests, scripts)
+  }
 }
 
 export async function sendOwnerWhatsApp(text: string) {
