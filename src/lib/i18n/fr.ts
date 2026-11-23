@@ -524,6 +524,7 @@ export const fr: Dict = {
   "cal.resume": "Réactiver",
   "cal.pausedBadge": "En pause (invisible dans la recherche)",
   "cal.pausedNotice": "Cette annonce est en pause : elle n'apparaît plus dans la recherche et ne peut pas être réservée. Cliquez sur « Réactiver » pour la remettre en ligne.",
+  "admin.report": "Rapport",
   "common.save": "Enregistrer",
   "common.cancel": "Annuler",
   "common.back": "Retour",

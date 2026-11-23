@@ -524,6 +524,7 @@ export const ar: Dict = {
   "cal.resume": "إعادة التفعيل",
   "cal.pausedBadge": "موقوف مؤقتًا (غير ظاهر في البحث)",
   "cal.pausedNotice": "هذا الإعلان موقوف مؤقتًا: لا يظهر في البحث ولا يمكن حجزه. اضغط «إعادة التفعيل» لإعادته.",
+  "admin.report": "التقرير",
   "common.save": "حفظ",
   "common.cancel": "إلغاء",
   "common.back": "رجوع",

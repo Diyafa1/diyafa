@@ -5,6 +5,7 @@ import { AdminTabs } from "./tabs";
 
 const TABS: { key: string; section: Section }[] = [
   { key: "dashboard", section: "dashboard" },
+  { key: "report", section: "finances" },
   { key: "hosts", section: "hosts" },
   { key: "listings", section: "listings" },
   { key: "bookings", section: "bookings" },

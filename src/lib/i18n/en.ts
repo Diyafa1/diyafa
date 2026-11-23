@@ -523,6 +523,7 @@ export const en = {
   "cal.resume": "Resume",
   "cal.pausedBadge": "Paused (hidden from search)",
   "cal.pausedNotice": "This listing is paused: it no longer appears in search and cannot be booked. Click “Resume” to put it back online.",
+  "admin.report": "Report",
   "common.save": "Save",
   "common.cancel": "Cancel",
   "common.back": "Back",

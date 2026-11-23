@@ -3,6 +3,8 @@ import { db } from "./db";
 import { respondToRequest, completeFinishedStays, expireStaleHolds } from "./bookings";
 import { getNumberSetting } from "./settings";
 import { emailGuest, emailHost } from "./emails";
+import { buildReport, reportEmail, yesterdayRange } from "./report";
+import { sendBrandEmail } from "./email";
 import { addDays, dayKey, todayUTC } from "./dates";
 import { moneyText } from "./money";
 
@@ -54,6 +56,19 @@ export async function askForReviews() {
     await db.booking.update({ where: { id: b.id }, data: { reviewAskedAt: new Date() } });
   }
   return list.length;
+}
+
+/** Morning report for the owner (every admin), sent once a day by the cron. */
+export async function sendDailyReport() {
+  const { from, to, label } = yesterdayRange();
+  const day = new Intl.DateTimeFormat("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(label);
+  const r = await buildReport(from, to);
+  const c = reportEmail(r, day);
+  const admins = await db.user.findMany({ where: { role: "ADMIN", status: "ACTIVE" }, select: { email: true } });
+  const app = (process.env.APP_URL || "").replace(/\/+$/, "");
+  for (const a of admins)
+    await sendBrandEmail(a.email, `📊 Diyafa — rapport du ${day}`, { locale: "fr", ...c, button: { label: "Ouvrir le tableau de bord", url: `${app}/admin/report` } });
+  return admins.length;
 }
 
 /** Everything that runs on its own (daily cron + some page loads). */

@@ -280,3 +280,10 @@ export async function deleteListingsAction(fd: FormData) {
   refresh();
   redirect(`/admin/reset?done=listings&n=${ids.length}`);
 }
+
+export async function sendReportNowAction() {
+  await allow("finances");
+  const { sendDailyReport } = await import("@/lib/automations");
+  await sendDailyReport();
+  redirect("/admin/report?sent=1");
+}
