@@ -1,4 +1,8 @@
 import "server-only";
+import dns from "node:dns";
+
+// Vercel functions often cannot reach Telegram over IPv6: resolve api.telegram.org to IPv4 first.
+dns.setDefaultResultOrder("ipv4first");
 import { db } from "./db";
 
 /**
