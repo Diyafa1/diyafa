@@ -18,30 +18,43 @@ export async function telegramChatId(): Promise<string | null> {
   return (await db.appSetting.findUnique({ where: { key: "telegramChatId" } }))?.value ?? null;
 }
 
+/** Calls the Telegram API with a generous timeout and one automatic retry (slow networks, rate limits). */
+async function tg(method: string, body?: unknown): Promise<Response | null> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(`https://api.telegram.org/bot${token()}/${method}`, {
+        method: body ? "POST" : "GET",
+        headers: body ? { "Content-Type": "application/json" } : undefined,
+        body: body ? JSON.stringify(body) : undefined,
+        signal: AbortSignal.timeout(20000),
+      });
+      if (res.status === 429 && attempt === 0) {
+        const wait = Number((await res.clone().json().catch(() => ({})))?.parameters?.retry_after ?? 3);
+        await new Promise((r) => setTimeout(r, Math.min(wait, 15) * 1000));
+        continue;
+      }
+      return res;
+    } catch (e) {
+      console.error(`[telegram] ${method} network error (try ${attempt + 1}):`, e instanceof Error ? `${e.name} ${e.message}` : e);
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
+  return null;
+}
+
 export async function sendTelegram(text: string, chatId?: string | null): Promise<boolean> {
   const t = token();
   const chat = chatId ?? (await telegramChatId());
   if (!t || !chat) return false;
-  try {
-    const res = await fetch(`https://api.telegram.org/bot${t}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chat, text: text.slice(0, 4000), disable_web_page_preview: true }),
-      signal: AbortSignal.timeout(8000),
-    });
-    if (!res.ok) console.error("[telegram] error", res.status, (await res.text()).slice(0, 200));
-    return res.ok;
-  } catch (e) {
-    console.error("[telegram] failed", e instanceof Error ? e.message : e);
-    return false;
-  }
+  const res = await tg("sendMessage", { chat_id: chat, text: text.slice(0, 4000), disable_web_page_preview: true });
+  if (!res?.ok) console.error("[telegram] sendMessage error", res ? `${res.status} ${(await res.text()).slice(0, 200)}` : "network error");
+  return !!res?.ok;
 }
 
-/** Finds the chat of the person who last wrote to the bot, and remembers it. */
 export async function connectTelegram(): Promise<{ ok: boolean; name?: string; reason?: string }> {
   const t = token();
   if (!t) return { ok: false, reason: "token" };
-  const res = await fetch(`https://api.telegram.org/bot${t}/getUpdates`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
+  const res = await tg("getUpdates");
   if (!res?.ok) {
     console.error("[telegram] getUpdates refused:", res ? `${res.status} ${(await res.text()).slice(0, 200)}` : "network error");
     return { ok: false, reason: "token" };
