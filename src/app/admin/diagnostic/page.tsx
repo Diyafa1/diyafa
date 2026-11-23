@@ -30,7 +30,7 @@ export default async function Diagnostic() {
     ["SUPABASE_SERVICE_ROLE_KEY", secret(env.SUPABASE_SERVICE_ROLE_KEY), ""],
     ["Connexion Google", googleEnabled() ? "✅ active" : "— pas encore configurée", ""],
     ["GOOGLE_TRANSLATE_API_KEY", secret(env.GOOGLE_TRANSLATE_API_KEY), "Traduction automatique des annonces"],
-    ["Telegram", secret(env.TELEGRAM_BOT_TOKEN), "Connexion : Admin → Commissions → Telegram"],
+    ["TELEGRAM_BOT_TOKEN", secret(env.TELEGRAM_BOT_TOKEN), /^\d{6,}:[A-Za-z0-9_-]{30,}$/.test((env.TELEGRAM_BOT_TOKEN ?? "").trim()) ? "✅ format correct" : env.TELEGRAM_BOT_TOKEN ? "⚠️ format inattendu (texte en plus ?)" : ""],
     ["Alertes WhatsApp (CallMeBot)", env.OWNER_WHATSAPP && env.CALLMEBOT_API_KEY ? "✅ actives" : "— pas encore configurées", ""],
     ["Aide WhatsApp visiteurs", raw(env.SUPPORT_WHATSAPP), ""],
     ["ADMIN_EMAILS", raw(env.ADMIN_EMAILS), ""],

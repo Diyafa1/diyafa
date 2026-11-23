@@ -6,7 +6,11 @@ import { db } from "./db";
  * Setup: create a bot with @BotFather → token in Vercel as TELEGRAM_BOT_TOKEN →
  * send any message to the bot → Admin → Commissions → Telegram → « Connecter ».
  */
-const token = () => (process.env.TELEGRAM_BOT_TOKEN ?? "").trim();
+/** The token looks like 123456789:AAH…; extracted even if extra words were pasted around it. */
+const token = () => {
+  const raw = process.env.TELEGRAM_BOT_TOKEN ?? "";
+  return (raw.match(/\d{6,}:[A-Za-z0-9_-]{30,}/)?.[0] ?? raw).trim();
+};
 export const telegramConfigured = () => !!token();
 
 export async function telegramChatId(): Promise<string | null> {
@@ -38,7 +42,10 @@ export async function connectTelegram(): Promise<{ ok: boolean; name?: string; r
   const t = token();
   if (!t) return { ok: false, reason: "token" };
   const res = await fetch(`https://api.telegram.org/bot${t}/getUpdates`, { signal: AbortSignal.timeout(8000) }).catch(() => null);
-  if (!res?.ok) return { ok: false, reason: "token" };
+  if (!res?.ok) {
+    console.error("[telegram] getUpdates refused:", res ? `${res.status} ${(await res.text()).slice(0, 200)}` : "network error");
+    return { ok: false, reason: "token" };
+  }
   const data = (await res.json()) as { result?: { message?: { chat: { id: number; first_name?: string; username?: string } } }[] };
   const last = [...(data.result ?? [])].reverse().find((u) => u.message?.chat?.id);
   if (!last?.message) return { ok: false, reason: "nomessage" };
