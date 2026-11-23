@@ -151,6 +151,8 @@ model Listing {
   latitude           Float?
   longitude          Float?
   distanceToHaramM   Int
+  walkMinutes        Int? // minutes on foot to the Haram, given by the host
+  driveMinutes       Int? // optional: minutes by car to the Haram (useful for places far away)
   maxGuests          Int                @default(1)
   bedrooms           Int                @default(1)
   bathrooms          Int                @default(1)

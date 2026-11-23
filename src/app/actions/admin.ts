@@ -299,3 +299,18 @@ export async function telegramAction(fd: FormData) {
   const r = await connectTelegram();
   redirect(`/admin/settings?telegram=${r.ok ? "connected" : r.reason}`);
 }
+
+/** Admin quick fix of a listing's distance and travel times (e.g. a host typed 4 instead of 4 km). */
+export async function fixDistanceAction(fd: FormData) {
+  await allow("listings");
+  const v = num(fd, "distanceValue");
+  const meters = v === null ? null : Math.round(v * (str(fd, "distanceUnit") === "km" ? 1000 : 1));
+  const walk = num(fd, "walkMinutes");
+  const drive = num(fd, "driveMinutes");
+  if (meters === null || meters < 30 || meters > 100000) redirect("/admin/listings?error=distance");
+  await db.listing.update({
+    where: { id: str(fd, "id") },
+    data: { distanceToHaramM: meters, walkMinutes: walk && walk > 0 ? Math.round(walk) : null, driveMinutes: drive && drive > 0 ? Math.round(drive) : null },
+  });
+  refresh();
+}

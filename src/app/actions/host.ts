@@ -14,6 +14,7 @@ import { AMENITIES } from "@/lib/amenities";
 import { BookingError, respondToRequest } from "@/lib/bookings";
 import { isTime, parseDay } from "@/lib/dates";
 import { checkContact } from "@/lib/contact-filter";
+import { coordsFromMapsLink } from "@/lib/maps-link";
 
 const t = (type: string) => (type === "LONG_TERM" ? "Location longue durée" : type === "SHARED_BED" ? "Lits" : "Séjour court");
 const phoneOk = (p: string | null) => !!p && p.replace(/\D/g, "").length >= 8;
@@ -71,12 +72,17 @@ async function ownListing(id: string, hostId: string) {
   return l;
 }
 
-function parseListingForm(fd: FormData) {
+async function parseListingForm(fd: FormData) {
   const type = str(fd, "type") as ListingType;
   const city = str(fd, "city") as City;
-  const lat = num(fd, "latitude");
-  const lng = num(fd, "longitude");
-  let distance = int(fd, "distanceToHaramM");
+  let lat = num(fd, "latitude");
+  let lng = num(fd, "longitude");
+  // a Google Maps link gives the exact position (and therefore the distance)
+  const fromLink = str(fd, "mapsLink") ? await coordsFromMapsLink(str(fd, "mapsLink")) : null;
+  if (fromLink) ({ lat, lng } = fromLink);
+  // distance typed by the host, in metres or kilometres
+  const dv = num(fd, "distanceValue");
+  let distance = dv === null ? int(fd, "distanceToHaramM") : Math.round(dv * (str(fd, "distanceUnit") === "km" ? 1000 : 1));
   const validCity = ["MAKKAH", "MADINAH"].includes(city);
   if (validCity && lat !== null && lng !== null && Math.abs(lat) <= 90 && Math.abs(lng) <= 180) {
     // straight-line × 1.3 approximates walking routes
@@ -95,7 +101,9 @@ function parseListingForm(fd: FormData) {
     neighborhood: z.string().max(100).nullable(),
     latitude: z.number().nullable(),
     longitude: z.number().nullable(),
-    distanceToHaramM: z.number().int().min(0).max(100000),
+    distanceToHaramM: z.number().int().min(30).max(100000),
+    driveMinutes: z.number().int().min(1).max(180).nullable(),
+    walkMinutes: z.number().int().min(1).max(240).nullable(),
     maxGuests: z.number().int().min(1).max(50),
     bedrooms: z.number().int().min(0).max(50),
     bathrooms: z.number().int().min(0).max(50),
@@ -125,6 +133,8 @@ function parseListingForm(fd: FormData) {
     latitude: lat,
     longitude: lng,
     distanceToHaramM: distance ?? -1,
+    driveMinutes: int(fd, "driveMinutes"),
+    walkMinutes: int(fd, "walkMinutes"),
     maxGuests: int(fd, "maxGuests") ?? 1,
     bedrooms: int(fd, "bedrooms") ?? 1,
     bathrooms: int(fd, "bathrooms") ?? 1,
@@ -148,8 +158,9 @@ function parseListingForm(fd: FormData) {
 
 export async function createListingAction(formData: FormData) {
   const user = await requireRole("HOST");
-  const p = parseListingForm(formData);
-  if (!p.success || (p.data.type === "SHARED_BED" && !p.data.bedGender)) redirect("/host/listings/new?error=form");
+  const p = await parseListingForm(formData);
+  if (!p.success) redirect(`/host/listings/new?error=${p.error.issues.some((i) => i.path[0] === "distanceToHaramM") ? "distance" : "form"}`);
+  if (p.data.type === "SHARED_BED" && !p.data.bedGender) redirect("/host/listings/new?error=form");
   if ((p.data.type === "SHORT_STAY" && !p.data.pricePerNight) || (p.data.type === "LONG_TERM" && !p.data.pricePerYear)) redirect("/host/listings/new?error=price");
   if (p.data.type === "LONG_TERM" && !phoneOk(p.data.ownerPhone)) redirect("/host/listings/new?error=ownerPhone");
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect("/host/listings/new?error=contact");
@@ -160,8 +171,9 @@ export async function createListingAction(formData: FormData) {
 export async function updateListingAction(formData: FormData) {
   const user = await requireRole("HOST");
   const l = await ownListing(str(formData, "id"), user.id);
-  const p = parseListingForm(formData);
-  if (!p.success || (l.type === "SHARED_BED" && !p.data.bedGender)) redirect(`/host/listings/${l.id}?error=form`);
+  const p = await parseListingForm(formData);
+  if (!p.success) redirect(`/host/listings/${l.id}?error=${p.error.issues.some((i) => i.path[0] === "distanceToHaramM") ? "distance" : "form"}`);
+  if (l.type === "SHARED_BED" && !p.data.bedGender) redirect(`/host/listings/${l.id}?error=form`);
   if ((l.type === "SHORT_STAY" && !p.data.pricePerNight) || (l.type === "LONG_TERM" && !p.data.pricePerYear)) redirect(`/host/listings/${l.id}?error=price`);
   if (l.type === "LONG_TERM" && !phoneOk(p.data.ownerPhone)) redirect(`/host/listings/${l.id}?error=ownerPhone`);
   if (l.type === "SHARED_BED" && p.data.bedGender !== l.bedGender) {
@@ -172,7 +184,9 @@ export async function updateListingAction(formData: FormData) {
   }
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect(`/host/listings/${l.id}?error=contact`);
   // Type cannot change once created (rooms/beds and bookings depend on it)
-  const { type: _type, ...rest } = p.data;
+  const { type: _type, latitude: _lat, longitude: _lng, ...restAll } = p.data;
+  void _lat; void _lng;
+  const rest = { ...restAll, ...(p.data.latitude !== null ? { latitude: p.data.latitude, longitude: p.data.longitude } : {}) };
   void _type;
   // Significant edits of a published listing go back to review
   const needsReview = l.status === "APPROVED" && (rest.title !== l.title || rest.address !== l.address);

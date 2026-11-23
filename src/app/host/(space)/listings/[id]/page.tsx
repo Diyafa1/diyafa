@@ -21,7 +21,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
   });
   if (!l || l.hostId !== user.id) notFound();
   const profile = await db.hostProfile.findUnique({ where: { userId: user.id } });
-  const errKey: Record<string, TKey> = { ownerPhone: "lf.err.ownerPhone", genderLocked: "lf.err.genderLocked", contact: "lf.err.contact", photos: "lf.err.photos", beds: "lf.err.beds", price: "lf.err.price", upload: "lf.err.upload", form: "auth.err.form" };
+  const errKey: Record<string, TKey> = { distance: "lf.err.distance", ownerPhone: "lf.err.ownerPhone", genderLocked: "lf.err.genderLocked", contact: "lf.err.contact", photos: "lf.err.photos", beds: "lf.err.beds", price: "lf.err.price", upload: "lf.err.upload", form: "auth.err.form" };
 
   return (
     <div className="max-w-3xl space-y-6">

@@ -4,12 +4,12 @@ import { Choice } from "@/components/Choice";
 import type { ListingStatus } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
-import { reviewListingAction } from "@/app/actions/admin";
+import { fixDistanceAction, reviewListingAction } from "@/app/actions/admin";
 import { displayPrice } from "@/lib/listings";
 import { formatListingPrice } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
 
-export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; incomplete?: string; what?: string }> }) {
+export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; incomplete?: string; what?: string; error?: string }> }) {
   await requireSection("listings");
   const { t, locale } = await getT();
   const sp = await searchParams;
@@ -23,6 +23,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
   });
   return (
     <div className="space-y-4">
+      {sp.error === "distance" && <div className="alert-brand">{t("lf.err.distance")}</div>}
       {sp.incomplete && <div className="alert-brand">{t(sp.what === "photos" ? "admin.incompletePhotos" : sp.what === "beds" ? "admin.incompleteBeds" : "admin.incompletePrice")}</div>}
       <form className="flex flex-wrap gap-2">
         <input name="q" defaultValue={sp.q} placeholder={t("admin.search")} className="input max-w-xs" />
@@ -52,6 +53,17 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
                 {l.allowTwoPayments && <span className="badge-brand ms-2">{t("lt.twoPaymentsShort")}</span>}
               </div>
             )}
+            <details className="text-xs">
+              <summary className="cursor-pointer text-neutral-500">📍 {l.distanceToHaramM >= 1000 ? `${(l.distanceToHaramM / 1000).toFixed(1)} km` : `${l.distanceToHaramM} m`}{l.walkMinutes ? ` · ${l.walkMinutes} min à pied` : ""}{l.driveMinutes ? ` · ${l.driveMinutes} min en voiture` : ""} — corriger</summary>
+              <form action={fixDistanceAction} className="mt-2 flex flex-wrap items-end gap-2">
+                <input type="hidden" name="id" value={l.id} />
+                <label className="block"><span className="label">Distance</span><input name="distanceValue" type="number" step="any" min={0} required defaultValue={l.distanceToHaramM >= 1000 ? l.distanceToHaramM / 1000 : l.distanceToHaramM} className="input w-24 py-1.5" /></label>
+                <select name="distanceUnit" defaultValue={l.distanceToHaramM >= 1000 ? "km" : "m"} className="input w-20 py-1.5"><option value="m">m</option><option value="km">km</option></select>
+                <label className="block"><span className="label">À pied (min)</span><input name="walkMinutes" type="number" min={1} defaultValue={l.walkMinutes ?? ""} className="input w-24 py-1.5" /></label>
+                <label className="block"><span className="label">Voiture (min)</span><input name="driveMinutes" type="number" min={1} defaultValue={l.driveMinutes ?? ""} className="input w-24 py-1.5" /></label>
+                <button className="btn-secondary btn-sm">{t("common.save")}</button>
+              </form>
+            </details>
             {(l._count.photos === 0 || displayPrice(l) === 0) && <div className="text-xs font-medium text-brand">⚠️ {l._count.photos === 0 ? t("admin.incompletePhotos") : t("admin.incompletePrice")}</div>}
             <form action={reviewListingAction} className="flex flex-wrap gap-2 pt-2">
               <input type="hidden" name="id" value={l.id} />

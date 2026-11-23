@@ -88,7 +88,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="space-y-8">
           <section className="space-y-2">
-            <DistanceBadge meters={l.distanceToHaramM} t={t} />
+            <DistanceBadge meters={l.distanceToHaramM} walk={l.walkMinutes} driveMinutes={l.driveMinutes} t={t} />
             <p className="text-sm text-neutral-600">
               {l.type !== "SHARED_BED" && <>{t("listing.guests", { n: l.maxGuests })} · </>}
               {t("listing.bedrooms", { n: l.bedrooms })} · {t("listing.bathrooms", { n: l.bathrooms })}

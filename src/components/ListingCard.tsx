@@ -22,7 +22,7 @@ export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; 
         )}
       </div>
       <div className="text-xs text-neutral-500">{t(`city.${l.city}`)}{l.neighborhood ? ` · ${l.neighborhood}` : ""}</div>
-      <DistanceBadge meters={l.distanceToHaramM} t={t} compact />
+      <DistanceBadge meters={l.distanceToHaramM} walk={l.walkMinutes} driveMinutes={l.driveMinutes} t={t} compact />
       {l.type === "SHARED_BED" && l.bedGender && <div className="mt-1"><span className="badge-brand">{t(`beds.for.${l.bedGender}`)}</span></div>}
       <div className="mt-1 text-sm">
         {l.type === "SHARED_BED" && <span className="text-neutral-500">{t("listing.from")} </span>}

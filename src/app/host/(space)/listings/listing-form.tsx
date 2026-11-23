@@ -38,16 +38,29 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t("lf.address")}><input name="address" className="input" required defaultValue={l?.address} /></Field>
           <Field label={`${t("lf.neighborhood")} (${t("common.optional")})`}><input name="neighborhood" className="input" defaultValue={l?.neighborhood ?? ""} /></Field>
-          <Field label={t("lf.distance")}><input name="distanceToHaramM" type="number" min={0} className="input" required defaultValue={l?.distanceToHaramM} /></Field>
         </div>
-        <fieldset>
-          <legend className="label">{t("lf.coords")}</legend>
-          <div className="grid grid-cols-2 gap-2">
-            <input name="latitude" type="number" step="any" placeholder={t("lf.lat")} className="input" dir="ltr" defaultValue={l?.latitude ?? ""} />
-            <input name="longitude" type="number" step="any" placeholder={t("lf.lng")} className="input" dir="ltr" defaultValue={l?.longitude ?? ""} />
+        <section className="space-y-3 rounded-[12px] border border-neutral-200 p-3">
+          <h3 className="text-sm font-semibold">{t("lf.locationTitle")}</h3>
+          <div className="grid grid-cols-[1fr_auto] gap-2 sm:max-w-sm">
+            <Field label={t("lf.distanceOnly")}>
+              <input name="distanceValue" type="number" min={0} step="any" className="input" defaultValue={l ? (l.distanceToHaramM >= 1000 ? l.distanceToHaramM / 1000 : l.distanceToHaramM) : ""} />
+            </Field>
+            <Field label={t("lf.unit")}>
+              <select name="distanceUnit" className="input" defaultValue={l && l.distanceToHaramM >= 1000 ? "km" : "m"}>
+                <option value="m">{t("lf.meters")}</option>
+                <option value="km">{t("lf.kilometers")}</option>
+              </select>
+            </Field>
           </div>
-          <p className="mt-1 text-xs text-neutral-500">{t("lf.coordsHint")}</p>
-        </fieldset>
+          <div className="grid grid-cols-2 gap-2 sm:max-w-sm">
+            <Field label={t("lf.walkMinutes")}>
+              <input name="walkMinutes" type="number" min={1} max={240} className="input" defaultValue={l?.walkMinutes ?? ""} />
+            </Field>
+            <Field label={t("lf.driveMinutes")}>
+              <input name="driveMinutes" type="number" min={1} max={180} className="input" defaultValue={l?.driveMinutes ?? ""} />
+            </Field>
+          </div>
+        </section>
         <div className="grid grid-cols-3 gap-2">
           <Field label={t("lf.maxGuests")}><input name="maxGuests" type="number" min={1} className="input" defaultValue={l?.maxGuests ?? 2} /></Field>
           <Field label={t("lf.bedrooms")}><input name="bedrooms" type="number" min={0} className="input" defaultValue={l?.bedrooms ?? 1} /></Field>
