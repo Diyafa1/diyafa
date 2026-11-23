@@ -77,6 +77,6 @@ export async function connectTelegram(): Promise<{ ok: boolean; name?: string; r
   if (!last?.message) return { ok: false, reason: "nomessage" };
   const chat = last.message.chat;
   await db.appSetting.upsert({ where: { key: "telegramChatId" }, create: { key: "telegramChatId", value: String(chat.id) }, update: { value: String(chat.id) } });
-  await sendTelegram("✅ Diyafa est connecté : vous recevrez ici les alertes et le rapport du matin.", String(chat.id));
+  await sendTelegram("✅ Al-Diyafa est connecté : vous recevrez ici les alertes et le rapport du matin.", String(chat.id));
   return { ok: true, name: chat.first_name ?? chat.username };
 }

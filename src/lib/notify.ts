@@ -18,7 +18,7 @@ export async function notifyOwner(subject: string, body: string) {
     admins.map((a) =>
       sendBrandEmail(a.email, subject, {
         locale: "fr",
-        title: subject.replace(/^.*?Diyafa — /, ""),
+        title: subject.replace(/^.*?Al-Diyafa — /, ""),
         paragraphs: lines.filter((x) => x !== link),
         button: { label: "Ouvrir l'espace admin", url },
       }),

@@ -138,7 +138,7 @@ export async function emailGuest(b: FullBooking, kind: GuestEmailKind, extra: { 
     reminder: { s: t.reminderS(b.code), c: { ...base, title: t.reminderT, intro: t.reminderI, rows: [...summary(b, l), [t.address, b.listing.address]] as [string, string][], highlight: [[t.payOnSite, formatMoney(b.payOnSite, l)]] as [string, string][], button: { label: t.view, url: tripUrl } } },
     review: { s: t.reviewS, c: { ...base, title: t.reviewT, intro: t.reviewI, button: { label: t.review, url: tripUrl } } },
   }[kind];
-  await sendBrandEmail(b.guest.email, `Diyafa — ${m.s}`, m.c);
+  await sendBrandEmail(b.guest.email, `Al-Diyafa — ${m.s}`, m.c);
 }
 
 export type HostEmailKind = "new" | "request" | "cancelled" | "reminder";
@@ -156,7 +156,7 @@ export async function emailHost(b: FullBooking, kind: HostEmailKind, extra: { re
     cancelled: { s: t.cancelledS(b.code), c: { ...base, title: t.cancelledHostT, rows: [...rows, ...(extra.reason ? [[t.reason, extra.reason]] as [string, string][] : [])], highlight: undefined, button: { label: t.viewHost, url } } },
     reminder: { s: t.hostReminderS(b.code), c: { ...base, title: t.hostReminderT, button: { label: t.viewHost, url } } },
   }[kind];
-  await sendBrandEmail(host.email, `Diyafa — ${m.s}`, m.c);
+  await sendBrandEmail(host.email, `Al-Diyafa — ${m.s}`, m.c);
 }
 
 /** Short branded message (account approved, listing published, payout…). */
