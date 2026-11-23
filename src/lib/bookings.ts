@@ -89,7 +89,7 @@ export async function prepareBooking(input: BookingInput, user: Pick<User, "id" 
     where: { id: input.listingId },
     include: { host: { include: { hostProfile: true } }, rooms: { include: { beds: true } } },
   });
-  if (!listing || listing.status !== "APPROVED" || listing.host.status !== "ACTIVE" || listing.host.hostProfile?.status !== "APPROVED")
+  if (!listing || listing.status !== "APPROVED" || listing.paused || listing.host.status !== "ACTIVE" || listing.host.hostProfile?.status !== "APPROVED")
     throw new BookingError("unavailable");
   if (user && listing.hostId === user.id) throw new BookingError("own_listing");
 
@@ -157,16 +157,34 @@ function isOverlapError(e: unknown) {
   return msg.includes("booking_no_overlap") || msg.includes("23P01");
 }
 
+/** Simultaneous clicks can make PostgreSQL report a transient conflict (deadlock / serialization): just try again. */
+function isTransient(e: unknown) {
+  const msg = e instanceof Error ? e.message : String(e);
+  return /40P01|40001|deadlock|P2034|could not serialize/i.test(msg);
+}
+async function withRetry<T>(fn: () => Promise<T>, tries = 4): Promise<T> {
+  for (let i = 0; ; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      if (i < tries - 1 && isTransient(e)) {
+        await new Promise((r) => setTimeout(r, 30 + Math.random() * 70));
+        continue;
+      }
+      throw e;
+    }
+  }
+}
+
 const newCode = () => "DY-" + crypto.randomBytes(4).toString("hex").toUpperCase();
 
 /** Creates a payment hold. The database constraint guarantees no two active bookings overlap on the same unit. */
 export async function createBooking(user: User, input: BookingInput) {
   const p = await prepareBooking(input, user);
   let booking: Booking;
+  await expireStaleHolds();
   try {
-    booking = await db.$transaction(async (tx) => {
-      await expireStaleHolds(tx);
-      return tx.booking.create({
+    booking = await withRetry(() => db.booking.create({
         data: {
           code: newCode(),
           guestId: user.id,
@@ -195,8 +213,7 @@ export async function createBooking(user: User, input: BookingInput) {
           discount: p.quote.discount,
           expiresAt: new Date(Date.now() + HOLD_MINUTES * 60000),
         },
-      });
-    });
+      }));
   } catch (e) {
     if (isOverlapError(e)) throw new BookingError("not_available");
     throw e;

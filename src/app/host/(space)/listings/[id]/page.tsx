@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
-import { photoAction, roomAction, submitListingAction, updateListingAction, uploadPhotosAction } from "@/app/actions/host";
+import { pauseListingAction, photoAction, roomAction, submitListingAction, updateListingAction, uploadPhotosAction } from "@/app/actions/host";
 import { ListingForm } from "../listing-form";
 import { Notice, StatusBadge } from "@/components/ui";
 import type { TKey } from "@/lib/i18n";
@@ -29,6 +29,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
         <h1 className="text-2xl">{l.title}</h1>
         <StatusBadge status={l.status} label={t(`lstatus.${l.status}`)} />
       </div>
+      {l.paused && <Notice kind="brand">⏸️ {t("cal.pausedNotice")}</Notice>}
       {sp.saved && <Notice kind="brand">{t("lf.saved")}</Notice>}
       {sp.submitted && <Notice kind="brand">{t("host.submitted")}</Notice>}
       {sp.error && errKey[sp.error] && <Notice kind="brand">{t(errKey[sp.error])}</Notice>}
@@ -43,7 +44,8 @@ export default async function EditListing({ params, searchParams }: { params: Pr
         </form>
       )}
       <div className="flex flex-wrap gap-2">
-        <Link href={`/host/listings/${l.id}/calendar`} className="btn-secondary no-underline">{t("host.calendar")}</Link>
+        {l.type !== "LONG_TERM" && <Link href={`/host/listings/${l.id}/calendar`} className="btn-primary no-underline">📅 {t("cal.availability")}</Link>}
+        {l.status === "APPROVED" && <form action={pauseListingAction}><input type="hidden" name="id" value={l.id} /><button className="btn-secondary">{l.paused ? `▶️ ${t("cal.resume")}` : `⏸️ ${t("cal.pause")}`}</button></form>}
         <Link href={`/listings/${l.id}`} className="btn-ghost no-underline">{t("host.view")}</Link>
       </div>
 

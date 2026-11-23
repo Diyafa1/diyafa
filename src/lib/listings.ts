@@ -7,6 +7,7 @@ import { addMonths } from "./dates";
 /** A listing is public only if it is approved AND its host is approved and active. */
 export const PUBLIC_LISTING: Prisma.ListingWhereInput = {
   status: "APPROVED",
+  paused: false,
   host: { status: "ACTIVE", hostProfile: { status: "APPROVED" } },
 };
 

@@ -101,6 +101,16 @@ describe("no double booking", () => {
   });
 });
 
+describe("paused listings", () => {
+  it("disappear from search and cannot be booked until resumed", async () => {
+    await db.listing.update({ where: { id: flatId }, data: { paused: true } });
+    expect((await searchListings({ city: "MAKKAH", type: "SHORT_STAY" })).map((l) => l.id)).not.toContain(flatId);
+    expect(await code(createBooking(guest, { listingId: flatId, checkIn: d(90), checkOut: d(91), guests: 1 }))).toBe("unavailable");
+    await db.listing.update({ where: { id: flatId }, data: { paused: false } });
+    expect((await searchListings({ city: "MAKKAH", type: "SHORT_STAY" })).map((l) => l.id)).toContain(flatId);
+  });
+});
+
 describe("long-term rentals", () => {
   it("cannot be booked or paid online (visit arranged on WhatsApp)", async () => {
     const lt = await db.listing.create({ data: { hostId: host.id, city: "MAKKAH", title: "LT", description: "D", address: "A", distanceToHaramM: 900, status: "APPROVED", type: "LONG_TERM", pricePerMonth: 100000 } });

@@ -219,4 +219,6 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Projet futur : ouverture internationale (villes/pays gérés depuis l'admin, point d'intérêt par ville, devises).
 - **Admin → Remise à zéro** (propriétaire uniquement, mot SUPPRIMER requis) : 1) supprime réservations, paiements, avis, litiges, versements, recherches non trouvées (comptes et annonces conservés) ; 2) supprime les annonces cochées (ou toutes) avec photos, lits, calendrier, conversations. Utilisée au lancement (23 nov.) pour effacer les données de test.
 - Annonce de lancement envoyée aux hôtes le 23 nov. (FR/EN/AR) avec le lien `…/register?as=host`.
+- **Disponibilités (hôtes, courte durée)** : bouton bien visible « 📅 Disponibilités » ; bloquer / débloquer une période « du … au … » en une fois (en plus du calendrier jour par jour) ; bouton « ⏸️ Mettre en pause » / « ▶️ Réactiver » (champ `paused` : annonce invisible dans la recherche et non réservable). Boutons des cartes d'annonces corrigés sur téléphone (passage à la ligne).
+- Réservations simultanées : réessai automatique des conflits passagers de la base (aucune double réservation, plus d'« erreur » affichée dans ce cas rare).
 

@@ -299,3 +299,36 @@ export async function respondAction(formData: FormData) {
   revalidatePath("/host");
   revalidatePath("/host/bookings");
 }
+
+/** Pause / resume a listing (hidden from search and not bookable while paused). */
+export async function pauseListingAction(formData: FormData) {
+  const user = await requireRole("HOST");
+  const l = await ownListing(str(formData, "id"), user.id);
+  await db.listing.update({ where: { id: l.id }, data: { paused: !l.paused } });
+  revalidatePath("/host/listings");
+  revalidatePath(`/host/listings/${l.id}`);
+  revalidatePath(`/listings/${l.id}`);
+}
+
+/** Block or unblock a whole period at once (from … to … included). */
+export async function calendarRangeAction(formData: FormData) {
+  const user = await requireRole("HOST");
+  const l = await ownListing(str(formData, "id"), user.id);
+  let from: Date, to: Date;
+  try {
+    from = parseDay(str(formData, "from"));
+    to = parseDay(str(formData, "to"));
+  } catch {
+    redirect(`/host/listings/${l.id}/calendar?error=dates`);
+  }
+  if (to < from || (to.getTime() - from.getTime()) / 86400000 > 366) redirect(`/host/listings/${l.id}/calendar?error=dates`);
+  const block = str(formData, "op") !== "unblock";
+  for (let d = new Date(from); d <= to; d.setUTCDate(d.getUTCDate() + 1)) {
+    const date = new Date(d);
+    if (block) await db.calendarDay.upsert({ where: { listingId_date: { listingId: l.id, date } }, create: { listingId: l.id, date, blocked: true }, update: { blocked: true } });
+    else await db.calendarDay.updateMany({ where: { listingId: l.id, date }, data: { blocked: false } });
+  }
+  await db.calendarDay.deleteMany({ where: { listingId: l.id, blocked: false, price: null } });
+  revalidatePath(`/host/listings/${l.id}/calendar`);
+  redirect(`/host/listings/${l.id}/calendar?m=${str(formData, "from").slice(0, 7)}&saved=${block ? "blocked" : "unblocked"}`);
+}

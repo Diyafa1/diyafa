@@ -6,8 +6,10 @@ import { getT } from "@/lib/i18n/server";
 import { ACTIVE_STATUSES, expireStaleHolds } from "@/lib/bookings";
 import { addDays, dayKey, parseDay, todayUTC } from "@/lib/dates";
 import { CalendarEditor } from "./editor";
+import { calendarRangeAction } from "@/app/actions/host";
+import { Choice } from "@/components/Choice";
 
-export default async function CalendarPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ m?: string }> }) {
+export default async function CalendarPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ m?: string; saved?: string; error?: string }> }) {
   const { id } = await params;
   const sp = await searchParams;
   const user = await requireRole("HOST");
@@ -38,6 +40,21 @@ export default async function CalendarPage({ params, searchParams }: { params: P
     <div className="space-y-4">
       <Link href={`/host/listings/${l.id}`} className="text-sm text-neutral-500">← {l.title}</Link>
       <h1 className="text-2xl">{t("cal.title")}</h1>
+      {sp.saved && <div className="alert-brand">{t(sp.saved === "blocked" ? "cal.rangeBlocked" : "cal.rangeUnblocked")}</div>}
+      {sp.error && <div className="alert-brand">{t("book.err.dates")}</div>}
+      <form action={calendarRangeAction} className="card space-y-3 p-4">
+        <input type="hidden" name="id" value={l.id} />
+        <h2 className="text-base">{t("cal.rangeTitle")}</h2>
+        <div className="grid grid-cols-2 gap-2 sm:max-w-md">
+          <label className="block"><span className="label">{t("common.from")}</span><input type="date" name="from" required min={dayKey(today)} className="input" /></label>
+          <label className="block"><span className="label">{t("common.to")}</span><input type="date" name="to" required min={dayKey(today)} className="input" /></label>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Choice name="op" value="block" className="btn-primary">{t("cal.rangeBlock")}</Choice>
+          <Choice name="op" value="unblock" className="btn-secondary">{t("cal.rangeUnblock")}</Choice>
+        </div>
+        <p className="text-xs text-neutral-500">{t("cal.rangeHint")}</p>
+      </form>
       <p className="text-sm text-neutral-600">{t("cal.hint")}</p>
       <div className="flex gap-2">
         <Link href={`?m=${prevM}`} className="btn-ghost btn-sm no-underline">{t("cal.prev")}</Link>

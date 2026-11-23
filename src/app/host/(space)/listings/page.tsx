@@ -5,6 +5,7 @@ import { getT } from "@/lib/i18n/server";
 import { displayPrice } from "@/lib/listings";
 import { formatListingPrice } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
+import { pauseListingAction } from "@/app/actions/host";
 
 export default async function HostListings() {
   const user = await requireRole("HOST");
@@ -30,10 +31,14 @@ export default async function HostListings() {
                 <div className="text-neutral-500">{t(`type.${l.type}`)} · {t(`city.${l.city}`)}</div>
                 <div>{formatListingPrice(l, displayPrice(l), locale)}</div>
                 {l.rejectionReason && l.status === "REJECTED" && <div className="text-brand">{l.rejectionReason}</div>}
-                <div className="mt-2 flex gap-2">
+                {l.paused && <div className="font-medium text-brand">⏸️ {t("cal.pausedBadge")}</div>}
+                <div className="mt-2 flex flex-wrap gap-2">
                   <Link href={`/host/listings/${l.id}`} className="btn-secondary btn-sm no-underline">{t("host.edit")}</Link>
-                  <Link href={`/host/listings/${l.id}/calendar`} className="btn-ghost btn-sm no-underline">{t("host.calendar")}</Link>
+                  {l.type !== "LONG_TERM" && <Link href={`/host/listings/${l.id}/calendar`} className="btn-primary btn-sm no-underline">📅 {t("cal.availability")}</Link>}
                   <Link href={`/listings/${l.id}`} className="btn-ghost btn-sm no-underline">{t("host.view")}</Link>
+                  {l.status === "APPROVED" && (
+                    <form action={pauseListingAction}><input type="hidden" name="id" value={l.id} /><button className="btn-ghost btn-sm">{l.paused ? `▶️ ${t("cal.resume")}` : `⏸️ ${t("cal.pause")}`}</button></form>
+                  )}
                 </div>
               </div>
             </li>
