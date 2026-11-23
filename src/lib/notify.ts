@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "./db";
 import { sendBrandEmail } from "./email";
+import { sendTelegram } from "./telegram";
 
 /**
  * Alerts for the owner: an e-mail to every admin + a WhatsApp message.
@@ -23,6 +24,7 @@ export async function notifyOwner(subject: string, body: string) {
     ),
   );
   await sendOwnerWhatsApp(`${subject}\n${body}`);
+  await sendTelegram(`${subject}\n\n${body}`);
 }
 
 export async function sendOwnerWhatsApp(text: string) {

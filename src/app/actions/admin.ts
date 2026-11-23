@@ -287,3 +287,15 @@ export async function sendReportNowAction() {
   await sendDailyReport();
   redirect("/admin/report?sent=1");
 }
+
+// ---------- Telegram (owner only) ----------
+export async function telegramAction(fd: FormData) {
+  await allow("settings");
+  const { connectTelegram, sendTelegram } = await import("@/lib/telegram");
+  if (str(fd, "op") === "test") {
+    const ok = await sendTelegram("🔔 Test Diyafa : les alertes Telegram fonctionnent.");
+    redirect(`/admin/settings?telegram=${ok ? "test-ok" : "test-fail"}`);
+  }
+  const r = await connectTelegram();
+  redirect(`/admin/settings?telegram=${r.ok ? "connected" : r.reason}`);
+}

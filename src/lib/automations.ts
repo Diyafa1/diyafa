@@ -5,6 +5,7 @@ import { getNumberSetting } from "./settings";
 import { emailGuest, emailHost } from "./emails";
 import { buildReport, reportEmail, yesterdayRange } from "./report";
 import { sendBrandEmail } from "./email";
+import { sendTelegram } from "./telegram";
 import { addDays, dayKey, todayUTC } from "./dates";
 import { moneyText } from "./money";
 
@@ -68,6 +69,9 @@ export async function sendDailyReport() {
   const app = (process.env.APP_URL || "").replace(/\/+$/, "");
   for (const a of admins)
     await sendBrandEmail(a.email, `📊 Diyafa — rapport du ${day}`, { locale: "fr", ...c, button: { label: "Ouvrir le tableau de bord", url: `${app}/admin/report` } });
+  await sendTelegram(
+    [`📊 ${c.title}`, "", ...c.rows.map(([k, v]) => `• ${k} : ${v}`), "", ...c.highlight.map(([k, v]) => `💶 ${k} : ${v}`), "", ...c.paragraphs, "", `${app}/admin/report`].join("\n"),
+  );
   return admins.length;
 }
 

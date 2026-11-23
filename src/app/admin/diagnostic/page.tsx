@@ -29,6 +29,7 @@ export default async function Diagnostic() {
     ["SUPABASE_URL", raw(env.SUPABASE_URL), ""],
     ["SUPABASE_SERVICE_ROLE_KEY", secret(env.SUPABASE_SERVICE_ROLE_KEY), ""],
     ["Connexion Google", googleEnabled() ? "✅ active" : "— pas encore configurée", ""],
+    ["Telegram", secret(env.TELEGRAM_BOT_TOKEN), "Connexion : Admin → Commissions → Telegram"],
     ["Alertes WhatsApp (CallMeBot)", env.OWNER_WHATSAPP && env.CALLMEBOT_API_KEY ? "✅ actives" : "— pas encore configurées", ""],
     ["Aide WhatsApp visiteurs", raw(env.SUPPORT_WHATSAPP), ""],
     ["ADMIN_EMAILS", raw(env.ADMIN_EMAILS), ""],
