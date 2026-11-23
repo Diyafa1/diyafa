@@ -67,9 +67,16 @@ export function PhotoGallery({ photos }: { photos: { id: string; url: string }[]
             <span>{open + 1} / {n}</span>
             <button type="button" onClick={() => setOpen(null)} aria-label={t("gallery.close")} className="rounded-full bg-white/10 px-3 py-1.5 text-lg leading-none hover:bg-white/20">✕</button>
           </div>
-          <div className="relative flex flex-1 items-center justify-center px-2 pb-6" onClick={(e) => e.target === e.currentTarget && setOpen(null)}>
+          <div className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden px-2 pb-4" onClick={(e) => e.target === e.currentTarget && setOpen(null)}>
+            {/* the whole photo always fits in the screen, whatever its shape */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={photos[open].url} alt="" className="max-h-full max-w-full select-none rounded-[8px] object-contain" draggable={false} />
+            <img
+              src={photos[open].url}
+              alt=""
+              className="block h-auto w-auto select-none rounded-[8px] object-contain"
+              style={{ maxWidth: "100%", maxHeight: n > 1 ? "calc(100dvh - 170px)" : "calc(100dvh - 90px)" }}
+              draggable={false}
+            />
             {n > 1 && (
               <>
                 <button type="button" onClick={() => go(rtl ? 1 : -1)} aria-label={t("gallery.prev")} className="absolute start-2 top-1/2 hidden -translate-y-1/2 rounded-full bg-white/15 px-4 py-3 text-2xl text-white hover:bg-white/25 sm:block">‹</button>
