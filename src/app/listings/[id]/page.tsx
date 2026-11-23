@@ -12,6 +12,7 @@ import { toggleFavoriteAction } from "@/app/actions/booking";
 import { startConversationAction } from "@/app/actions/messages";
 import { AMENITIES } from "@/lib/amenities";
 import { MapView } from "@/components/MapView";
+import { PhotoGallery } from "@/components/PhotoGallery";
 import { HARAM_COORDS } from "@/lib/haram";
 import { LongTermContact } from "@/components/LongTermContact";
 import { listingRef, longTermMessage, longTermWhatsApp } from "@/lib/listing-ref";
@@ -77,13 +78,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
         </form>
       </div>
 
-      {/* Photos: swipeable on phones, grid on desktop */}
-      <div className="-mx-4 mb-6 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 md:mx-0 md:grid md:grid-cols-4 md:grid-rows-2 md:overflow-visible md:px-0">
-        {l.photos.slice(0, 5).map((p, i) => (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img key={p.id} src={p.url} alt="" className={`aspect-[4/3] w-[85%] shrink-0 snap-center rounded-[12px] object-cover md:w-full ${i === 0 ? "md:col-span-2 md:row-span-2 md:aspect-auto md:h-full" : ""}`} />
-        ))}
-      </div>
+      <PhotoGallery photos={l.photos.map((p) => ({ id: p.id, url: p.url }))} />
 
       <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
         <div className="space-y-8">
