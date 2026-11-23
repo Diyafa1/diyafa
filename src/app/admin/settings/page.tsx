@@ -1,7 +1,8 @@
 import { requireSection } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
 import { getAllRates } from "@/lib/settings";
-import { automationSettingsAction, saveRatesAction, telegramAction } from "@/app/actions/admin";
+import { automationSettingsAction, saveRatesAction, telegramAction, translateAllAction } from "@/app/actions/admin";
+import { translationEnabled } from "@/lib/translate";
 import { telegramChatId, telegramConfigured } from "@/lib/telegram";
 import { Choice } from "@/components/Choice";
 import { getNumberSetting } from "@/lib/settings";
@@ -9,7 +10,7 @@ import { computeQuote } from "@/lib/pricing";
 import { formatMoney } from "@/lib/money";
 import { Notice } from "@/components/ui";
 
-export default async function AdminSettings({ searchParams }: { searchParams: Promise<{ telegram?: string }> }) {
+export default async function AdminSettings({ searchParams }: { searchParams: Promise<{ telegram?: string; translated?: string; of?: string }> }) {
   const sp = await searchParams;
   const tgToken = telegramConfigured();
   const tgChat = await telegramChatId();
@@ -39,6 +40,17 @@ export default async function AdminSettings({ searchParams }: { searchParams: Pr
       })}
       <button className="btn-primary">{t("common.save")}</button>
     </form>
+      <form action={translateAllAction} className="card space-y-3 p-4">
+        <h2 className="text-lg">Traduction automatique des annonces</h2>
+        {sp.translated !== undefined && <p className="alert-brand">✅ {sp.translated} annonce(s) traduite(s) sur {sp.of}.{sp.translated !== sp.of ? " Les autres : voir les logs « translate »." : ""}</p>}
+        <p className="text-sm text-neutral-700">{translationEnabled() ? "✅ Active : chaque annonce est traduite en français, anglais et arabe quand l'hôte l'enregistre." : "❌ Pas encore configurée : ajoutez GOOGLE_TRANSLATE_API_KEY dans Vercel (voir les étapes avec Claude)."}</p>
+        {translationEnabled() && (
+          <div className="flex flex-wrap gap-2">
+            <Choice name="scope" value="missing" className="btn-primary btn-sm">Traduire les annonces pas encore traduites</Choice>
+            <Choice name="scope" value="all" className="btn-secondary btn-sm">Tout retraduire</Choice>
+          </div>
+        )}
+      </form>
       <form action={telegramAction} className="card space-y-3 p-4">
         <h2 className="text-lg">Telegram</h2>
         {sp.telegram === "connected" && <p className="alert-brand">✅ Telegram connecté. Un message de confirmation vous a été envoyé.</p>}

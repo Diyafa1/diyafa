@@ -13,6 +13,7 @@ import { startConversationAction } from "@/app/actions/messages";
 import { AMENITIES } from "@/lib/amenities";
 import { MapView } from "@/components/MapView";
 import { PhotoGallery } from "@/components/PhotoGallery";
+import { localizedTexts } from "@/lib/translate";
 import { HARAM_COORDS } from "@/lib/haram";
 import { LongTermContact } from "@/components/LongTermContact";
 import { listingRef, longTermMessage, longTermWhatsApp } from "@/lib/listing-ref";
@@ -50,6 +51,8 @@ export default async function ListingPage({ params, searchParams }: Props) {
   const user = await getUser();
   const l = await load(id, user?.id, user?.role === "ADMIN");
   if (!l) notFound();
+  const tx = localizedTexts(l, locale, sp.original === "1");
+  const canTranslate = !!l.translations && l.sourceLang?.slice(0, 2) !== locale;
   const fav = user ? await db.favorite.findUnique({ where: { userId_listingId: { userId: user.id, listingId: l.id } } }) : null;
   const price = displayPrice(l);
   const unit = l.type === "LONG_TERM" ? t("listing.perYear") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
@@ -62,7 +65,13 @@ export default async function ListingPage({ params, searchParams }: Props) {
       {!l.isPublic && <div className="alert-brand mb-4">{t(`lstatus.${l.status}`)}</div>}
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl md:text-3xl">{l.title}</h1>
+          <h1 className="text-2xl md:text-3xl">{tx.title}</h1>
+          {canTranslate && (
+            <div className="mt-1 text-xs text-neutral-500">
+              {tx.translated ? t("tr.auto") : t("tr.original")} ·{" "}
+              <a href={tx.translated ? "?original=1" : "?"} className="link">{tx.translated ? t("tr.showOriginal") : t("tr.showTranslation")}</a>
+            </div>
+          )}
           <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-neutral-600">
             <span className="badge-brand">{t(`type.${l.type}`)}</span>
             <span>{t(`city.${l.city}`)}{l.neighborhood ? ` · ${l.neighborhood}` : ""}</span>
@@ -92,7 +101,7 @@ export default async function ListingPage({ params, searchParams }: Props) {
 
           <section>
             <h2 className="mb-2 text-lg">{t("listing.description")}</h2>
-            <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">{l.description}</p>
+            <p className="whitespace-pre-line text-sm leading-relaxed text-neutral-700">{tx.description}</p>
           </section>
 
           {l.type === "SHARED_BED" && (
@@ -122,10 +131,10 @@ export default async function ListingPage({ params, searchParams }: Props) {
             </section>
           )}
 
-          {l.rules && (
+          {tx.rules && (
             <section>
               <h2 className="mb-2 text-lg">{t("listing.rules")}</h2>
-              <p className="whitespace-pre-line text-sm text-neutral-700">{l.rules}</p>
+              <p className="whitespace-pre-line text-sm text-neutral-700">{tx.rules}</p>
             </section>
           )}
 

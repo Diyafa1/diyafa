@@ -3,6 +3,7 @@ import type { ListingCardData } from "@/lib/listings";
 import type { Locale, T } from "@/lib/i18n";
 import { formatListingPrice } from "@/lib/money";
 import { DistanceBadge } from "./DistanceBadge";
+import { localizedTexts } from "@/lib/translate";
 
 export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; t: T; locale: Locale; query?: string }) {
   const unit = l.type === "LONG_TERM" ? t("listing.perYear") : l.type === "SHARED_BED" ? t("listing.perBed") : t("listing.perNight");
@@ -16,7 +17,7 @@ export function ListingCard({ l, t, locale, query = "" }: { l: ListingCardData; 
         <span className="badge absolute start-2 top-2 bg-white/95">{t(`type.${l.type}`)}</span>
       </div>
       <div className="mt-2 flex items-start justify-between gap-2">
-        <h3 className="line-clamp-1 text-sm font-medium">{l.title}</h3>
+        <h3 className="line-clamp-1 text-sm font-medium">{localizedTexts(l, locale).title}</h3>
         {l.rating !== null && (
           <span className="shrink-0 text-xs text-neutral-700">★ {l.rating.toFixed(1)}</span>
         )}

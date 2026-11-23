@@ -1,5 +1,6 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 import { redirect } from "next/navigation";
 import type { ListingType, Role } from "@prisma/client";
 import { requireSection } from "@/lib/auth";
@@ -313,4 +314,15 @@ export async function fixDistanceAction(fd: FormData) {
     data: { distanceToHaramM: meters, walkMinutes: walk && walk > 0 ? Math.round(walk) : null, driveMinutes: drive && drive > 0 ? Math.round(drive) : null },
   });
   refresh();
+}
+
+/** Translates every listing that has no translation yet (or all of them). */
+export async function translateAllAction(fd: FormData) {
+  await allow("settings");
+  const { translateListing } = await import("@/lib/translate");
+  const all = str(fd, "scope") === "all";
+  const ids = (await db.listing.findMany({ where: all ? {} : { translations: { equals: Prisma.DbNull } }, select: { id: true }, take: 200 })).map((l) => l.id);
+  let ok = 0;
+  for (const id of ids) if (await translateListing(id)) ok++;
+  redirect(`/admin/settings?translated=${ok}&of=${ids.length}`);
 }

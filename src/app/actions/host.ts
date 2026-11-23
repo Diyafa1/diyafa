@@ -15,6 +15,7 @@ import { BookingError, respondToRequest } from "@/lib/bookings";
 import { isTime, parseDay } from "@/lib/dates";
 import { checkContact } from "@/lib/contact-filter";
 import { coordsFromMapsLink } from "@/lib/maps-link";
+import { translateListing } from "@/lib/translate";
 
 const t = (type: string) => (type === "LONG_TERM" ? "Location longue durée" : type === "SHARED_BED" ? "Lits" : "Séjour court");
 const phoneOk = (p: string | null) => !!p && p.replace(/\D/g, "").length >= 8;
@@ -165,6 +166,7 @@ export async function createListingAction(formData: FormData) {
   if (p.data.type === "LONG_TERM" && !phoneOk(p.data.ownerPhone)) redirect("/host/listings/new?error=ownerPhone");
   if (hasContact(p.data.title, p.data.description, p.data.rules, p.data.neighborhood)) redirect("/host/listings/new?error=contact");
   const l = await db.listing.create({ data: { ...p.data, hostId: user.id, status: "DRAFT" } });
+  await translateListing(l.id);
   redirect(`/host/listings/${l.id}?saved=1`);
 }
 
@@ -191,6 +193,7 @@ export async function updateListingAction(formData: FormData) {
   // Significant edits of a published listing go back to review
   const needsReview = l.status === "APPROVED" && (rest.title !== l.title || rest.address !== l.address);
   await db.listing.update({ where: { id: l.id }, data: { ...rest, ...(needsReview ? { status: "PENDING" } : {}) } });
+  if (rest.title !== l.title || rest.description !== l.description || rest.rules !== l.rules) await translateListing(l.id);
   if (needsReview) await notifyOwner("✏️ Diyafa — annonce modifiée, à revalider", `${rest.title}\nHôte : ${user.name} (${user.email})\n${process.env.APP_URL || ""}/admin/listings?status=PENDING`);
   revalidatePath(`/listings/${l.id}`);
   redirect(`/host/listings/${l.id}?saved=1`);
