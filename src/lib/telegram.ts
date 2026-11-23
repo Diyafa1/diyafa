@@ -26,12 +26,21 @@ export async function telegramChatId(): Promise<string | null> {
 async function tg(method: string, body?: unknown): Promise<Response | null> {
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const res = await fetch(`https://api.telegram.org/bot${token()}/${method}`, {
-        method: body ? "POST" : "GET",
-        headers: body ? { "Content-Type": "application/json" } : undefined,
-        body: body ? JSON.stringify(body) : undefined,
-        signal: AbortSignal.timeout(12000),
-      });
+      // Online, go through the European relay (the Singapore servers often cannot reach Telegram)
+      const relay = process.env.VERCEL && process.env.APP_URL && process.env.CRON_SECRET && attempt === 0;
+      const res = relay
+        ? await fetch(`${process.env.APP_URL!.replace(/\/+$/, "")}/api/telegram-relay`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${process.env.CRON_SECRET!.trim()}` },
+            body: JSON.stringify({ method, body }),
+            signal: AbortSignal.timeout(15000),
+          })
+        : await fetch(`https://api.telegram.org/bot${token()}/${method}`, {
+            method: body ? "POST" : "GET",
+            headers: body ? { "Content-Type": "application/json" } : undefined,
+            body: body ? JSON.stringify(body) : undefined,
+            signal: AbortSignal.timeout(12000),
+          });
       if (res.status === 429 && attempt === 0) {
         const wait = Number((await res.clone().json().catch(() => ({})))?.parameters?.retry_after ?? 3);
         await new Promise((r) => setTimeout(r, Math.min(wait, 15) * 1000));
