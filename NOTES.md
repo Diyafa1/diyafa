@@ -256,3 +256,4 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Hôtes : relance automatique **chaque lundi** des hôtes sans annonce publiée (`lib/host-reminders.ts`, 1 e-mail/semaine max, fr/en/ar) ; Admin → Hôtes → « Sans annonce » (liste des e-mails + « Relancer maintenant »).
 - Validation : on enregistre qui a validé/refusé et quand (`reviewedBy`, `reviewedAt` sur HostProfile et Listing) ; bandeau après la décision avec le résultat de l'e-mail envoyé à l'hôte. ⚠️ Tant que le domaine n'est pas vérifié chez Resend, les e-mails aux hôtes ne partent pas.
 - E-mails de bienvenue (voyageur à l'inscription, hôte à l'envoi de sa demande), design dédié bordeaux, fr/en/ar, signés « L'équipe Al-Diyafa » (`lib/welcome.ts`).
+- ✅ Resend : domaine al-diyafa.com vérifié (eu-west-1 ; DKIM resend._domainkey, CNAME rsend + send, DMARC). EMAIL_FROM = Al-Diyafa <contact@al-diyafa.com>.
