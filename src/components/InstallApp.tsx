@@ -10,7 +10,7 @@ const KEY = "install-dismissed";
 export function InstallApp() {
   const { t } = useI18n();
   const [prompt, setPrompt] = useState<PromptEvent | null>(null);
-  const [ios, setIos] = useState(false);
+  const [kind, setKind] = useState<"ios" | "android" | null>(null);
   const [show, setShow] = useState(false);
 
   useEffect(() => {
@@ -19,11 +19,21 @@ export function InstallApp() {
     let dismissed = 0;
     try { dismissed = Number(localStorage.getItem(KEY) || 0); } catch {}
     if (Date.now() - dismissed < 30 * 86400000) return;
-    const onPrompt = (e: Event) => { e.preventDefault(); setPrompt(e as PromptEvent); setShow(true); };
-    window.addEventListener("beforeinstallprompt", onPrompt);
     const ua = navigator.userAgent;
-    if (/iPhone|iPad|iPod/.test(ua) && /Safari/.test(ua) && !/CriOS|FxiOS/.test(ua)) { setIos(true); setShow(true); }
-    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
+    const isIos = /iPhone|iPad|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+    const isAndroid = /Android/.test(ua);
+    if (!isIos && !isAndroid) {
+      // computer: only when the browser offers a real install (Chrome / Edge)
+      const onPrompt = (e: Event) => { e.preventDefault(); setPrompt(e as PromptEvent); setShow(true); };
+      window.addEventListener("beforeinstallprompt", onPrompt);
+      return () => window.removeEventListener("beforeinstallprompt", onPrompt);
+    }
+    setKind(isIos ? "ios" : "android");
+    const onPrompt = (e: Event) => { e.preventDefault(); setPrompt(e as PromptEvent); };
+    window.addEventListener("beforeinstallprompt", onPrompt);
+    // phones: always show after a few seconds (with a one-tap button when the browser allows it, otherwise instructions)
+    const timer = setTimeout(() => setShow(true), 4000);
+    return () => { clearTimeout(timer); window.removeEventListener("beforeinstallprompt", onPrompt); };
   }, []);
 
   if (!show) return null;
@@ -34,9 +44,9 @@ export function InstallApp() {
         <LogoMark size={40} />
         <div className="min-w-0 flex-1 text-sm">
           <div className="font-medium text-neutral-900">{t("app.installTitle")}</div>
-          <div className="text-neutral-600">{ios ? t("app.iosHint") : t("app.installText")}</div>
+          <div className="text-neutral-600">{prompt ? t("app.installText") : kind === "ios" ? t("app.iosHint") : t("app.androidHint")}</div>
           <div className="mt-2 flex gap-2">
-            {!ios && prompt && (
+            {prompt && (
               <button type="button" className="btn-primary btn-sm" onClick={async () => { await prompt.prompt(); await prompt.userChoice.catch(() => null); close(); }}>
                 {t("app.install")}
               </button>
