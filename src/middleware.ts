@@ -43,4 +43,4 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ["/((?!_next|uploads|icons|seed|media|favicon|manifest|sw.js|offline.html|icon.png|robots.txt|sitemap.xml).*)"] };
+export const config = { matcher: ["/((?!_next|uploads|icons|seed|media|favicon|manifest|sw.js|offline.html|icon.png|robots.txt|sitemap.xml|.well-known).*)"] };

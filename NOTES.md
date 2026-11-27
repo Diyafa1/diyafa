@@ -266,3 +266,4 @@ Priorités, dans l'ordre :
 4. Admin → Réglages → « Alléger les anciennes photos » (jusqu'à 0).
 5. Avant le lancement : déplacer Supabase + région Vercel à Francfort (vitesse Europe) ; Remise à zéro des données de test ; Vercel Pro.
 6. Ensuite : règles du chat et des remboursements ensemble, relecture juridique / comptable.
+- Application : manifest enrichi (raccourcis Makkah/Madinah/Voyages), bannière « Installer l'application » (Android 1 clic, iPhone instructions), `/.well-known/assetlinks.json` prêt pour l'app Android Play Store (variables ANDROID_PACKAGE + ANDROID_SHA256).

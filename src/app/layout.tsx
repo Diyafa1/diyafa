@@ -10,6 +10,7 @@ import { Header, MobileNav } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { I18nProvider } from "@/components/I18nProvider";
 import { PwaRegister } from "@/components/PwaRegister";
+import { InstallApp } from "@/components/InstallApp";
 import { WhatsAppHelp } from "@/components/WhatsAppHelp";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -41,6 +42,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <MobileNav user={user} t={t} />
           <WhatsAppHelp t={t} />
           <PwaRegister />
+          <InstallApp />
         </I18nProvider>
       </body>
     </html>
