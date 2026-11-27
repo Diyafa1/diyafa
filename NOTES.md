@@ -257,3 +257,12 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Validation : on enregistre qui a validé/refusé et quand (`reviewedBy`, `reviewedAt` sur HostProfile et Listing) ; bandeau après la décision avec le résultat de l'e-mail envoyé à l'hôte. ⚠️ Tant que le domaine n'est pas vérifié chez Resend, les e-mails aux hôtes ne partent pas.
 - E-mails de bienvenue (voyageur à l'inscription, hôte à l'envoi de sa demande), design dédié bordeaux, fr/en/ar, signés « L'équipe Al-Diyafa » (`lib/welcome.ts`).
 - ✅ Resend : domaine al-diyafa.com vérifié (eu-west-1 ; DKIM resend._domainkey, CNAME rsend + send, DMARC). EMAIL_FROM = Al-Diyafa <contact@al-diyafa.com>.
+
+### Fin de séance 5 (28 nov.) — À REPRENDRE ICI
+Priorités, dans l'ordre :
+1. **Stripe** : vérification de la société (LLC) puis passage en mode réel (`sk_live_` + webhook live vers https://www.al-diyafa.com/api/stripe/webhook). Sans ça, aucun vrai paiement.
+2. **Boîte mail pro** `contact@al-diyafa.com` (o2switch : cPanel → Domaines → créer al-diyafa.com → Comptes e-mail → copier MX/SPF/DKIM d'o2switch dans Vercel DNS). Urgent car les e-mails de bienvenue disent « répondez à cet e-mail ».
+3. **Google Search Console** (vérif DNS TXT dans Vercel ou variable GOOGLE_SITE_VERIFICATION) + envoyer sitemap.xml. Puis fiche Google Business.
+4. Admin → Réglages → « Alléger les anciennes photos » (jusqu'à 0).
+5. Avant le lancement : déplacer Supabase + région Vercel à Francfort (vitesse Europe) ; Remise à zéro des données de test ; Vercel Pro.
+6. Ensuite : règles du chat et des remboursements ensemble, relecture juridique / comptable.
