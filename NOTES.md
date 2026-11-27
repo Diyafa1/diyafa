@@ -267,3 +267,5 @@ Priorités, dans l'ordre :
 5. Avant le lancement : déplacer Supabase + région Vercel à Francfort (vitesse Europe) ; Remise à zéro des données de test ; Vercel Pro.
 6. Ensuite : règles du chat et des remboursements ensemble, relecture juridique / comptable.
 - Application : manifest enrichi (raccourcis Makkah/Madinah/Voyages), bannière « Installer l'application » (Android 1 clic, iPhone instructions), `/.well-known/assetlinks.json` prêt pour l'app Android Play Store (variables ANDROID_PACKAGE + ANDROID_SHA256).
+- **App Android** : projet `android/` (Trusted Web Activity, package `com.aldiyafa.app`, minSdk 24). Build : `ANDROID_HOME=/opt/android-sdk ALDIYAFA_KEYSTORE=… ALDIYAFA_KEYSTORE_PASSWORD=… gradle assembleRelease` (ou `bundleRelease` pour le Play Store). La clé de l'APK de test n'est pas dans le dépôt ; son empreinte publique est dans `/.well-known/assetlinks.json`. Pour le Play Store : ajouter l'empreinte « App signing key » de Play Console dans ANDROID_SHA256 (Vercel).
+- iOS : pas d'APK sur iPhone ; il faudra un Mac + compte Apple Developer (99 $/an) pour une app App Store.

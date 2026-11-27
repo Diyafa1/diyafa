@@ -1,0 +1,31 @@
+plugins { id "com.android.application" }
+
+// Al-Diyafa Android app: a Trusted Web Activity that opens https://www.al-diyafa.com full screen.
+android {
+    namespace "com.aldiyafa.app"
+    compileSdk 36
+    defaultConfig {
+        applicationId "com.aldiyafa.app"
+        minSdk 24
+        targetSdk 35
+        versionCode 1
+        versionName "1.0"
+    }
+    signingConfigs {
+        release {
+            // Signing key kept OUTSIDE the repository (never commit it). Paths/passwords come from environment variables.
+            storeFile file(System.getenv("ALDIYAFA_KEYSTORE") ?: "missing.keystore")
+            storePassword System.getenv("ALDIYAFA_KEYSTORE_PASSWORD") ?: ""
+            keyAlias System.getenv("ALDIYAFA_KEY_ALIAS") ?: "aldiyafa"
+            keyPassword System.getenv("ALDIYAFA_KEY_PASSWORD") ?: System.getenv("ALDIYAFA_KEYSTORE_PASSWORD") ?: ""
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}
+
+dependencies {
+    implementation "com.google.androidbrowserhelper:androidbrowserhelper:2.7.4"
+}
