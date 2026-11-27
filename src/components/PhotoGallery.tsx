@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { thumbUrl } from "@/lib/photo-url";
 import { useI18n } from "./I18nProvider";
 
 /** Listing photos: tap one to open it full screen, swipe or use arrows to browse, ✕ / Esc to close. */
@@ -41,7 +42,7 @@ export function PhotoGallery({ photos }: { photos: { id: string; url: string }[]
               className={`w-[85%] shrink-0 snap-center cursor-zoom-in overflow-hidden rounded-[12px] md:w-full ${i === 0 ? "md:col-span-2 md:row-span-2" : ""}`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt="" className={`aspect-[4/3] h-full w-full object-cover transition-transform hover:scale-[1.02] ${i === 0 ? "md:aspect-auto" : ""}`} />
+              <img src={i === 0 ? p.url : thumbUrl(p.url)} alt="" fetchPriority={i === 0 ? "high" : "auto"} loading={i === 0 ? "eager" : "lazy"} decoding="async" className={`aspect-[4/3] h-full w-full object-cover transition-transform hover:scale-[1.02] ${i === 0 ? "md:aspect-auto" : ""}`} />
             </button>
           ))}
         </div>
@@ -89,7 +90,7 @@ export function PhotoGallery({ photos }: { photos: { id: string; url: string }[]
               {photos.map((p, i) => (
                 <button key={p.id} type="button" onClick={() => setOpen(i)} className={`h-14 w-20 shrink-0 overflow-hidden rounded-[6px] border-2 ${i === open ? "border-white" : "border-transparent opacity-60"}`}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.url} alt="" className="h-full w-full object-cover" />
+                  <img src={thumbUrl(p.url)} alt="" loading="lazy" className="h-full w-full object-cover" />
                 </button>
               ))}
             </div>

@@ -317,6 +317,26 @@ export async function fixDistanceAction(fd: FormData) {
 }
 
 /** Translates every listing that has no translation yet (or all of them). */
+/** Re-encodes old, heavy photos (before automatic compression existed) in small batches. */
+export async function optimizePhotosAction() {
+  await allow("settings");
+  const { recompressPublicImage } = await import("@/lib/storage");
+  const old = await db.listingPhoto.findMany({ where: { NOT: { url: { endsWith: ".webp" } } }, take: 12, orderBy: { id: "asc" } });
+  let ok = 0;
+  for (const p of old) {
+    try {
+      const url = await recompressPublicImage(p.url);
+      await db.listingPhoto.update({ where: { id: p.id }, data: { url } });
+      ok++;
+    } catch (e) {
+      console.error("[storage] could not optimise photo", p.id, e instanceof Error ? e.message : e);
+    }
+  }
+  const left = await db.listingPhoto.count({ where: { NOT: { url: { endsWith: ".webp" } } } });
+  revalidatePath("/", "layout");
+  redirect(`/admin/settings?optimized=${ok}&left=${left}`);
+}
+
 export async function translateAllAction(fd: FormData) {
   await allow("settings");
   const { translateListing } = await import("@/lib/translate");

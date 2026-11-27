@@ -1,4 +1,5 @@
 import { requireSection } from "@/lib/auth";
+import { thumbUrl } from "@/lib/photo-url";
 import Link from "next/link";
 import { Choice } from "@/components/Choice";
 import type { ListingStatus } from "@prisma/client";
@@ -37,7 +38,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
         <div key={l.id} className="card flex flex-col gap-3 p-4 text-sm md:flex-row">
           <div className="h-24 w-32 shrink-0 overflow-hidden rounded-[12px] bg-neutral-100">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            {l.photos[0] && <img src={l.photos[0].url} alt="" className="h-full w-full object-cover" />}
+            {l.photos[0] && <img src={thumbUrl(l.photos[0].url)} alt="" className="h-full w-full object-cover" loading="lazy" />}
           </div>
           <div className="flex-1 space-y-1">
             <div className="flex flex-wrap items-start justify-between gap-2">

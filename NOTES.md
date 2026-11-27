@@ -251,3 +251,4 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - ✅ Webhook Stripe (test) pointé vers `https://www.al-diyafa.com/api/stripe/webhook` (répond 400 sans signature = normal).
 - Incident : mot de passe base Supabase réinitialisé ; DATABASE_URL (6543, pgbouncer=true&connection_limit=1) et DIRECT_URL (5432) recollés. Un DIRECT_URL en 6543 bloquait le build sans fin. Ne pas cliquer « Redeploy » plusieurs fois (Hobby = 1 build à la fois).
 - Reste : boîte mail pro o2switch (MX/SPF/DKIM dans Vercel DNS), Resend sur al-diyafa.com + EMAIL_FROM, vérification société Stripe, Vercel Pro au lancement.
+- Vitesse : photos recompressées en WebP 1600 px + miniature 640 px (`-sm.webp`, `thumbUrl()`), réduites aussi dans le navigateur avant envoi (PhotoUploader, 1 photo par requête), cache 1 an. Admin → Réglages → « Alléger les anciennes photos » (12 par clic).

@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { PhotoUploader } from "@/components/PhotoUploader";
+import { thumbUrl } from "@/lib/photo-url";
 import { Choice } from "@/components/Choice";
 import { notFound } from "next/navigation";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
 import { formatMoney } from "@/lib/money";
-import { pauseListingAction, photoAction, roomAction, submitListingAction, updateListingAction, uploadPhotosAction } from "@/app/actions/host";
+import { pauseListingAction, photoAction, roomAction, submitListingAction, updateListingAction } from "@/app/actions/host";
 import { ListingForm } from "../listing-form";
 import { Notice, StatusBadge } from "@/components/ui";
 import type { TKey } from "@/lib/i18n";
@@ -55,7 +57,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
           {l.photos.map((p, i) => (
             <div key={p.id} className="space-y-1">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.url} alt="" className={`aspect-[4/3] w-full rounded-[12px] object-cover ${i === 0 ? "ring-2 ring-brand" : ""}`} />
+              <img src={thumbUrl(p.url)} alt="" loading="lazy" className={`aspect-[4/3] w-full rounded-[12px] object-cover ${i === 0 ? "ring-2 ring-brand" : ""}`} />
               <form action={photoAction} className="flex gap-1">
                 <input type="hidden" name="id" value={l.id} />
                 <input type="hidden" name="photoId" value={p.id} />
@@ -65,11 +67,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
             </div>
           ))}
         </div>
-        <form action={uploadPhotosAction} className="flex flex-wrap items-center gap-2">
-          <input type="hidden" name="id" value={l.id} />
-          <input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple required className="input max-w-xs" />
-          <button className="btn-secondary">{t("lf.addPhotos")}</button>
-        </form>
+        <PhotoUploader listingId={l.id} />
         <p className="text-xs text-neutral-500">{t("lf.photosHint")}</p>
       </section>
 

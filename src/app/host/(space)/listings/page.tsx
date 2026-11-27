@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { thumbUrl } from "@/lib/photo-url";
 import { requireRole } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
@@ -24,7 +25,7 @@ export default async function HostListings() {
             <li key={l.id} className="card flex gap-3 p-3">
               <div className="h-20 w-24 shrink-0 overflow-hidden rounded-[12px] bg-neutral-100">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {l.photos[0] && <img src={l.photos[0].url} alt="" className="h-full w-full object-cover" />}
+                {l.photos[0] && <img src={thumbUrl(l.photos[0].url)} alt="" className="h-full w-full object-cover" loading="lazy" />}
               </div>
               <div className="min-w-0 flex-1 text-sm">
                 <div className="flex items-start justify-between gap-2"><span className="truncate font-medium">{l.title}</span><StatusBadge status={l.status} label={t(`lstatus.${l.status}`)} /></div>

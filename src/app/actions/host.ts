@@ -217,6 +217,25 @@ export async function uploadPhotosAction(formData: FormData) {
   revalidatePath(`/host/listings/${l.id}`);
 }
 
+/** One photo per call (sent by the PhotoUploader, already shrunk in the browser). Returns ok/false instead of redirecting. */
+export async function uploadOnePhotoAction(formData: FormData): Promise<{ ok: boolean }> {
+  const user = await requireRole("HOST");
+  const l = await ownListing(str(formData, "id"), user.id);
+  const f = formData.get("photo");
+  if (!(f instanceof File) || !f.size) return { ok: false };
+  const count = await db.listingPhoto.count({ where: { listingId: l.id } });
+  if (count >= 40) return { ok: false };
+  try {
+    const url = await savePublicImage(f);
+    await db.listingPhoto.create({ data: { listingId: l.id, url, position: count } });
+  } catch (e) {
+    console.error("[storage] photo upload failed:", e instanceof Error ? e.message : e);
+    return { ok: false };
+  }
+  revalidatePath(`/host/listings/${l.id}`);
+  return { ok: true };
+}
+
 export async function photoAction(formData: FormData) {
   const user = await requireRole("HOST");
   const l = await ownListing(str(formData, "id"), user.id);

@@ -1,7 +1,8 @@
 import { requireSection } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
 import { getAllRates } from "@/lib/settings";
-import { automationSettingsAction, saveRatesAction, telegramAction, translateAllAction } from "@/app/actions/admin";
+import { automationSettingsAction, optimizePhotosAction, saveRatesAction, telegramAction, translateAllAction } from "@/app/actions/admin";
+import { db } from "@/lib/db";
 import { translationEnabled } from "@/lib/translate";
 import { telegramChatId, telegramConfigured } from "@/lib/telegram";
 import { Choice } from "@/components/Choice";
@@ -10,8 +11,9 @@ import { computeQuote } from "@/lib/pricing";
 import { formatMoney } from "@/lib/money";
 import { Notice } from "@/components/ui";
 
-export default async function AdminSettings({ searchParams }: { searchParams: Promise<{ telegram?: string; translated?: string; of?: string }> }) {
+export default async function AdminSettings({ searchParams }: { searchParams: Promise<{ telegram?: string; translated?: string; of?: string; optimized?: string; left?: string }> }) {
   const sp = await searchParams;
+  const heavyPhotos = await db.listingPhoto.count({ where: { NOT: { url: { endsWith: ".webp" } } } });
   const tgToken = telegramConfigured();
   const tgChat = await telegramChatId();
   await requireSection("settings");
@@ -40,6 +42,12 @@ export default async function AdminSettings({ searchParams }: { searchParams: Pr
       })}
       <button className="btn-primary">{t("common.save")}</button>
     </form>
+      <form action={optimizePhotosAction} className="card space-y-3 p-4">
+        <h2 className="text-lg">Photos plus légères (site plus rapide)</h2>
+        {sp.optimized !== undefined && <p className="alert-brand">✅ {sp.optimized} photo(s) allégée(s). Il en reste {sp.left}.</p>}
+        <p className="text-sm text-neutral-700">Les nouvelles photos sont réduites automatiquement. {heavyPhotos ? `${heavyPhotos} ancienne(s) photo(s) sont encore lourdes : cliquez jusqu'à ce qu'il en reste 0 (12 par clic).` : "✅ Toutes les photos sont déjà allégées."}</p>
+        {heavyPhotos > 0 && <button className="btn-primary btn-sm">Alléger les anciennes photos</button>}
+      </form>
       <form action={translateAllAction} className="card space-y-3 p-4">
         <h2 className="text-lg">Traduction automatique des annonces</h2>
         {sp.translated !== undefined && <p className="alert-brand">✅ {sp.translated} annonce(s) traduite(s) sur {sp.of}.{sp.translated !== sp.of ? " Les autres : voir les logs « translate »." : ""}</p>}
