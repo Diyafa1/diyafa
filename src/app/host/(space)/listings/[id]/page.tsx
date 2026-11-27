@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { PhotoUploader } from "@/components/PhotoUploader";
 import { thumbUrl } from "@/lib/photo-url";
 import { Choice } from "@/components/Choice";
@@ -42,7 +43,7 @@ export default async function EditListing({ params, searchParams }: { params: Pr
         <form action={submitListingAction} className="card flex flex-wrap items-center justify-between gap-3 border-brand bg-brand-50 p-4">
           <input type="hidden" name="id" value={l.id} />
           <p className="text-sm font-medium text-brand-dark">{t("host.draftReminder")}</p>
-          <button className="btn-primary">{t("host.submitReview")}</button>
+          <SubmitButton className="btn-primary">{t("host.submitReview")}</SubmitButton>
         </form>
       )}
       <div className="flex flex-wrap gap-2">

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { getT } from "@/lib/i18n/server";
 import { resetPasswordAction } from "@/app/actions/password";
 import { Field, Notice } from "@/components/ui";
@@ -20,7 +21,7 @@ export default async function ResetPage({ searchParams }: { searchParams: Promis
       <form action={resetPasswordAction} className="space-y-4">
         <input type="hidden" name="token" value={sp.token} />
         <Field label={t("auth.password")} hint={t("auth.passwordHint")}><input className="input" name="password" type="password" required minLength={8} autoComplete="new-password" /></Field>
-        <button className="btn-primary w-full">{t("common.save")}</button>
+        <SubmitButton className="btn-primary w-full">{t("common.save")}</SubmitButton>
       </form>
     </div>
   );

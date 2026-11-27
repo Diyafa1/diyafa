@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { getT } from "@/lib/i18n/server";
 import { registerAction } from "@/app/actions/auth";
 import { Field, Notice } from "@/components/ui";
@@ -40,7 +41,7 @@ export default async function RegisterPage({ searchParams }: { searchParams: Pro
         <Field label={t("auth.email")}><input className="input" name="email" type="email" required autoComplete="email" /></Field>
         <Field label={t("auth.phone")}><input className="input" name="phone" type="tel" dir="ltr" autoComplete="tel" placeholder="+966 5x xxx xxxx" /></Field>
         <Field label={t("auth.password")} hint={t("auth.passwordHint")}><input className="input" name="password" type="password" required minLength={8} autoComplete="new-password" /></Field>
-        <button className="btn-primary w-full">{t("nav.register")}</button>
+        <SubmitButton className="btn-primary w-full">{t("nav.register")}</SubmitButton>
       </form>
       <p className="mt-6 text-center text-sm text-neutral-600">
         {t("auth.haveAccount")} <Link href="/login" className="link">{t("nav.login")}</Link>

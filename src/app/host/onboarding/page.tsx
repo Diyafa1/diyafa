@@ -1,4 +1,5 @@
 import { requireUser } from "@/lib/auth";
+import { SubmitButton } from "@/components/SubmitButton";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { getT } from "@/lib/i18n/server";
@@ -25,7 +26,7 @@ export default async function OnboardingPage({ searchParams }: { searchParams: P
           <Field label={t("host.idNumber")}><input className="input" name="idNumber" required dir="ltr" defaultValue={p?.idNumber ?? ""} /></Field>
           <Field label={t("host.idDoc")} hint={p?.idDocPath ? "✓" : undefined}><input className="input" name="idDoc" type="file" accept="image/*,application/pdf" required={!p?.idDocPath} /></Field>
         </div>
-        <button className="btn-primary w-full">{t("host.submit")}</button>
+        <SubmitButton className="btn-primary w-full">{t("host.submit")}</SubmitButton>
       </form>
     </div>
   );

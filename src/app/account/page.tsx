@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { requireUser } from "@/lib/auth";
 import { getT } from "@/lib/i18n/server";
 import { LOCALES, LOCALE_NAMES } from "@/lib/i18n";
@@ -34,7 +35,7 @@ export default async function AccountPage({ searchParams }: { searchParams: Prom
           </select>
         </Field>
         <Field label={t("account.newPassword")}><input className="input" name="password" type="password" minLength={8} autoComplete="new-password" /></Field>
-        <button className="btn-primary w-full">{t("common.save")}</button>
+        <SubmitButton className="btn-primary w-full">{t("common.save")}</SubmitButton>
       </form>
       <section className="card mt-8 space-y-3 p-4">
         <h2 className="text-lg">{t("ref.title")}</h2>

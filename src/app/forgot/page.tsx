@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { getT } from "@/lib/i18n/server";
 import { forgotPasswordAction } from "@/app/actions/password";
 import { Field, Notice } from "@/components/ui";
@@ -13,7 +14,7 @@ export default async function ForgotPage({ searchParams }: { searchParams: Promi
       {sp.sent ? <Notice kind="brand">{t("pw.sent")}</Notice> : (
         <form action={forgotPasswordAction} className="space-y-4">
           <Field label={t("auth.email")}><input className="input" name="email" type="email" required autoComplete="email" /></Field>
-          <button className="btn-primary w-full">{t("pw.sendLink")}</button>
+          <SubmitButton className="btn-primary w-full">{t("pw.sendLink")}</SubmitButton>
         </form>
       )}
       <p className="mt-6 text-center text-sm"><Link href="/login" className="link">{t("nav.login")}</Link></p>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -97,7 +98,7 @@ export default async function TripPage({ params, searchParams }: { params: Promi
               ))}
             </fieldset>
             <textarea name="comment" required minLength={2} maxLength={2000} rows={3} placeholder={t("review.comment")} className="input" />
-            <button className="btn-primary">{t("review.submit")}</button>
+            <SubmitButton className="btn-primary">{t("review.submit")}</SubmitButton>
           </form>
         </section>
       )}

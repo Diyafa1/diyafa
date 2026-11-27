@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { SubmitButton } from "@/components/SubmitButton";
 import { notFound } from "next/navigation";
 import { requireUser } from "@/lib/auth";
 import { db } from "@/lib/db";
@@ -59,7 +60,7 @@ export default async function ThreadPage({ params, searchParams }: { params: Pro
       <form action={sendMessageAction} className="sticky bottom-20 flex gap-2 md:bottom-4">
         <input type="hidden" name="conversationId" value={c.id} />
         <textarea name="body" required rows={2} maxLength={4000} placeholder={t("msg.placeholder")} className="input flex-1 resize-none" />
-        <button className="btn-primary self-end">{t("msg.send")}</button>
+        <SubmitButton className="btn-primary self-end">{t("msg.send")}</SubmitButton>
       </form>
     </div>
   );

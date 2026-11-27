@@ -1,4 +1,5 @@
 import { getT } from "@/lib/i18n/server";
+import { SubmitButton } from "@/components/SubmitButton";
 import { getUser } from "@/lib/auth";
 import { contactAction } from "@/app/actions/contact";
 import { Field, Notice } from "@/components/ui";
@@ -27,7 +28,7 @@ export default async function ContactPage({ searchParams }: { searchParams: Prom
         <Field label={t("auth.email")}><input name="email" type="email" required className="input" defaultValue={user?.email} dir="ltr" /></Field>
         <Field label={t("contact.subject")}><input name="subject" required className="input" /></Field>
         <Field label={t("contact.message")}><textarea name="body" required minLength={5} rows={5} className="input" /></Field>
-        <button className="btn-primary w-full">{t("common.send")}</button>
+        <SubmitButton className="btn-primary w-full">{t("common.send")}</SubmitButton>
       </form>
     </div>
   );

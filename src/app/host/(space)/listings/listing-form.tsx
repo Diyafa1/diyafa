@@ -1,4 +1,5 @@
 import type { Listing } from "@prisma/client";
+import { SubmitButton } from "@/components/SubmitButton";
 import type { T, TKey } from "@/lib/i18n";
 import { AMENITIES } from "@/lib/amenities";
 import { Field } from "@/components/ui";
@@ -120,7 +121,7 @@ export function ListingForm({ t, l, action }: { t: T; l?: Listing; action: (fd: 
           </div>
         </fieldset>
       </section>
-      <button className="btn-primary w-full sm:w-auto">{t("lf.save")}</button>
+      <SubmitButton className="btn-primary w-full sm:w-auto">{t("lf.save")}</SubmitButton>
     </form>
   );
 }
