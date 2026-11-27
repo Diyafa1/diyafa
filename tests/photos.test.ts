@@ -6,7 +6,7 @@ import { thumbUrl } from "@/lib/photo-url";
 
 describe("photo compression", () => {
   it("shrinks a big phone photo to WebP 1600 px + 640 px thumbnail", async () => {
-    const big = await sharp({ create: { width: 4000, height: 3000, channels: 3, noise: { type: "gaussian", mean: 128, sigma: 40 } } }).jpeg({ quality: 95 }).toBuffer();
+    const big = await sharp({ create: { width: 4000, height: 3000, channels: 3, background: "#000", noise: { type: "gaussian", mean: 128, sigma: 40 } } }).jpeg({ quality: 95 }).toBuffer();
     const { full, thumb } = await compressPhoto(big);
     const m = await sharp(full).metadata();
     const s = await sharp(thumb).metadata();

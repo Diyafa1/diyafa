@@ -5,6 +5,15 @@ import { Field, Notice } from "@/components/ui";
 import type { TKey } from "@/lib/i18n";
 import { GoogleButton } from "@/components/GoogleButton";
 import { googleEnabled } from "@/lib/google";
+import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { SEO } from "@/lib/seo-content";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return { ...pageMeta({ path: "/register", locale, ...SEO.register[locale] }) };
+}
 
 export default async function RegisterPage({ searchParams }: { searchParams: Promise<{ error?: string; next?: string; as?: string }> }) {
   const { t } = await getT();

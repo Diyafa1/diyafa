@@ -3,6 +3,23 @@ import { getT } from "@/lib/i18n/server";
 import { featuredListings } from "@/lib/listings";
 import { SearchForm } from "@/components/SearchForm";
 import { ListingCard } from "@/components/ListingCard";
+import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/server";
+import { SITE_URL, jsonLd, langUrl, pageMeta } from "@/lib/seo";
+import { LOCALES } from "@/lib/i18n";
+import { SEO } from "@/lib/seo-content";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  // Next drops "?lang=" from root URLs, so the language links of the home page are written by <HomeLangLinks />
+  const { alternates: _skip, ...meta } = pageMeta({ path: "/", locale, ...SEO.home[locale], absoluteTitle: true });
+  return meta;
+}
+
+const ORG = [
+  { "@context": "https://schema.org", "@type": "Organization", name: "Al-Diyafa", alternateName: ["الضيافة", "Al Diyafa", "Diyafa"], url: SITE_URL, logo: `${SITE_URL}/icons/icon-512.png` },
+  { "@context": "https://schema.org", "@type": "WebSite", name: "Al-Diyafa", url: SITE_URL, inLanguage: ["fr", "en", "ar"] },
+];
 
 export const dynamic = "force-dynamic";
 
@@ -11,13 +28,17 @@ export default async function Home() {
   const featured = await featuredListings(8);
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ORG)} />
+      <link rel="canonical" href={langUrl("/", locale)} />
+      {LOCALES.map((l) => <link key={l} rel="alternate" hrefLang={l} href={langUrl("/", l)} />)}
+      <link rel="alternate" hrefLang="x-default" href={`${SITE_URL}/`} />
       <section className="border-b border-neutral-100 bg-white">
         <div className="container-page py-10 md:py-16">
           <h1 className="max-w-2xl text-3xl leading-tight md:text-5xl">{t("home.title")}</h1>
           <p className="mt-3 max-w-xl text-neutral-600">{t("home.subtitle")}</p>
           <div className="mt-6 grid grid-cols-2 gap-3 sm:max-w-md">
             {(["MAKKAH", "MADINAH"] as const).map((c) => (
-              <Link key={c} href={`/search?city=${c}`} className="card flex flex-col items-center gap-1 p-4 text-neutral-900 no-underline hover:border-brand">
+              <Link key={c} href={c === "MAKKAH" ? "/makkah" : "/madinah"} className="card flex flex-col items-center gap-1 p-4 text-neutral-900 no-underline hover:border-brand">
                 <span className="text-lg font-semibold">{t(`city.${c}`)}</span>
               </Link>
             ))}

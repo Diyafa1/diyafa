@@ -10,8 +10,16 @@ import { MapView } from "@/components/MapView";
 import { HARAM_COORDS } from "@/lib/haram";
 import { formatListingPrice } from "@/lib/money";
 import Link from "next/link";
+import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { SEO } from "@/lib/seo-content";
 
-export const metadata = { title: "Search" };
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return { ...pageMeta({ path: "/search", locale, ...SEO.search[locale] }) };
+}
+
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const { t, locale } = await getT();

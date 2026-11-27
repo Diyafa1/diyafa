@@ -2,6 +2,15 @@ import { getT } from "@/lib/i18n/server";
 import { getUser } from "@/lib/auth";
 import { contactAction } from "@/app/actions/contact";
 import { Field, Notice } from "@/components/ui";
+import type { Metadata } from "next";
+import { getLocale } from "@/lib/i18n/server";
+import { pageMeta } from "@/lib/seo";
+import { SEO } from "@/lib/seo-content";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return { ...pageMeta({ path: "/contact", locale, ...SEO.contact[locale] }) };
+}
 
 export default async function ContactPage({ searchParams }: { searchParams: Promise<{ sent?: string; error?: string }> }) {
   const { t } = await getT();

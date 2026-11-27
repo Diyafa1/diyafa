@@ -19,14 +19,18 @@ export async function middleware(req: NextRequest) {
     res = NextResponse.next();
   }
 
-  // First visit: pick the language automatically (the visitor can still change it).
-  if (!req.cookies.get("locale")) {
-    const locale = detectLocale(req.headers.get("x-vercel-ip-country"), req.headers.get("accept-language"));
+  // Language: ?lang=fr|en|ar (links from Google and the language versions) wins; otherwise, first visit: pick it automatically.
+  const forced = req.nextUrl.searchParams.get("lang");
+  const forcedLocale = forced === "fr" || forced === "en" || forced === "ar" ? forced : null;
+  const current = req.cookies.get("locale")?.value;
+  if (forcedLocale ? forcedLocale !== current : !current) {
+    const locale = forcedLocale ?? detectLocale(req.headers.get("x-vercel-ip-country"), req.headers.get("accept-language"));
     res.cookies.set("locale", locale, { path: "/", maxAge: 60 * 60 * 24 * 365, sameSite: "lax" });
     if (decision === "allow") {
-      // apply it to this very first page too
+      // apply it to this very page too
       const headers = new Headers(req.headers);
-      headers.set("cookie", `${req.headers.get("cookie") ?? ""}; locale=${locale}`.replace(/^; /, ""));
+      const others = (req.headers.get("cookie") ?? "").split(/;\s*/).filter((c) => c && !c.startsWith("locale="));
+      headers.set("cookie", [...others, `locale=${locale}`].join("; "));
       const forwarded = NextResponse.next({ request: { headers } });
       res.cookies.getAll().forEach((c) => forwarded.cookies.set(c));
       res = forwarded;
@@ -39,4 +43,4 @@ export async function middleware(req: NextRequest) {
   return res;
 }
 
-export const config = { matcher: ["/((?!_next|uploads|icons|seed|media|favicon|manifest|sw.js|offline.html|icon.png).*)"] };
+export const config = { matcher: ["/((?!_next|uploads|icons|seed|media|favicon|manifest|sw.js|offline.html|icon.png|robots.txt|sitemap.xml).*)"] };

@@ -18,6 +18,7 @@ import { HARAM_COORDS } from "@/lib/haram";
 import { LongTermContact } from "@/components/LongTermContact";
 import { listingRef, longTermMessage, longTermWhatsApp } from "@/lib/listing-ref";
 import type { TKey } from "@/lib/i18n";
+import { NO_INDEX, SITE_URL, jsonLd, pageMeta } from "@/lib/seo";
 
 type Props = { params: Promise<{ id: string }>; searchParams: Promise<Record<string, string | undefined>> };
 
@@ -40,8 +41,13 @@ async function load(id: string, viewerId?: string, isAdmin?: boolean) {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const l = await db.listing.findFirst({ where: { id, ...PUBLIC_LISTING }, select: { title: true } });
-  return { title: l?.title ?? "Al-Diyafa" };
+  const l = await db.listing.findFirst({ where: { id, ...PUBLIC_LISTING }, include: { photos: { orderBy: { position: "asc" }, take: 1 } } });
+  if (!l) return { title: "Al-Diyafa", ...NO_INDEX };
+  const { t, locale } = await getT();
+  const tx = localizedTexts(l, locale);
+  const city = t(`city.${l.city}`);
+  const desc = `${t(`type.${l.type}`)} · ${city}${l.distanceToHaramM ? ` · ${l.distanceToHaramM < 1000 ? `${l.distanceToHaramM} m` : `${(l.distanceToHaramM / 1000).toFixed(1)} km`} — Haram` : ""}. ${tx.description}`.replace(/\s+/g, " ").slice(0, 158);
+  return pageMeta({ path: `/listings/${l.id}`, locale, title: `${tx.title} — ${city}`, description: desc, image: l.photos[0]?.url });
 }
 
 export default async function ListingPage({ params, searchParams }: Props) {
@@ -60,8 +66,21 @@ export default async function ListingPage({ params, searchParams }: Props) {
   const avg = l.reviews.length ? l.reviews.reduce((s, r) => s + r.rating, 0) / l.reviews.length : null;
   const hostName = l.host.hostProfile?.displayName ?? l.host.name;
 
+  const ld = {
+    "@context": "https://schema.org",
+    "@type": l.type === "SHORT_STAY" || l.type === "LONG_TERM" ? "Apartment" : "Accommodation",
+    name: tx.title,
+    description: tx.description.slice(0, 500),
+    url: `${SITE_URL}/listings/${l.id}`,
+    image: l.photos.slice(0, 6).map((p) => p.url),
+    address: { "@type": "PostalAddress", addressLocality: l.city === "MAKKAH" ? "Makkah" : "Madinah", addressCountry: "SA", ...(l.neighborhood ? { streetAddress: l.neighborhood } : {}) },
+    ...(l.latitude && l.longitude ? { geo: { "@type": "GeoCoordinates", latitude: +l.latitude.toFixed(3), longitude: +l.longitude.toFixed(3) } } : {}),
+    ...(l.maxGuests ? { occupancy: { "@type": "QuantitativeValue", maxValue: l.maxGuests } } : {}),
+    ...(avg ? { aggregateRating: { "@type": "AggregateRating", ratingValue: avg.toFixed(1), reviewCount: l.reviews.length, bestRating: 5 } } : {}),
+  };
   return (
     <div className="container-page py-6">
+      {l.isPublic && <script type="application/ld+json" dangerouslySetInnerHTML={jsonLd(ld)} />}
       {!l.isPublic && <div className="alert-brand mb-4">{t(`lstatus.${l.status}`)}</div>}
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>

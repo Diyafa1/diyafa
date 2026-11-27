@@ -1,7 +1,9 @@
 import type { Metadata, Viewport } from "next";
 import "@fontsource-variable/readex-pro";
 import "./globals.css";
-import { getT } from "@/lib/i18n/server";
+import { getLocale, getT } from "@/lib/i18n/server";
+import { SITE_URL } from "@/lib/seo";
+import { SEO } from "@/lib/seo-content";
 import { dirOf } from "@/lib/i18n";
 import { getUser } from "@/lib/auth";
 import { Header, MobileNav } from "@/components/Header";
@@ -10,13 +12,20 @@ import { I18nProvider } from "@/components/I18nProvider";
 import { PwaRegister } from "@/components/PwaRegister";
 import { WhatsAppHelp } from "@/components/WhatsAppHelp";
 
-export const metadata: Metadata = {
-  title: { default: "Al-Diyafa الضيافة", template: "%s · Al-Diyafa" },
-  description: "Stays in Makkah & Madinah near the Haram",
-  manifest: "/manifest.webmanifest",
-  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "Al-Diyafa", statusBarStyle: "default" },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const locale = await getLocale();
+  return {
+    metadataBase: new URL(SITE_URL),
+    title: { default: SEO.home[locale].title, template: "%s · Al-Diyafa" },
+    description: SEO.home[locale].description,
+    applicationName: "Al-Diyafa",
+    manifest: "/manifest.webmanifest",
+    icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
+    appleWebApp: { capable: true, title: "Al-Diyafa", statusBarStyle: "default" },
+    openGraph: { siteName: "Al-Diyafa الضيافة", images: [{ url: "/icons/og.png", width: 1200, height: 630 }] },
+    ...(process.env.GOOGLE_SITE_VERIFICATION ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION.trim() } } : {}),
+  };
+}
 export const viewport: Viewport = { themeColor: "#7A2E3A", width: "device-width", initialScale: 1 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
