@@ -57,7 +57,7 @@ export function yesterdayRange() {
   return { from: addDays(end, -1), to: end, label: addDays(today, -1) };
 }
 
-const BY: Record<string, string> = { guest: "voyageur", host: "hôte", admin: "Diyafa", decline: "refus hôte", auto: "auto" };
+const BY: Record<string, string> = { guest: "voyageur", host: "hôte", admin: "Al-Diyafa", decline: "refus hôte", auto: "auto" };
 
 /** Content of the morning e-mail (French, for the owner). */
 export function reportEmail(r: DailyReport, dayLabel: string) {
@@ -72,7 +72,7 @@ export function reportEmail(r: DailyReport, dayLabel: string) {
   ].filter(Boolean) as string[];
   return {
     title: `Rapport du ${dayLabel}`,
-    intro: "Assalamu alaykum, voici l'activité de Diyafa sur la journée d'hier (heure de La Mecque).",
+    intro: "Assalamu alaykum, voici l'activité de Al-Diyafa sur la journée d'hier (heure de La Mecque).",
     rows: [
       ["Nouvelles réservations", String(r.newBookings)],
       ["Confirmées", String(r.confirmed.length)],

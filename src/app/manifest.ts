@@ -2,8 +2,8 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Diyafa ضيافة",
-    short_name: "Diyafa",
+    name: "Al-Diyafa الضيافة",
+    short_name: "Al-Diyafa",
     description: "Stays in Makkah & Madinah near the Haram",
     start_url: "/",
     display: "standalone",

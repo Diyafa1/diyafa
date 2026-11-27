@@ -24,7 +24,7 @@ export default async function Diagnostic() {
     ["STRIPE_WEBHOOK_SECRET", secret(env.STRIPE_WEBHOOK_SECRET), (env.STRIPE_WEBHOOK_SECRET ?? "").trim().startsWith("whsec_") ? "✅ Stripe prévient le site de chaque paiement" : "⚠️ recommandé (voir NOTES)"],
     ["EMAIL_PROVIDER", raw(env.EMAIL_PROVIDER), env.EMAIL_PROVIDER?.trim() === "resend" ? "✅ e-mails réels" : "⚠️ e-mails non envoyés"],
     ["RESEND_API_KEY", secret(env.RESEND_API_KEY), ""],
-    ["EMAIL_FROM", raw(env.EMAIL_FROM), "Vide = Diyafa <onboarding@resend.dev>"],
+    ["EMAIL_FROM", raw(env.EMAIL_FROM), "Vide = Al-Diyafa <onboarding@resend.dev>"],
     ["STORAGE_PROVIDER", raw(env.STORAGE_PROVIDER), env.STORAGE_PROVIDER?.trim() === "supabase" ? "✅ photos sur Supabase" : "❌ doit être supabase"],
     ["SUPABASE_URL", raw(env.SUPABASE_URL), ""],
     ["SUPABASE_SERVICE_ROLE_KEY", secret(env.SUPABASE_SERVICE_ROLE_KEY), ""],
