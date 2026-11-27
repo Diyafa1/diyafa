@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
+import { sendGuestWelcome } from "@/lib/welcome";
 import { cookies } from "next/headers";
 import { db } from "@/lib/db";
 import { startSession } from "@/lib/auth";
@@ -41,6 +42,8 @@ export async function GET(req: Request) {
       },
     });
     isNew = true;
+    const created = user;
+    if (created.role !== "ADMIN" && saved.intent !== "host") after(() => sendGuestWelcome(created));
   }
   await startSession(user);
   const dest =

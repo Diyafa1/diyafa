@@ -80,7 +80,9 @@ export function renderEmail(c: EmailContent): { html: string; text: string } {
           }
           ${c.rows?.length ? `<tr><td style="padding:16px 28px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0">${rowsHtml(c.rows)}</table></td></tr>` : ""}
           ${c.highlight?.length ? `<tr><td style="padding:16px 28px 0;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8f0f2;border-radius:12px;padding:6px 16px;">${rowsHtml(c.highlight, true)}</table></td></tr>` : ""}
-          ${(c.paragraphs ?? []).map((p) => `<tr><td style="padding:16px 28px 0;text-align:${align};font-size:14px;line-height:1.6;color:#404040;">${esc(p)}</td></tr>`).join("")}
+          ${(c.paragraphs ?? []).map((p) => p.startsWith("# ")
+            ? `<tr><td style="padding:22px 28px 0;text-align:${align};font-size:16px;font-weight:600;color:${BRAND};">${esc(p.slice(2))}</td></tr>`
+            : `<tr><td style="padding:12px 28px 0;text-align:${align};font-size:14px;line-height:1.6;color:#404040;">${esc(p).replace(/\n/g, "<br>")}</td></tr>`).join("")}
           ${
             c.button
               ? `<tr><td style="padding:24px 28px 4px;text-align:${align};">
@@ -107,7 +109,7 @@ export function renderEmail(c: EmailContent): { html: string; text: string } {
     c.cardTitle && `\n${c.cardTitle}${c.cardSubtitle ? ` — ${c.cardSubtitle}` : ""}`,
     ...(c.rows ?? []).map(([k, v]) => `${k} : ${v}`),
     ...(c.highlight ?? []).map(([k, v]) => `${k} : ${v}`),
-    ...(c.paragraphs ?? []),
+    ...(c.paragraphs ?? []).map((p) => (p.startsWith("# ") ? `\n${p.slice(2).toUpperCase()}` : p)),
     c.button && `\n${c.button.label} : ${c.button.url}`,
     `\n${c.footerNote ?? f.help}`,
   ]

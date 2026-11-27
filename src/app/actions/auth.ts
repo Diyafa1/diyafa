@@ -6,6 +6,8 @@ import { endSession, hashPassword, startSession, verifyPassword } from "@/lib/au
 import { getLocale } from "@/lib/i18n/server";
 import { safeNext, str } from "@/lib/forms";
 import { referrerFromCookie } from "@/lib/referral";
+import { after } from "next/server";
+import { sendGuestWelcome } from "@/lib/welcome";
 
 const RegisterSchema = z.object({
   name: z.string().min(2).max(100),
@@ -32,6 +34,8 @@ export async function registerAction(formData: FormData) {
     data: { referredById: await referrerFromCookie(), role: admins.includes(d.email) ? "ADMIN" : "GUEST", name: d.name, email: d.email, phone: d.phone, passwordHash: await hashPassword(d.password), locale: await getLocale() },
   });
   await startSession(user);
+  // Travellers get their welcome e-mail now; future hosts get the host one when they send their application
+  if (user.role !== "ADMIN" && d.intent !== "host") after(() => sendGuestWelcome(user));
   redirect(user.role === "ADMIN" ? "/admin" : d.intent === "host" ? "/host/onboarding" : safeNext(str(formData, "next")));
 }
 

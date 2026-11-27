@@ -1,5 +1,7 @@
 "use server";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
+import { sendHostWelcome } from "@/lib/welcome";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import type { City, ListingType, CancellationPolicy, Gender } from "@prisma/client";
@@ -63,6 +65,7 @@ export async function hostApplicationAction(formData: FormData) {
   const updated = await db.user.update({ where: { id: user.id }, data: { role: "HOST" } });
   await startSession(updated); // refresh role in the session cookie
   await notifyOwner("Al-Diyafa — nouvelle demande d'hôte", `${p.data.displayName} (${user.email})`);
+  if (!existing) after(() => sendHostWelcome(updated));
   redirect("/host?applied=1");
 }
 
