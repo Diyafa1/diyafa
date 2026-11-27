@@ -245,3 +245,4 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Branche `rename-al-diyafa` fusionnée dans main : marque **Al-Diyafa / الضيافة**.
 - Environnement cloud « diyafa » créé (accès à al-diyafa.com, www.al-diyafa.com, diyafa-omega.vercel.app pour vérifier le site).
 - Reste : Google OAuth (origines + redirection `https://www.al-diyafa.com/api/auth/google/callback`), webhook Stripe vers `https://www.al-diyafa.com/api/stripe/webhook`, boîte mail pro o2switch (MX/SPF/DKIM à mettre dans Vercel DNS), Resend sur le domaine + `EMAIL_FROM`, vérification Stripe de la société, Vercel Pro au lancement.
+- Build : `scripts/check-db-env.mjs` arrête la construction tout de suite si DATABASE_URL/DIRECT_URL sont faux (DIRECT_URL doit être en :5432, sinon migrate deploy bloque sans fin).
