@@ -8,6 +8,7 @@ import { sendBrandEmail } from "./email";
 import { sendTelegram } from "./telegram";
 import { addDays, dayKey, todayUTC } from "./dates";
 import { moneyText } from "./money";
+import { remindHostsWithoutListing } from "./host-reminders";
 
 /** Requests the host has not answered in time are declined and refunded automatically. */
 export async function autoDeclineStaleRequests() {
@@ -82,5 +83,6 @@ export async function runAutomations() {
   const declined = await autoDeclineStaleRequests();
   const reminders = await sendArrivalReminders();
   const reviews = await askForReviews();
-  return { declined, reminders, reviews };
+  const hostNudges = await remindHostsWithoutListing().catch((e) => (console.error("[host-reminders]", e), 0));
+  return { declined, reminders, reviews, hostNudges };
 }

@@ -17,22 +17,39 @@ import { moneyText } from "@/lib/money";
 const allow = (section: Section) => requireSection(section);
 const refresh = () => revalidatePath("/", "layout");
 
+/** Was the e-mail just sent to this person really delivered to Resend? (shown to the admin after a decision) */
+async function mailStatus(to: string, since: Date): Promise<string> {
+  const log = await db.emailLog.findFirst({ where: { to, createdAt: { gte: since } }, orderBy: { createdAt: "desc" } });
+  return !log ? "none" : log.status === "sent" ? "sent" : log.status === "logged" ? "logged" : "error";
+}
+
 export async function reviewHostAction(fd: FormData) {
-  await allow("hosts");
+  const me = await allow("hosts");
+  const started = new Date();
   const p = await db.hostProfile.findUnique({ where: { id: str(fd, "id") }, include: { user: true } });
   if (!p) return;
   const approve = str(fd, "decision") === "approve";
   const reason = str(fd, "reason").slice(0, 500) || null;
   await db.hostProfile.update({
     where: { id: p.id },
-    data: approve ? { status: "APPROVED", verifiedAt: new Date(), rejectionReason: null } : { status: "REJECTED", rejectionReason: reason },
+    data: { reviewedBy: me.name, reviewedAt: new Date(), ...(approve ? { status: "APPROVED", verifiedAt: new Date(), rejectionReason: null } : { status: "REJECTED", rejectionReason: reason }) },
   });
   await emailSimple(p.user, approve ? "Al-Diyafa — compte hôte validé ✅" : "Al-Diyafa — demande d'hôte refusée", approve ? "Votre compte hôte est validé ✅" : "Votre demande d'hôte n'a pas été acceptée", approve ? ["Bienvenue parmi les hôtes Al-Diyafa ! Vous pouvez maintenant publier vos annonces."] : [`Raison : ${reason ?? "—"}`, "Vous pouvez corriger votre demande et la renvoyer."], { label: approve ? "Publier une annonce" : "Corriger ma demande", url: `${process.env.APP_URL || ""}${approve ? "/host/listings/new" : "/host/onboarding"}` });
   refresh();
+  redirect(`/admin/hosts?done=${approve ? "approved" : "rejected"}&who=${encodeURIComponent(p.displayName)}&mail=${await mailStatus(p.user.email, started)}`);
+}
+
+/** Sends the "add your listing" reminder now (max one per host per week). */
+export async function remindHostsNowAction() {
+  await allow("hosts");
+  const { remindHostsWithoutListing } = await import("@/lib/host-reminders");
+  const n = await remindHostsWithoutListing({ force: true });
+  redirect(`/admin/hosts?status=NOLISTING&reminded=${n}`);
 }
 
 export async function reviewListingAction(fd: FormData) {
-  await allow("listings");
+  const me = await allow("listings");
+  const started = new Date();
   const l = await db.listing.findUnique({ where: { id: str(fd, "id") }, include: { host: true } });
   if (!l) return;
   const d = str(fd, "decision");
@@ -49,8 +66,10 @@ export async function reviewListingAction(fd: FormData) {
       if (!photos || !priced || !beds) redirect(`/admin/listings?incomplete=${l.id}&what=${!photos ? "photos" : !beds ? "beds" : "price"}`);
     }
     const status = d === "approve" ? "APPROVED" : d === "suspend" ? "SUSPENDED" : "REJECTED";
-    await db.listing.update({ where: { id: l.id }, data: { status, rejectionReason: status === "APPROVED" ? null : reason } });
+    await db.listing.update({ where: { id: l.id }, data: { status, reviewedBy: me.name, reviewedAt: new Date(), rejectionReason: status === "APPROVED" ? null : reason } });
     await emailSimple(l.host, `Al-Diyafa — annonce ${status === "APPROVED" ? "publiée ✅" : status === "SUSPENDED" ? "suspendue" : "refusée"}`, status === "APPROVED" ? "Votre annonce est en ligne ✅" : status === "SUSPENDED" ? "Votre annonce est suspendue" : "Votre annonce n'a pas été acceptée", [l.title, ...(reason ? [`Raison : ${reason}`] : [])], { label: status === "APPROVED" ? "Voir mon annonce" : "Modifier mon annonce", url: `${process.env.APP_URL || ""}${status === "APPROVED" ? `/listings/${l.id}` : `/host/listings/${l.id}`}` });
+    refresh();
+    redirect(`/admin/listings?done=${status.toLowerCase()}&who=${encodeURIComponent(l.title.slice(0, 60))}&mail=${await mailStatus(l.host.email, started)}`);
   }
   refresh();
 }

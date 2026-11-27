@@ -134,6 +134,8 @@ model HostProfile {
   status          ReviewState @default(PENDING)
   rejectionReason String?
   verifiedAt      DateTime?
+  reviewedBy      String? // name of the admin/staff member who approved or rejected
+  reviewedAt      DateTime?
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
 }
@@ -177,6 +179,8 @@ model Listing {
   bedGender          Gender? // shared apartments: the whole apartment is for men OR for women
   cancellationPolicy CancellationPolicy @default(MODERATE)
   status             ListingStatus      @default(DRAFT)
+  reviewedBy         String? // name of the admin/staff member who last approved/rejected/suspended
+  reviewedAt         DateTime?
   rejectionReason    String?
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt

@@ -9,8 +9,9 @@ import { fixDistanceAction, reviewListingAction } from "@/app/actions/admin";
 import { displayPrice } from "@/lib/listings";
 import { formatListingPrice } from "@/lib/money";
 import { Empty, StatusBadge } from "@/components/ui";
+import { DecisionNotice, ReviewTrace } from "@/components/DecisionNotice";
 
-export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; incomplete?: string; what?: string; error?: string }> }) {
+export default async function AdminListings({ searchParams }: { searchParams: Promise<{ status?: string; q?: string; incomplete?: string; what?: string; error?: string; done?: string; who?: string; mail?: string }> }) {
   await requireSection("listings");
   const { t, locale } = await getT();
   const sp = await searchParams;
@@ -24,6 +25,7 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
   });
   return (
     <div className="space-y-4">
+      <DecisionNotice done={sp.done} who={sp.who} mail={sp.mail} />
       {sp.error === "distance" && <div className="alert-brand">{t("lf.err.distance")}</div>}
       {sp.incomplete && <div className="alert-brand">{t(sp.what === "photos" ? "admin.incompletePhotos" : sp.what === "beds" ? "admin.incompleteBeds" : "admin.incompletePrice")}</div>}
       <form className="flex flex-wrap gap-2">
@@ -43,7 +45,10 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
           <div className="flex-1 space-y-1">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <Link href={`/listings/${l.id}`} className="font-medium text-neutral-900">{l.title}</Link>
-              <StatusBadge status={l.status} label={t(`lstatus.${l.status}`)} />
+              <div className="text-end">
+                <StatusBadge status={l.status} label={t(`lstatus.${l.status}`)} />
+                <ReviewTrace by={l.reviewedBy} at={l.reviewedAt} status={l.status} />
+              </div>
             </div>
             <div className="text-neutral-600">{t(`type.${l.type}`)} · {t(`city.${l.city}`)} · {l.distanceToHaramM} m · {formatListingPrice(l, displayPrice(l), locale)}</div>
             <div className="text-neutral-600">{l.type === "LONG_TERM" ? t("lt.ownerLabel") : t("role.HOST")} : {l.host.hostProfile?.displayName ?? l.host.name} ({l.host.hostProfile ? t(`rstatus.${l.host.hostProfile.status}`) : "—"})</div>
@@ -69,9 +74,9 @@ export default async function AdminListings({ searchParams }: { searchParams: Pr
             <form action={reviewListingAction} className="flex flex-wrap gap-2 pt-2">
               <input type="hidden" name="id" value={l.id} />
               <input name="reason" placeholder={t("admin.reason")} className="input max-w-xs py-1.5" />
-              <Choice name="decision" value="approve" className="btn-primary btn-sm">{t("admin.approve")}</Choice>
-              <Choice name="decision" value="reject" className="btn-secondary btn-sm">{t("admin.reject")}</Choice>
-              <Choice name="decision" value="suspend" className="btn-secondary btn-sm">{t("admin.suspend")}</Choice>
+              {l.status !== "APPROVED" && <Choice name="decision" value="approve" className="btn-primary btn-sm">{t("admin.approve")}</Choice>}
+              {l.status !== "REJECTED" && <Choice name="decision" value="reject" className="btn-secondary btn-sm">{t("admin.reject")}</Choice>}
+              {l.status !== "SUSPENDED" && <Choice name="decision" value="suspend" className="btn-secondary btn-sm">{t("admin.suspend")}</Choice>}
               <Choice name="decision" value="delete" className="btn-ghost btn-sm">{t("admin.delete")}</Choice>
             </form>
           </div>
