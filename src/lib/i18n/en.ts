@@ -204,7 +204,7 @@ export const en = {
   "auth.phone": "Phone (WhatsApp)",
   "auth.iAm": "I want to",
   "auth.asGuest": "Book a stay",
-  "auth.asHost": "Host guests",
+  "auth.asHost": "Rent out my place",
   "auth.noAccount": "No account yet?",
   "auth.haveAccount": "Already have an account?",
   "auth.err.invalid": "Incorrect e-mail or password.",

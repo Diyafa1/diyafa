@@ -205,7 +205,7 @@ export const fr: Dict = {
   "auth.phone": "Téléphone (WhatsApp)",
   "auth.iAm": "Je veux",
   "auth.asGuest": "Réserver un séjour",
-  "auth.asHost": "Accueillir des voyageurs",
+  "auth.asHost": "Louer mon logement",
   "auth.noAccount": "Pas encore de compte ?",
   "auth.haveAccount": "Déjà un compte ?",
   "auth.err.invalid": "E-mail ou mot de passe incorrect.",

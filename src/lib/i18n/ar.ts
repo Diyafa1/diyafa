@@ -205,7 +205,7 @@ export const ar: Dict = {
   "auth.phone": "الجوال (واتساب)",
   "auth.iAm": "أريد أن",
   "auth.asGuest": "أحجز إقامة",
-  "auth.asHost": "أستضيف الضيوف",
+  "auth.asHost": "أؤجّر سكني",
   "auth.noAccount": "ليس لديك حساب؟",
   "auth.haveAccount": "لديك حساب بالفعل؟",
   "auth.err.invalid": "البريد الإلكتروني أو كلمة المرور غير صحيحة.",
