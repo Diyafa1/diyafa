@@ -238,3 +238,10 @@ npm test                    # lance les tests (base séparée diyafa_test)
 - Le DNS étant chez Vercel, tous les enregistrements (MX o2switch, SPF/DKIM o2switch, Resend) s'ajoutent dans Vercel → Domains → al-diyafa.com.
 - Reste, dans l'ordre : 1) vérifier Valid Configuration ; 2) boîte mail pro `contact@al-diyafa.com` chez o2switch (ajouter le domaine dans cPanel → créer la boîte → Délivrabilité des e-mails → copier MX/SPF/DKIM dans Vercel DNS) ; 3) Resend → Domains → add al-diyafa.com (région eu-west-1) → enregistrements dans Vercel DNS → EMAIL_FROM=`Al-Diyafa <contact@al-diyafa.com>` ; 4) fusionner la branche `rename-al-diyafa` dans main ; 5) APP_URL=`https://www.al-diyafa.com`, Google (origines + redirection `https://www.al-diyafa.com/api/auth/google/callback` + branding + domaine autorisé al-diyafa.com), webhook Stripe → nouvelle URL ; 6) vérification Stripe de la société puis sk_live_ ; 7) Vercel Pro au lancement.
 
+
+## Séance 5 (27 nov.)
+- Domaine **en ligne** : https://www.al-diyafa.com ✅ (al-diyafa.com → 308 vers www). Cause du blocage : la zone DNS Vercel n'avait que les CAA ; ajout manuel dans Vercel DNS de `A @ 76.76.21.21` et `CNAME www cname.vercel-dns.com`.
+- `APP_URL=https://www.al-diyafa.com` mis dans Vercel par le propriétaire.
+- Branche `rename-al-diyafa` fusionnée dans main : marque **Al-Diyafa / الضيافة**.
+- Environnement cloud « diyafa » créé (accès à al-diyafa.com, www.al-diyafa.com, diyafa-omega.vercel.app pour vérifier le site).
+- Reste : Google OAuth (origines + redirection `https://www.al-diyafa.com/api/auth/google/callback`), webhook Stripe vers `https://www.al-diyafa.com/api/stripe/webhook`, boîte mail pro o2switch (MX/SPF/DKIM à mettre dans Vercel DNS), Resend sur le domaine + `EMAIL_FROM`, vérification Stripe de la société, Vercel Pro au lancement.
